@@ -6,14 +6,14 @@
 
   function getByPath(obj, path) {
     if (path === "always") return true;
-    return path.split(".").reduce((acc, key) => (acc == null ? undefined : acc[key]), obj);
+    return path.split(".").reduce((acc, key) => (acc === null || acc === undefined ? undefined : acc[key]), obj);
   }
 
   function setByPath(obj, path, value) {
     const keys = path.split(".");
     let cur = obj;
     for (let i = 0; i < keys.length - 1; i++) {
-      if (cur[keys[i]] == null) cur[keys[i]] = {};
+      if (cur[keys[i]] === null || cur[keys[i]] === undefined) cur[keys[i]] = {};
       cur = cur[keys[i]];
     }
     cur[keys[keys.length - 1]] = value;
