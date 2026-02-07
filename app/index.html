@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修仙模拟器：百大称号版</title>
+    <style>
+        :root {
+            --bg-color: #080808;
+            --text-primary: #e0e0e0;
+            --text-dim: #666;
+            --color-danger: #ff4444;
+            --color-gold: #ffd700;
+            --color-purple: #b088ff;
+            --color-blue: #4d94ff;
+            --color-green: #4eff4e;
+            --border-color: #333;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Consolas', 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 600px;
+            background: #000;
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* 通用按钮 */
+        .btn {
+            background: #111;
+            border: 1px solid var(--text-primary);
+            color: var(--text-primary);
+            padding: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 10px;
+            transition: 0.2s;
+            width: 100%;
+            font-weight: bold;
+        }
+        .btn:hover { background: var(--text-primary); color: #000; }
+        .btn:disabled { border-color: #333; color: #333; cursor: not-allowed; background: #000; }
+
+        .btn-small { padding: 5px 10px; font-size: 12px; width: auto; }
+
+        /* 面板通用 */
+        .panel {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            z-index: 20;
+            overflow-y: auto;
+        }
+        .hidden { display: none !important; }
+        .center-content { justify-content: center; align-items: center; text-align: center; }
+
+        h1 { font-size: 28px; letter-spacing: 5px; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+        h2 { color: var(--color-gold); margin-bottom: 20px; text-align: center; }
+
+        /* --- 初始首页 --- */
+        #start-stats { margin: 30px 0; font-size: 18px; color: #888; line-height: 2; }
+        .highlight-num { color: var(--color-green); font-size: 24px; font-weight: bold; }
+
+        /* --- 顶部状态栏 --- */
+        #status-bar { padding: 10px; border-bottom: 1px solid var(--border-color); background: #0c0c0c; z-index: 10; }
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; font-size: 13px; margin-bottom: 8px; }
+        .stat-item span { font-weight: bold; color: #fff; }
+        
+        /* 进度条 */
+        .controls-wrapper { display: flex; align-items: center; gap: 10px; }
+        .progress-wrapper { flex-grow: 1; display: flex; align-items: center; font-size: 12px; color: #666; }
+        #realm-name { width: 60px; color: var(--color-gold); font-weight: bold; }
+        .bar-bg { flex-grow: 1; height: 6px; background: #222; margin-left: 10px; border-radius: 3px; overflow: hidden; }
+        #bar-fill { height: 100%; background: var(--text-primary); width: 0%; transition: width 0.2s; }
+
+        /* --- 日志区 --- */
+        #log-area { 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            padding: 15px; 
+            padding-bottom: 80px; 
+            font-size: 15px; 
+            line-height: 1.6; 
+        }
+        #log-area::-webkit-scrollbar { width: 4px; }
+        #log-area::-webkit-scrollbar-thumb { background: #333; }
+        
+        .log-entry { margin-bottom: 6px; animation: fadeIn 0.2s; text-shadow: 0 0 2px rgba(0,0,0,0.5); }
+        .log-age { display: inline-block; width: 40px; color: #555; font-weight: bold; font-size: 12px; }
+
+        /* 颜色定义 */
+        .c-common { color: #aaa; }
+        .c-uncommon { color: #fff; }
+        .c-rare { color: var(--color-blue); }
+        .c-epic { color: var(--color-purple); }
+        .c-legend { color: var(--color-gold); }
+        .c-green { color: var(--color-green); }
+        .c-death { color: var(--color-danger); }
+        .c-funny { color: #ff77ff; }
+
+        /* --- 天赋卡片 --- */
+        .talent-grid { display: grid; gap: 8px; margin-bottom: 20px; width: 100%; }
+        .talent-card { border: 1px solid #333; padding: 12px; background: #111; transition: 0.2s; }
+        .talent-card:hover { transform: translateX(5px); background: #1a1a1a; }
+        .talent-card.positive { border-left: 4px solid var(--color-green); }
+        .talent-card.negative { border-left: 4px solid var(--color-danger); }
+        .talent-card.neutral { border-left: 4px solid var(--color-blue); }
+        .t-name { font-weight: bold; display: block; margin-bottom: 4px; color: #fff; }
+        .t-desc { font-size: 12px; color: #888; }
+
+        /* --- 称号图鉴样式 --- */
+        .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .title-card { 
+            border: 1px solid #222; 
+            background: #0a0a0a; 
+            padding: 10px; 
+            opacity: 0.4; /* 默认未解锁变暗 */
+            transition: 0.3s;
+            min-height: 60px;
+        }
+        .title-card.unlocked { 
+            opacity: 1; 
+            border: 1px solid var(--color-gold); 
+            background: #111;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
+        }
+        .tc-name { font-weight: bold; font-size: 13px; display: block; margin-bottom: 5px; }
+        .tc-desc { font-size: 11px; color: #666; line-height: 1.3; display: block; }
+        .unlocked .tc-desc { color: #999; }
+
+        /* --- 属性分配 --- */
+        .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed #222; }
+        .stat-ctrl button { width: 30px; height: 30px; border: 1px solid #444; background: none; color: white; cursor: pointer; }
+        .stat-val { display: inline-block; width: 40px; text-align: center; font-weight: bold; }
+
+        /* --- 结算弹窗 --- */
+        #settlement-modal {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.95); display: none; z-index: 50;
+            flex-direction: column; justify-content: center; align-items: center; padding: 30px;
+        }
+        .result-box { width: 100%; border: 1px solid var(--border-color); padding: 20px; background: #050505; text-align: center; margin-bottom: 20px; }
+        .end-title { font-size: 32px; font-weight: bold; margin: 15px 0 5px 0; display: block; text-shadow: 0 0 15px currentColor; }
+        .end-desc { font-size: 12px; color: #888; margin-bottom: 15px; font-style: italic; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        
+        <div id="panel-start" class="panel center-content">
+            <h1>修仙模拟器</h1>
+            <h3 style="color:#666; font-weight:normal; font-size:14px; letter-spacing: 2px;">凡人转世篇</h3>
+            
+            <div id="start-stats">
+                <div>已轮回：<span id="gen-count" class="highlight-num">1</span> 世</div>
+                <div>称号收集：<span id="title-rate" class="highlight-num">0%</span></div>
+            </div>
+
+            <button class="btn" onclick="game.toTalentSelection()">转世修仙</button>
+            <button class="btn" style="border-color:#555; color:#aaa;" onclick="game.toGallery()">天道封号榜 (图鉴)</button>
+            <button class="btn btn-small" style="margin-top:20px; border:none; color:#444;" onclick="game.resetData()">重置存档</button>
+        </div>
+
+        <div id="panel-gallery" class="panel hidden">
+            <h2>天道封号榜</h2>
+            <div style="text-align:center; margin-bottom:15px; color:#666;">
+                当前进度：<span id="gallery-progress" style="color:var(--text-primary)">0/21</span>
+            </div>
+            <div id="gallery-list" class="gallery-grid">
+                </div>
+            <button class="btn" onclick="game.backToStart()">返回首页</button>
+        </div>
+
+        <div id="panel-talent" class="panel hidden">
+            <h2>天赋觉醒</h2>
+            <div id="talent-list" class="talent-grid"></div>
+            <button id="btn-draw" class="btn" onclick="game.drawTalents()">随机抽取天赋 (3个)</button>
+            <button id="btn-confirm-talent" class="btn hidden" onclick="game.toSetup()">确认天赋</button>
+        </div>
+
+        <div id="panel-setup" class="panel hidden">
+            <h2>先天属性</h2>
+            <div style="text-align: center; margin-bottom: 20px; color: var(--color-green);">
+                可用点数: <span id="points-left" style="font-size: 24px;">20</span>
+            </div>
+            <div id="stat-rows"></div>
+            <button class="btn" style="border-color: #444; color:#888" onclick="game.randomStats()">听天由命 (随机)</button>
+            <button id="btn-start" class="btn" disabled onclick="game.startGame()">开始修仙</button>
+        </div>
+
+        <div id="panel-game" class="panel hidden" style="padding:0; overflow: hidden;">
+            <div id="status-bar">
+                <div class="stat-grid">
+                    <div class="stat-item">天赋:<span id="s-tianfu">0</span></div>
+                    <div class="stat-item">悟性:<span id="s-wuxing">0</span></div>
+                    <div class="stat-item">体质:<span id="s-tizhi">0</span></div>
+                    <div class="stat-item">气运:<span id="s-qiyun">0</span></div>
+                </div>
+                <div class="controls-wrapper">
+                    <div class="progress-wrapper">
+                        <div id="realm-name">凡人</div>
+                        <div class="bar-bg"><div id="bar-fill"></div></div>
+                    </div>
+                    <button class="btn btn-small" id="btn-pause" onclick="game.togglePause()">暂停</button>
+                </div>
+            </div>
+            <div id="log-area"></div>
+            
+            <button id="btn-settle" class="btn hidden" style="position:absolute; bottom:0; left:0; width:100%; z-index:30; background:var(--color-danger); border:none; margin:0;" onclick="game.showSettlement()">查看生平结算</button>
+        </div>
+
+        <div id="settlement-modal">
+            <h2 class="c-death">道消身殒</h2>
+            <div class="result-box">
+                <span style="color:#666; font-size:12px">天道封号</span>
+                <span id="end-title" class="end-title" style="color:white">无名小卒</span>
+                <div id="end-title-desc" class="end-desc">获得条件：...</div>
+                
+                <div style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">
+                    <div>享年：<span id="end-age" style="color:var(--color-gold)">0</span> 岁</div>
+                    <div>境界：<span id="end-realm" style="color:var(--color-gold)">凡人</span></div>
+                    <div style="margin-top:5px; font-size:13px; color:#aaa;" id="end-reason">死因...</div>
+                </div>
+            </div>
+            <button class="btn" onclick="location.reload()">再入轮回</button>
+        </div>
+
+    </div>
+
+    <script src="../config/game-config.js"></script>
+    <script src="../src/game-engine.js"></script>
+</body>
+</html>
