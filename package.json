@@ -1,0 +1,13 @@
+{
+  "name": "xiuxian-simulator",
+  "private": true,
+  "version": "1.0.0",
+  "description": "No-build browser game with minimal local lint/test checks",
+  "scripts": {
+    "lint": "eslint src config scripts tests --ext .js",
+    "check": "bash scripts/check-local.sh"
+  },
+  "devDependencies": {
+    "eslint": "^9.20.0"
+  }
+}
