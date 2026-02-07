@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            "src/game-engine.js"
+            "config/game-config.js"
+            "config/game-config.ops-template.js"
+          )
+
+          found=0
+          for file in "${files[@]}"; do
+            if [[ -f "$file" ]]; then
+              echo "Checking $file"
+              node --check "$file"
+              found=1
+            fi
+          done
+
+          if [[ "$found" -eq 0 ]]; then
+            echo "No expected JS files found; skipping syntax checks."
+          fi

@@ -44,3 +44,6 @@
 - 逻辑改动放在 `src/game-engine.js`
 - 入口页面保持精简，只负责加载资源与 UI
 
+## 部署
+
+- Fly.io 部署与 GitHub Actions 配置见：`docs/deploy-flyio.md`
