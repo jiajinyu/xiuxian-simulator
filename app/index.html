@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>修仙模拟器：百大称号版</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&display=swap');
@@ -34,9 +34,11 @@
             padding: 0;
             display: flex;
             justify-content: center;
+            height: 100dvh;
             height: 100vh;
             overflow: hidden;
             user-select: none;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         #star-canvas {
@@ -60,6 +62,7 @@
             position: relative;
             z-index: 1;
             box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         /* 字体层级系统 */
@@ -878,7 +881,7 @@
             </div>
             <div id="log-area"></div>
             
-            <button id="btn-settle" class="btn hidden" style="position:absolute; bottom:0; left:0; width:100%; z-index:30; background:linear-gradient(90deg, #8b0000, #ff4444, #8b0000); border:none; margin:0; animation: pulse 2s infinite;" onclick="game.showSettlement()">查看生平结算</button>
+            <button id="btn-settle" class="btn hidden" style="position:absolute; bottom:env(safe-area-inset-bottom, 0px); left:0; width:100%; z-index:30; background:linear-gradient(90deg, #8b0000, #ff4444, #8b0000); border:none; margin:0; animation: pulse 2s infinite;" onclick="game.showSettlement()">查看生平结算</button>
         </div>
 
         <div id="settlement-modal">
