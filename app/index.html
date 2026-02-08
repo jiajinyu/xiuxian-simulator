@@ -24,6 +24,14 @@
             --glass-border: rgba(255, 215, 0, 0.2);
             --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --mobile-bottom-fallback: 0px;
+        }
+
+        @supports (-webkit-touch-callout: none) {
+            :root {
+                /* iOS Chrome/Safari 在某些状态下 safe-area-bottom 会返回 0，这里给兜底 */
+                --mobile-bottom-fallback: 56px;
+            }
         }
 
         * { box-sizing: border-box; }
@@ -37,8 +45,9 @@
             display: flex;
             justify-content: center;
             min-height: 100vh;
-            height: 100svh;
+            height: 100vh;
             height: 100dvh;
+            height: 100svh;
             overflow: hidden;
             user-select: none;
             padding-bottom: var(--safe-bottom);
@@ -315,7 +324,7 @@
             flex-grow: 1; 
             overflow-y: auto; 
             padding: 16px; 
-            padding-bottom: calc(96px + var(--safe-bottom)); 
+            padding-bottom: calc(96px + max(var(--safe-bottom), var(--mobile-bottom-fallback))); 
             font-size: 15px; 
             line-height: 1.8;
             position: relative;
@@ -895,7 +904,7 @@
             </div>
             <div id="log-area"></div>
             
-            <button id="btn-settle" class="btn hidden" style="position:absolute; bottom:calc(var(--safe-bottom) + 8px); left:0; width:100%; z-index:30; background:linear-gradient(90deg, #8b0000, #ff4444, #8b0000); border:none; margin:0; animation: pulse 2s infinite;" onclick="game.showSettlement()">查看生平结算</button>
+            <button id="btn-settle" class="btn hidden" style="position:absolute; bottom:calc(max(var(--safe-bottom), var(--mobile-bottom-fallback)) + 8px); left:0; width:100%; z-index:30; background:linear-gradient(90deg, #8b0000, #ff4444, #8b0000); border:none; margin:0; animation: pulse 2s infinite;" onclick="game.showSettlement()">查看生平结算</button>
         </div>
 
         <div id="settlement-modal">
