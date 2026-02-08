@@ -1,0 +1,231 @@
+/**
+ * 移动端适配 CSS 模板
+ * 适用于需要刘海屏/灵动岛适配的项目
+ * 使用方法：将此文件的内容复制到你的 CSS 中，或作为参考
+ */
+
+/* ============================================
+   1. 基础 Viewport 设置 (放在 HTML head 中)
+   ============================================ */
+/*
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+*/
+
+/* ============================================
+   2. CSS 安全区域变量定义
+   ============================================ */
+:root {
+  /* 安全区域环境变量，不支持的环境会回退到 0px */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  /* 常用间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}
+
+/* ============================================
+   3. 全屏高度适配
+   ============================================ */
+.full-height {
+  /* dvh = 动态视口高度，在移动端浏览器地址栏显示/隐藏时能正确计算 */
+  height: 100dvh;
+  /* 回退方案 */
+  height: 100vh;
+}
+
+/* ============================================
+   4. 底部固定元素适配
+   ============================================ */
+.fixed-bottom {
+  position: fixed;
+  bottom: var(--safe-bottom);
+  left: 0;
+  right: 0;
+  /* 确保内容不会被安全区域遮挡，同时保持最小间距 */
+  padding-bottom: max(var(--spacing-md), var(--safe-bottom));
+}
+
+/* 底部按钮示例 */
+.bottom-button {
+  position: fixed;
+  bottom: var(--safe-bottom);
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  /* 其他样式 */
+}
+
+/* ============================================
+   5. 顶部固定元素适配 (避开刘海/灵动岛)
+   ============================================ */
+.fixed-top {
+  position: fixed;
+  top: var(--safe-top);
+  left: 0;
+  right: 0;
+  padding-top: max(var(--spacing-md), var(--safe-top));
+}
+
+/* ============================================
+   6. 安全区域容器
+   ============================================ */
+.safe-container {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+/* ============================================
+   7. 游戏/应用主容器
+   ============================================ */
+.app-container {
+  width: 100%;
+  max-width: 600px; /* 根据你的设计调整 */
+  margin: 0 auto;
+  min-height: 100dvh;
+  min-height: 100vh;
+  /* 为底部安全区域留出空间 */
+  padding-bottom: var(--safe-bottom);
+  /* 确保内容可滚动 */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================
+   8. 横屏模式适配
+   ============================================ */
+@media (orientation: landscape) {
+  .app-container {
+    /* 横屏时左右也可能有安全区域 */
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+}
+
+/* 小高度横屏设备（如 iPhone 横屏） */
+@media (orientation: landscape) and (max-height: 500px) {
+  body {
+    overflow-y: auto;
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .app-container {
+    min-height: 100dvh;
+    height: auto;
+  }
+}
+
+/* ============================================
+   9. 特定设备优化
+   ============================================ */
+
+/* iPhone X 及以上（有刘海屏的设备） */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .iphone-notch-aware {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+/* ============================================
+   10. 常见组件适配示例
+   ============================================ */
+
+/* 底部导航栏 */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding-bottom: var(--safe-bottom);
+  background: #fff;
+  /* 添加阴影以区分内容 */
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 全屏弹窗/模态框 */
+.fullscreen-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+/* 底部操作栏（如游戏结算按钮） */
+.action-bar {
+  position: absolute;
+  bottom: var(--safe-bottom);
+  left: 0;
+  width: 100%;
+  padding: var(--spacing-md);
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+}
+
+/* ============================================
+   11. 调试辅助（开发时使用）
+   ============================================ */
+
+/* 显示安全区域边界（调试用，发布前删除） */
+.debug-safe-area {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 9999;
+  border-top: 2px solid red;
+  border-bottom: 2px solid blue;
+  border-left: 2px solid green;
+  border-right: 2px solid yellow;
+}
+
+.debug-safe-area::before {
+  content: 'SAFE AREA';
+  position: absolute;
+  top: env(safe-area-inset-top, 0);
+  left: 50%;
+  transform: translateX(-50%);
+  background: red;
+  color: white;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* ============================================
+   12. 检查清单（复制到项目文档中）
+   ============================================ */
+/*
+移动端适配检查清单：
+
+HTML:
+- [ ] 添加了 viewport-fit=cover
+- [ ] 设置了正确的 charset
+
+CSS:
+- [ ] 使用了 100dvh 而不是 100vh
+- [ ] 底部固定元素使用了 env(safe-area-inset-bottom)
+- [ ] 顶部固定元素使用了 env(safe-area-inset-top)
+- [ ] 横屏模式测试通过
+- [ ] 弹窗/模态框有安全区域内边距
+
+测试:
+- [ ] iPhone 刘海屏设备测试
+- [ ] iPhone 灵动岛设备测试
+- [ ] Android 全面屏测试
+- [ ] 横屏模式测试
+- [ ] 浏览器地址栏显示/隐藏测试
+*/

@@ -18,16 +18,16 @@
 1. 打开 `app/index.html`
 2. 或使用任意静态服务器打开仓库目录后访问 `app/index.html`
 
-WSL2 可一键启动（会自动拉起静态服务并打开浏览器）：
+WSL2 可一键启动（会自动拉起静态服务并打开 Chrome）：
 
 ```bash
-bash scripts/start-app-wsl.sh
+bash scripts/serve.sh
 ```
 
 可选自定义端口（默认 8000）：
 
 ```bash
-bash scripts/start-app-wsl.sh 8080
+bash scripts/serve.sh 8080
 ```
 
 ## 运维 Git 脚本
