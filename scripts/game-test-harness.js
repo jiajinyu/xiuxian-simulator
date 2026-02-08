@@ -81,6 +81,11 @@ function createEnvironment() {
       return 1;
     },
     clearInterval: () => {},
+    setTimeout: (fn, ms) => {
+      // 立即执行，用于测试
+      if (typeof fn === 'function') fn();
+      return 1;
+    },
     console,
     Math: Object.create(Math)
   };
