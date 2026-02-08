@@ -1,3 +1,4 @@
+/* global setTimeout */
 (function () {
   const cfg = window.GAME_CONFIG;
   if (!cfg) {
@@ -140,7 +141,13 @@
         list.appendChild(div);
       });
 
-      document.getElementById("gallery-progress").innerText = `${unlockedCount}/${cfg.titles.length}`;
+      // 更新环形进度条
+      const total = cfg.titles.length;
+      const progress = unlockedCount / total;
+      const circumference = 2 * Math.PI * 36; // r=36
+      const offset = circumference - (progress * circumference);
+      document.getElementById("gallery-ring").style.strokeDashoffset = offset;
+      document.getElementById("gallery-progress").innerText = `${unlockedCount}/${total}`;
     },
 
     backToStart() {
@@ -177,12 +184,21 @@
     renderStats() {
       const con = document.getElementById("stat-rows");
       con.innerHTML = "";
+      const icons = {
+        tianfu: "🎯",
+        wuxing: "💡",
+        tizhi: "💪",
+        qiyun: "🍀"
+      };
       Object.keys(cfg.rules.statLabels).forEach(key => {
         con.innerHTML += `
           <div class="stat-row">
-            <span>${cfg.rules.statLabels[key]}</span>
+            <div class="stat-row-info">
+              <div class="stat-icon">${icons[key]}</div>
+              <span class="stat-name">${cfg.rules.statLabels[key]}</span>
+            </div>
             <div class="stat-ctrl">
-              <button onclick="game.modStat('${key}', -1)">-</button>
+              <button onclick="game.modStat('${key}', -1)">−</button>
               <span id="val-${key}" class="stat-val">${this.state.stats[key]}</span>
               <button onclick="game.modStat('${key}', 1)">+</button>
             </div>
@@ -216,7 +232,16 @@
     },
 
     updatePoints() {
-      document.getElementById("points-left").innerText = this.state.points;
+      const pointsEl = document.getElementById("points-left");
+      pointsEl.innerText = this.state.points;
+      
+      // 添加数值变化动画
+      pointsEl.style.transform = "scale(1.2)";
+      pointsEl.style.transition = "transform 0.2s ease";
+      setTimeout(() => {
+        pointsEl.style.transform = "scale(1)";
+      }, 200);
+      
       Object.keys(cfg.rules.statLabels).forEach(key => {
         document.getElementById(`val-${key}`).innerText = this.state.stats[key];
       });
@@ -265,7 +290,7 @@
       const delta = after - before;
       const sign = delta >= 0 ? "+" : "";
       this.log(
-        `<span class=\"log-age\">${this.state.age}岁</span>【调试】本回合修为 ${sign}${delta.toFixed(1)}，当前 ${after.toFixed(1)}`,
+        `<span class="log-age">${this.state.age}岁</span>【调试】本回合修为 ${sign}${delta.toFixed(1)}，当前 ${after.toFixed(1)}`,
         "c-common"
       );
     },
@@ -376,10 +401,26 @@
 
     updateGameUI() {
       const s = this.state;
-      document.getElementById("s-tianfu").innerText = s.stats.tianfu;
-      document.getElementById("s-wuxing").innerText = s.stats.wuxing;
-      document.getElementById("s-tizhi").innerText = s.stats.tizhi;
-      document.getElementById("s-qiyun").innerText = s.stats.qiyun;
+      
+      // 更新属性值，添加动画效果
+      const updateStat = (id, value) => {
+        const el = document.getElementById(id);
+        const oldValue = parseInt(el.innerText);
+        el.innerText = value;
+        if (oldValue !== value) {
+          el.style.transform = "scale(1.3)";
+          el.style.transition = "transform 0.2s ease";
+          setTimeout(() => {
+            el.style.transform = "scale(1)";
+          }, 200);
+        }
+      };
+      
+      updateStat("s-tianfu", s.stats.tianfu);
+      updateStat("s-wuxing", s.stats.wuxing);
+      updateStat("s-tizhi", s.stats.tizhi);
+      updateStat("s-qiyun", s.stats.qiyun);
+      
       document.getElementById("realm-name").innerText = cfg.realms[s.realmIdx];
 
       const req = this.getBreakthroughRequirement(s.realmIdx);
@@ -417,6 +458,7 @@
       document.getElementById("end-title-desc").innerText = myTitle.desc;
       document.getElementById("end-age").innerText = this.state.age;
       document.getElementById("end-realm").innerText = cfg.realms[this.state.realmIdx];
+      document.getElementById("end-gen").innerText = this.data.gen;
       document.getElementById("end-reason").innerText = `死因：${reason}`;
     },
 

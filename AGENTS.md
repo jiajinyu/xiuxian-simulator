@@ -39,10 +39,10 @@
 
 每次改动后至少执行：
 
-1. `node --check src/game-engine.js`
-2. `node --check config/game-config.js`
-3. 若改模板，`node --check config/game-config.ops-template.js`
-4. 手动验证 `app/index.html` 可打开，核心流程可跑通（开局 -> 修炼 -> 结算）
+1. `bash scripts/check.sh` - 运行完整检查（ESLint、JSON验证、冒烟测试、单元测试）
+2. 手动验证 `app/index.html` 可打开，核心流程可跑通（开局 -> 修炼 -> 结算）
+
+**注意**：每次大批量修改后必须运行 `scripts/check.sh`，确保代码质量和测试通过。
 
 ## 禁止事项
 
