@@ -680,13 +680,16 @@
         /* --- 结算弹窗 --- */
         #settlement-modal {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.95); 
-            display: none; 
+            background: rgba(0,0,0,0.95);
+            display: none;
             z-index: 50;
-            flex-direction: column; 
-            justify-content: center; 
-            align-items: center; 
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
             padding: 30px;
+            padding-top: max(30px, env(safe-area-inset-top, 0px));
+            padding-bottom: max(80px, calc(env(safe-area-inset-bottom, 0px) + 60px));
+            overflow-y: auto;
         }
         #settlement-modal::before {
             content: '';
@@ -885,8 +888,9 @@
         </div>
 
         <div id="settlement-modal">
-            <h2 class="c-death" style="font-size: 28px; letter-spacing: 6px; margin-bottom: 20px;">道消身殒</h2>
-            <div class="result-box">
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; min-height: min-content;">
+                <h2 class="c-death" style="font-size: 28px; letter-spacing: 6px; margin-bottom: 20px;">道消身殒</h2>
+                <div class="result-box">
                 <span class="end-title-label">天道封号</span>
                 <span id="end-title" class="end-title" style="color:white">无名小卒</span>
                 <div id="end-title-desc" class="end-desc">获得条件：...</div>
@@ -907,7 +911,8 @@
                 </div>
                 <div id="end-reason" class="end-reason">死因...</div>
             </div>
-            <button class="btn" onclick="location.reload()">再入轮回</button>
+                <button class="btn" onclick="location.reload()">再入轮回</button>
+            </div>
         </div>
 
     </div>
