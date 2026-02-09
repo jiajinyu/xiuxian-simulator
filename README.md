@@ -84,4 +84,8 @@ npm install
 
 ## 部署
 
+- GitHub Pages 部署：
+  1. 在 GitHub 仓库 Settings -> Pages 中选择 Source 为 “GitHub Actions”。
+  2. 推送到 `main` 后会触发 `Deploy to GitHub Pages` 工作流自动发布。
+  3. 访问 `https://<username>.github.io/<repo>/`，入口会跳转到 `app/index.html`。
 - Fly.io 部署与 GitHub Actions 配置见：`docs/deploy-flyio.md`
