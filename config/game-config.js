@@ -69,6 +69,12 @@ window.GAME_CONFIG = {
       qiyun: "气运"
     }
   },
+  // 行为统计（默认关闭，填写 GA4 Measurement ID 后开启）
+  analytics: {
+    enabled: false,
+    gaMeasurementId: "",
+    funnelName: "xiuxian-core"
+  },
 
   realms: ["凡人", "炼气", "筑基", "金丹", "元婴", "化神", "炼虚", "合体", "大乘", "渡劫", "真仙"],
 
