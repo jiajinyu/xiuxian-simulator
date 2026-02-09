@@ -357,9 +357,12 @@
 
       if (!hit) {
         const text = pickRandom(cfg.fillers);
-        const rawGain = s.stats.tianfu * cfg.rules.filler.cultivationFromTianfuMul;
-        const minGain = Number(cfg.rules.filler.minCultivationGain || 0);
-        const gain = Math.max(minGain, rawGain);
+        // 新修为公式：基础值 * (1 + 天赋 * 10%)
+        const realmIdx = s.realmIdx || 0;
+        const baseValue = (cfg.rules.realmBaseCultivation && cfg.rules.realmBaseCultivation[realmIdx]) || 10;
+        const tianfuMultiplier = (cfg.rules.cultivationFormula && cfg.rules.cultivationFormula.tianfuMultiplier) || 0.1;
+        const tianfu = s.stats.tianfu || 0;
+        const gain = baseValue * (1 + tianfu * tianfuMultiplier);
         hit = {
           text,
           color: "c-common",

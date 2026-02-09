@@ -41,6 +41,24 @@ window.GAME_CONFIG = {
       cultivationFromTianfuMul: 3,
       minCultivationGain: 1
     },
+    // 境界基础修为值 - 每次tick获取修为的基础值，与境界相关
+    realmBaseCultivation: {
+      0: 10,   // 凡人
+      1: 15,   // 炼气
+      2: 25,   // 筑基
+      3: 40,   // 金丹
+      4: 60,   // 元婴
+      5: 85,   // 化神
+      6: 115,  // 炼虚
+      7: 150,  // 合体
+      8: 190,  // 大乘
+      9: 235,  // 渡劫
+      10: 300  // 真仙
+    },
+    // 修为公式：基础值 * (1 + 天赋 * tianfuMultiplier)
+    cultivationFormula: {
+      tianfuMultiplier: 0.1  // 每点天赋增加10%修为获取
+    },
     debug: {
       logCultivationDeltaPerTick: true
     },
@@ -148,6 +166,12 @@ window.GAME_CONFIG = {
     { text: "路过工地，被御剑飞行的‘泥头车’创死。", chance: 0.001, isDeath: true },
     { text: "熬夜修仙（真的熬夜），猝死。", chance: 0.002, isDeath: true },
     { text: "看到不可名状的代码（屎山），San值归零而亡。", chance: 0.001, trigger: { all: [{ field: "stats.wuxing", op: ">", value: 10 }] }, isDeath: true },
-    { text: "被合欢宗妖女抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }] }, effects: [{ field: "stats.tizhi", add: -3 }, { field: "cultivation", add: -100 }] }
+    { text: "被合欢宗妖女抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }] }, effects: [{ field: "stats.tizhi", add: -3 }, { field: "cultivation", add: -100 }] },
+
+    // 高天赋专属事件 - 需要天赋达到一定值才能触发
+    { text: "天生异象，紫气东来三万里！你顿悟了无上大道。", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 10 }] }, effects: [{ field: "cultivation", add: 2000 }, { field: "stats.wuxing", add: 5 }] },
+    { text: "梦中得仙人指点，领悟了一门失传的上古神通。", chance: 0.015, color: "c-epic", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 8 }] }, effects: [{ field: "cultivation", add: 800 }, { field: "stats.qiyun", add: 3 }] },
+    { text: "你的修炼速度远超常人，宗门长老惊叹你为千年难遇的奇才。", chance: 0.02, color: "c-rare", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 6 }] }, effects: [{ field: "cultivation", add: 400 }, { field: "stats.tianfu", add: 1 }] },
+    { text: "参悟天地法则时，你隐约触摸到了一丝大道真意。", chance: 0.025, color: "c-uncommon", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 200 }, { field: "stats.wuxing", add: 1 }] }
   ]
 };
