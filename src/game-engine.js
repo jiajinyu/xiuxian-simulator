@@ -4,6 +4,45 @@
   if (!cfg) {
     throw new Error("GAME_CONFIG 未加载");
   }
+  const analyticsCfg = cfg.analytics || {};
+  let analyticsReady = false;
+
+  function ensureAnalytics() {
+    if (!analyticsCfg.enabled || !analyticsCfg.gaMeasurementId) return false;
+    if (!window.dataLayer) window.dataLayer = [];
+    if (!window.gtag) {
+      window.gtag = function () {
+        window.dataLayer.push(arguments);
+      };
+    }
+    if (!window.__gaScriptLoaded) {
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsCfg.gaMeasurementId}`;
+      document.head.appendChild(script);
+      window.__gaScriptLoaded = true;
+    }
+    if (!analyticsReady) {
+      window.gtag("js", new Date());
+      window.gtag("config", analyticsCfg.gaMeasurementId, { send_page_view: false });
+      analyticsReady = true;
+    }
+    return true;
+  }
+
+  function trackEvent(name, params) {
+    if (!ensureAnalytics()) return;
+    window.gtag("event", name, params || {});
+  }
+
+  function trackFunnelStep(stepName, stepIndex, extras) {
+    trackEvent("funnel_step", {
+      funnel_name: analyticsCfg.funnelName || "xiuxian-core",
+      step_name: stepName,
+      step_index: stepIndex,
+      ...(extras || {})
+    });
+  }
 
   function getByPath(obj, path) {
     if (path === "always") return true;
@@ -98,6 +137,7 @@
         this.data = JSON.parse(saved);
       }
       this.updateStartScreen();
+      trackFunnelStep("start_view", 0);
     },
 
     updateStartScreen() {
@@ -116,11 +156,13 @@
     toTalentSelection() {
       document.getElementById("panel-start").classList.add("hidden");
       document.getElementById("panel-talent").classList.remove("hidden");
+      trackFunnelStep("talent_select", 1);
     },
 
     toGallery() {
       document.getElementById("panel-start").classList.add("hidden");
       document.getElementById("panel-gallery").classList.remove("hidden");
+      trackEvent("view_gallery");
 
       const list = document.getElementById("gallery-list");
       list.innerHTML = "";
@@ -179,6 +221,7 @@
       document.getElementById("panel-setup").classList.remove("hidden");
       this.renderStats();
       this.updatePoints();
+      trackFunnelStep("attribute_setup", 2);
     },
 
     renderStats() {
@@ -291,6 +334,7 @@
 
       this.log("轮回转世，再踏仙途。", "c-legend");
       this.state.timer = setInterval(() => this.tick(), cfg.rules.tickMs);
+      trackFunnelStep("game_start", 3);
     },
 
     togglePause() {
@@ -517,6 +561,13 @@
       }
 
       localStorage.setItem("xiuxian_save", JSON.stringify(this.data));
+      this.state.lastTitle = myTitle.name;
+      trackFunnelStep("death", 4, {
+        age: this.state.age,
+        realm: cfg.realms[this.state.realmIdx],
+        title: myTitle.name
+      });
+      trackEvent("game_over", { reason });
 
       const tEl = document.getElementById("end-title");
       tEl.innerText = myTitle.name;
@@ -531,6 +582,9 @@
 
     showSettlement() {
       document.getElementById("settlement-modal").style.display = "flex";
+      trackFunnelStep("settlement_view", 5, {
+        title: this.state.lastTitle || "unknown"
+      });
     }
   };
 
