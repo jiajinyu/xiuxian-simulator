@@ -213,8 +213,29 @@
       } else if (delta < 0 && this.state.stats[key] > this.state.baseStats[key]) {
         this.state.stats[key]--;
         this.state.points++;
+      } else if (delta < 0 && this.state.stats[key] <= this.state.baseStats[key]) {
+        const statName = cfg.rules.statLabels[key];
+        const baseValue = this.state.baseStats[key];
+        this.showStatWarning(`${statName}受天赋影响，最低为${baseValue}点`);
       }
       this.updatePoints();
+    },
+
+    showStatWarning(message) {
+      let warningEl = document.getElementById("stat-warning");
+      if (!warningEl) {
+        warningEl = document.createElement("div");
+        warningEl.id = "stat-warning";
+        warningEl.style.cssText = "color:#ffaa00; text-align:center; margin:10px 0; font-size:13px; min-height:20px;";
+        const panelSetup = document.getElementById("panel-setup");
+        const btnStart = document.getElementById("btn-start");
+        panelSetup.insertBefore(warningEl, btnStart);
+      }
+      warningEl.innerText = message;
+      warningEl.style.display = "block";
+      setTimeout(() => {
+        warningEl.style.display = "none";
+      }, 2000);
     },
 
     randomStats() {
@@ -234,18 +255,33 @@
     updatePoints() {
       const pointsEl = document.getElementById("points-left");
       pointsEl.innerText = this.state.points;
-      
-      // 添加数值变化动画
+
       pointsEl.style.transform = "scale(1.2)";
       pointsEl.style.transition = "transform 0.2s ease";
       setTimeout(() => {
         pointsEl.style.transform = "scale(1)";
       }, 200);
-      
+
       Object.keys(cfg.rules.statLabels).forEach(key => {
         document.getElementById(`val-${key}`).innerText = this.state.stats[key];
       });
-      document.getElementById("btn-start").disabled = this.state.points !== 0;
+
+      const tizhi = this.state.stats.tizhi;
+      const btnStart = document.getElementById("btn-start");
+      const tizhiWarning = document.getElementById("tizhi-warning");
+
+      if (tizhi < 0) {
+        btnStart.disabled = true;
+        if (tizhiWarning) {
+          tizhiWarning.style.display = "block";
+          tizhiWarning.innerText = "体质不能为负，请调整属性！";
+        }
+      } else {
+        btnStart.disabled = this.state.points !== 0;
+        if (tizhiWarning) {
+          tizhiWarning.style.display = "none";
+        }
+      }
     },
 
     startGame() {
@@ -275,12 +311,18 @@
       }
 
       if (this.state.stats.tizhi <= 0) {
-        this.die("寿元耗尽，坐化于洞府。");
+        this.die("体质耗尽，魂飞魄散。");
         return;
       }
 
       this.checkBreakthrough();
       this.triggerEvent();
+
+      if (this.state.stats.tizhi <= 0 && !this.state.isDead) {
+        this.die("体质耗尽，魂飞魄散。");
+        return;
+      }
+
       this.logCultivationDelta(cultivationBeforeTick, this.state.cultivation);
       this.updateGameUI();
     },
@@ -348,16 +390,19 @@
         const shuffled = [...valid].sort(() => Math.random() - 0.5);
         for (let i = 0; i < shuffled.length; i++) {
           const e = shuffled[i];
-          if (e.chance && Math.random() < e.chance) {
-            hit = e;
-            break;
+          if (e.chance) {
+            const qiyunBonus = (s.stats.qiyun || 0) * 0.001;
+            const adjustedChance = e.chance + qiyunBonus;
+            if (Math.random() < adjustedChance) {
+              hit = e;
+              break;
+            }
           }
         }
       }
 
       if (!hit) {
         const text = pickRandom(cfg.fillers);
-        // 新修为公式：基础值 * (1 + 天赋 * 10%)
         const realmIdx = s.realmIdx || 0;
         const baseValue = (cfg.rules.realmBaseCultivation && cfg.rules.realmBaseCultivation[realmIdx]) || 10;
         const tianfuMultiplier = (cfg.rules.cultivationFormula && cfg.rules.cultivationFormula.tianfuMultiplier) || 0.1;
@@ -368,6 +413,11 @@
           color: "c-common",
           effects: [{ field: "cultivation", add: gain }]
         };
+      }
+
+      if (hit.requiresQiyunCheck && s.stats.qiyun < hit.minQiyun) {
+        this.log(`${s.age}岁：遇到机缘但气运不足，错失良机。`, "c-common");
+        return;
       }
 
       applyEffects(s, hit.effects);
@@ -381,7 +431,21 @@
       this.log(txt, colorClass);
 
       if (hit.isDeath) {
-        this.die(hit.text);
+        this.handleDeathEvent(hit);
+      }
+    },
+
+    handleDeathEvent(event) {
+      const s = this.state;
+      const damage = (s.realmIdx + 1) * 10;
+      s.stats.tizhi -= damage;
+      s.deathEventCount = (s.deathEventCount || 0) + 1;
+      this.log(`生死危机！体质受到重创，<span style="color:red">-${damage}</span>。`, "c-death");
+
+      if (s.stats.tizhi <= 0) {
+        this.die(event.text);
+      } else {
+        this.log("你顽强地活了下来！", "c-legend");
       }
     },
 

@@ -28,8 +28,8 @@ window.GAME_CONFIG = {
     baseStats: { tianfu: 0, wuxing: 0, tizhi: 0, qiyun: 0 },
     breakthrough: {
       reqBase: 150,
-      baseChance: 80,
-      perRealmPenalty: 8,
+      baseChance: 60,
+      perRealmPenalty: 5,
       statBonusMul: 2,
       successTizhiGainMul: 4,
       successTianfuGain: 2,
@@ -80,11 +80,11 @@ window.GAME_CONFIG = {
 
     { name: "废灵根", type: "negative", desc: "天赋-3，体质-2", effects: [{ field: "stats.tianfu", add: -3 }, { field: "stats.tizhi", add: -2 }] },
     { name: "天煞孤星", type: "negative", desc: "气运-5，克死亲友", effects: [{ field: "stats.qiyun", add: -5 }] },
-    { name: "经脉郁结", type: "negative", desc: "体质-4，修炼极慢", effects: [{ field: "stats.tizhi", add: -4 }] },
+    { name: "经脉郁结", type: "negative", desc: "体质-2，修炼极慢", effects: [{ field: "stats.tizhi", add: -2 }] },
     { name: "招黑体质", type: "negative", desc: "气运-3，容易被追杀", effects: [{ field: "stats.qiyun", add: -3 }] },
 
     { name: "莽夫", type: "neutral", desc: "体质+4，悟性-3", effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.wuxing", add: -3 }] },
-    { name: "玻璃大炮", type: "neutral", desc: "天赋+4，体质-4", effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.tizhi", add: -4 }] },
+    { name: "玻璃大炮", type: "neutral", desc: "天赋+4，体质-2", effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.tizhi", add: -2 }] },
     { name: "赌狗", type: "neutral", desc: "气运+5，悟性-4", effects: [{ field: "stats.qiyun", add: 5 }, { field: "stats.wuxing", add: -4 }] },
     { name: "聪明绝顶", type: "neutral", desc: "悟性+4，体质-2(秃了)", effects: [{ field: "stats.wuxing", add: 4 }, { field: "stats.tizhi", add: -2 }] }
   ],
@@ -118,6 +118,7 @@ window.GAME_CONFIG = {
     { name: "绿化带之主", color: "#4eff4e", desc: "达成条件：气运<0 但活过30岁", condition: { all: [{ field: "stats.qiyun", op: "<", value: 0 }, { field: "age", op: ">", value: 30 }] } },
     { name: "铁头娃", color: "#b088ff", desc: "达成条件：突破失败超过3次", condition: { all: [{ field: "failCount", op: ">", value: 3 }] } },
     { name: "短命鬼", color: "#888", desc: "达成条件：10岁前夭折", condition: { all: [{ field: "age", op: "<", value: 10 }] } },
+    { name: "耐杀王", color: "#ff4444", desc: "达成条件：经历2次死亡事件未死", condition: { all: [{ field: "deathEventCount", op: ">=", value: 2 }] } },
     { name: "大魔法师", color: "#b088ff", desc: "达成条件：死时还是童子身(气运>15且无道侣)", condition: { all: [{ field: "stats.qiyun", op: ">", value: 15 }, { field: "age", op: ">", value: 30 }] } },
 
     { name: "韩跑跑", color: "#4d94ff", desc: "达成条件：气运>20，逃跑大师", condition: { all: [{ field: "stats.qiyun", op: ">", value: 20 }] } },

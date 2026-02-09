@@ -41,6 +41,17 @@ class Element {
     this.scrollHeight = this.children.length;
     this.scrollTop = this.scrollHeight;
   }
+
+  insertBefore(newChild, refChild) {
+    const index = this.children.indexOf(refChild);
+    if (index === -1) {
+      this.children.push(newChild);
+    } else {
+      this.children.splice(index, 0, newChild);
+    }
+    this.scrollHeight = this.children.length;
+    this.scrollTop = this.scrollHeight;
+  }
 }
 
 function createEnvironment() {
