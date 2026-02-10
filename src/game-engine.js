@@ -63,9 +63,26 @@
     return list[Math.floor(Math.random() * list.length)];
   }
 
+  function evaluateValue(context, value) {
+    // 支持表达式字符串：如 "(realmIdx-1)*10" 或 "realmIdx-1"
+    if (typeof value === "string") {
+      // 安全地替换变量名
+      const vars = { realmIdx: context.realmIdx || 0 };
+      const expr = value
+        .replace(/\brealmIdx\b/g, vars.realmIdx);
+      try {
+        // eslint-disable-next-line no-eval
+        return eval(expr);
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  }
+
   function matchRule(context, rule) {
     const left = getByPath(context, rule.field);
-    const right = rule.value;
+    const right = evaluateValue(context, rule.value);
 
     switch (rule.op) {
       case "==":
@@ -450,7 +467,8 @@
           const e = shuffled[i];
           if (e.chance) {
             let adjustedChance = e.chance;
-            if (!e.isDeath) {
+            // 负面事件和死亡事件不使用气运加成公式（基础概率不变）
+            if (!e.isDeath && !e.isNegative) {
               const qiyunBonus = (s.stats.qiyun || 0) * 0.001;
               adjustedChance = e.chance + qiyunBonus;
             }

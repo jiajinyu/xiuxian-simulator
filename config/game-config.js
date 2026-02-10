@@ -57,7 +57,7 @@ window.GAME_CONFIG = {
     },
     // 修为公式：基础值 * (1 + 天赋 * tianfuMultiplier)
     cultivationFormula: {
-      tianfuMultiplier: 0.1  // 每点天赋增加10%修为获取
+      tianfuMultiplier: 0.05  // 每点天赋增加5%修为获取
     },
     debug: {
       logCultivationDeltaPerTick: true
@@ -130,7 +130,7 @@ window.GAME_CONFIG = {
     { name: "韩跑跑", color: "#4d94ff", desc: "达成条件：气运>20，逃跑大师", condition: { all: [{ field: "stats.qiyun", op: ">", value: 20 }] } },
     { name: "软饭硬吃", color: "#ff77ff", desc: "达成条件：触发南宫婉或合欢宗事件", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["南宫", "合欢"] }] } },
     { name: "药罐子", color: "#4eff4e", desc: "达成条件：体质<5 且活过50岁", condition: { all: [{ field: "stats.tizhi", op: "<", value: 5 }, { field: "age", op: ">", value: 50 }] } },
-    { name: "版本之子", color: "#ffd700", desc: "达成条件：全属性>15", condition: { all: [{ field: "stats.tianfu", op: ">", value: 15 }, { field: "stats.wuxing", op: ">", value: 15 }, { field: "stats.tizhi", op: ">", value: 15 }, { field: "stats.qiyun", op: ">", value: 15 }] } },
+    { name: "摸鱼大师", color: "#87CEEB", desc: "达成条件：年龄超过100岁但还在金丹以下摸鱼", condition: { all: [{ field: "age", op: ">", value: 100 }, { field: "realmIdx", op: "<=", value: 3 }] } },
     { name: "天选打工人", color: "#aaa", desc: "达成条件：死于工地或猝死", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["工地", "猝死"] }] } },
     { name: "吃货", color: "#ffaa00", desc: "达成条件：死于喝奶茶或电饭煲", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["奶茶", "电饭煲"] }] } },
 
@@ -173,19 +173,20 @@ window.GAME_CONFIG = {
     { text: "路过工地，被御剑飞行的‘泥头车’创死。", chance: 0.001, isDeath: true },
     { text: "熬夜修仙（真的熬夜），猝死。", chance: 0.002, isDeath: true },
     { text: "看到不可名状的代码（屎山），San值归零而亡。", chance: 0.001, trigger: { all: [{ field: "stats.wuxing", op: ">", value: 10 }] }, isDeath: true },
-    { text: "被合欢宗妖女抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }] }, effects: [{ field: "stats.tizhi", add: -3 }, { field: "cultivation", add: -100 }] },
+    { text: "被合欢宗妖女抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }] }, effects: [{ field: "stats.tizhi", add: -10 }, { field: "cultivation", add: -100 }] },
 
-    // 减修为搞笑事件
-    { text: "修炼时走火入魔，修为倒退十年！", chance: 0.015, color: "c-funny", effects: [{ field: "cultivation", add: -200 }] },
-    { text: "被心魔诱惑，沉迷网络游戏，荒废了修炼。", chance: 0.02, color: "c-funny", effects: [{ field: "cultivation", add: -150 }] },
-    { text: "误食了有毒的灵果，拉肚子拉了一整天，修为尽失。", chance: 0.015, color: "c-funny", effects: [{ field: "cultivation", add: -100 }] },
-    { text: "被一只会说话的鹦鹉骗了，把修为传给了它。", chance: 0.01, color: "c-funny", effects: [{ field: "cultivation", add: -300 }] },
-    { text: "试图用科学方法修仙，结果走火入魔，修为大跌。", chance: 0.015, color: "c-funny", effects: [{ field: "cultivation", add: -250 }] },
-    { text: "被一只会卖萌的妖兽骗了，把修为都用来买它的零食。", chance: 0.02, color: "c-funny", effects: [{ field: "cultivation", add: -180 }] },
-    { text: "修炼时睡着了，醒来发现修为被老鼠偷走了。", chance: 0.02, color: "c-funny", effects: [{ field: "cultivation", add: -120 }] },
-    { text: "试图用意念控制飞剑，结果飞剑失控，修为受损。", chance: 0.015, color: "c-funny", effects: [{ field: "cultivation", add: -220 }] },
-    { text: "被一只会唱歌的青蛙迷惑，修为都被它吸走了。", chance: 0.01, color: "c-funny", effects: [{ field: "cultivation", add: -280 }] },
-    { text: "试图用炼丹炉煮火锅，结果炸炉，修为倒退。", chance: 0.02, color: "c-funny", effects: [{ field: "cultivation", add: -160 }] },
+    // 减修为搞笑事件 - 负面事件，气运差才会遇到，概率不享受气运加成，需要气运判定
+    // 气运判定：气运 < （境界值-1）*10 才会触发（境界越高，越容易遭遇负面事件）
+    { text: "修炼时走火入魔，修为倒退十年！", chance: 0.015, isNegative: true, color: "c-funny", trigger: { all: [{ field: "stats.qiyun", op: "<", value: "(realmIdx-1)*10" }] }, effects: [{ field: "cultivation", add: -200 }] },
+    { text: "被心魔诱惑，沉迷网络游戏，荒废了修炼。", chance: 0.02, isNegative: true, color: "c-funny", trigger: { all: [{ field: "stats.qiyun", op: "<", value: "(realmIdx-1)*10" }] }, effects: [{ field: "cultivation", add: -150 }] },
+    { text: "误食了有毒的灵果，拉肚子拉了一整天，修为尽失。", chance: 0.015, isNegative: true, color: "c-funny", trigger: { all: [{ field: "stats.qiyun", op: "<", value: "(realmIdx-1)*10" }] }, effects: [{ field: "cultivation", add: -100 }] },
+    { text: "被一只会说话的鹦鹉骗了，把修为传给了它。", chance: 0.01, isNegative: true, color: "c-funny", trigger: { all: [{ field: "stats.qiyun", op: "<", value: "(realmIdx-1)*10" }] }, effects: [{ field: "cultivation", add: -300 }] },
+    { text: "试图用科学方法修仙，结果走火入魔，修为大跌。", chance: 0.015, isNegative: true, color: "c-funny", trigger: { all: [{ field: "stats.qiyun", op: "<", value: "(realmIdx-1)*10" }] }, effects: [{ field: "cultivation", add: -250 }] },
+    { text: "被一只会卖萌的妖兽骗了，把修为都用来买它的零食。", chance: 0.02, isNegative: true, color: "c-funny", trigger: { all: [{ field: "stats.qiyun", op: "<", value: "(realmIdx-1)*10" }] }, effects: [{ field: "cultivation", add: -180 }] },
+    { text: "修炼时睡着了，醒来发现修为被老鼠偷走了。", chance: 0.02, isNegative: true, color: "c-funny", trigger: { all: [{ field: "stats.qiyun", op: "<", value: "(realmIdx-1)*10" }] }, effects: [{ field: "cultivation", add: -120 }] },
+    { text: "试图用意念控制飞剑，结果飞剑失控，修为受损。", chance: 0.015, isNegative: true, color: "c-funny", trigger: { all: [{ field: "stats.qiyun", op: "<", value: "(realmIdx-1)*10" }] }, effects: [{ field: "cultivation", add: -220 }] },
+    { text: "被一只会唱歌的青蛙迷惑，修为都被它吸走了。", chance: 0.01, isNegative: true, color: "c-funny", trigger: { all: [{ field: "stats.qiyun", op: "<", value: "(realmIdx-1)*10" }] }, effects: [{ field: "cultivation", add: -280 }] },
+    { text: "试图用炼丹炉煮火锅，结果炸炉，修为倒退。", chance: 0.02, isNegative: true, color: "c-funny", trigger: { all: [{ field: "stats.qiyun", op: "<", value: "(realmIdx-1)*10" }] }, effects: [{ field: "cultivation", add: -160 }] },
 
     // 高天赋专属事件 - 需要天赋达到一定值才能触发
     { text: "天生异象，紫气东来三万里！你顿悟了无上大道。", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 10 }] }, effects: [{ field: "cultivation", add: 2000 }, { field: "stats.wuxing", add: 5 }] },
