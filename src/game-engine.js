@@ -359,7 +359,7 @@
       this.triggerEvent();
 
       if (this.state.stats.tizhi <= 0 && !this.state.isDead) {
-        this.showSettlementDirectly();
+        this.showSettlementDirectly("寿元耗尽，坐化于洞府。");
         return;
       }
 
@@ -428,7 +428,7 @@
         );
 
         if (s.stats.tizhi <= 0) {
-          this.showSettlementDirectly();
+          this.showSettlementDirectly(`冲击【${cfg.realms[s.realmIdx + 1]}】失败，气血攻心而亡。`);
         }
       }
     },
@@ -626,10 +626,51 @@
       });
     },
 
-    showSettlementDirectly() {
+    showSettlementDirectly(reason) {
       this.state.isDead = true;
+      this.state.deathReason = reason || "体质耗尽，魂飞魄散。";
       clearInterval(this.state.timer);
       document.getElementById("btn-settle").classList.remove("hidden");
+
+      this.data.gen++;
+
+      const context = {
+        ...this.state,
+        deathReason: this.state.deathReason,
+        always: true
+      };
+
+      const matchedTitles = cfg.titles.filter(t => matchCondition(context, t.condition));
+      let myTitle = null;
+
+      const unlockedTitles = new Set(this.data.titles);
+      const unownedMatched = matchedTitles.filter(t => !unlockedTitles.has(t.name));
+
+      if (unownedMatched.length > 0) {
+        myTitle = unownedMatched[0];
+      } else if (matchedTitles.length > 0) {
+        myTitle = matchedTitles[0];
+      } else {
+        myTitle = cfg.titles[cfg.titles.length - 1];
+      }
+
+      if (!this.data.titles.includes(myTitle.name)) {
+        this.data.titles.push(myTitle.name);
+      }
+
+      localStorage.setItem("xiuxian_save", JSON.stringify(this.data));
+      this.state.lastTitle = myTitle.name;
+
+      const tEl = document.getElementById("end-title");
+      tEl.innerText = myTitle.name;
+      tEl.style.color = myTitle.color;
+
+      document.getElementById("end-title-desc").innerText = myTitle.desc;
+      document.getElementById("end-age").innerText = this.state.age;
+      document.getElementById("end-realm").innerText = cfg.realms[this.state.realmIdx];
+      document.getElementById("end-gen").innerText = this.data.gen;
+      document.getElementById("end-reason").innerText = `死因：${this.state.deathReason}`;
+
       this.showSettlement();
     }
   };

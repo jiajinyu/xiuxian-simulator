@@ -175,6 +175,18 @@ window.GAME_CONFIG = {
     { text: "看到不可名状的代码（屎山），San值归零而亡。", chance: 0.001, trigger: { all: [{ field: "stats.wuxing", op: ">", value: 10 }] }, isDeath: true },
     { text: "被合欢宗妖女抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }] }, effects: [{ field: "stats.tizhi", add: -3 }, { field: "cultivation", add: -100 }] },
 
+    // 减修为搞笑事件
+    { text: "修炼时走火入魔，修为倒退十年！", chance: 0.015, color: "c-funny", effects: [{ field: "cultivation", add: -200 }] },
+    { text: "被心魔诱惑，沉迷网络游戏，荒废了修炼。", chance: 0.02, color: "c-funny", effects: [{ field: "cultivation", add: -150 }] },
+    { text: "误食了有毒的灵果，拉肚子拉了一整天，修为尽失。", chance: 0.015, color: "c-funny", effects: [{ field: "cultivation", add: -100 }] },
+    { text: "被一只会说话的鹦鹉骗了，把修为传给了它。", chance: 0.01, color: "c-funny", effects: [{ field: "cultivation", add: -300 }] },
+    { text: "试图用科学方法修仙，结果走火入魔，修为大跌。", chance: 0.015, color: "c-funny", effects: [{ field: "cultivation", add: -250 }] },
+    { text: "被一只会卖萌的妖兽骗了，把修为都用来买它的零食。", chance: 0.02, color: "c-funny", effects: [{ field: "cultivation", add: -180 }] },
+    { text: "修炼时睡着了，醒来发现修为被老鼠偷走了。", chance: 0.02, color: "c-funny", effects: [{ field: "cultivation", add: -120 }] },
+    { text: "试图用意念控制飞剑，结果飞剑失控，修为受损。", chance: 0.015, color: "c-funny", effects: [{ field: "cultivation", add: -220 }] },
+    { text: "被一只会唱歌的青蛙迷惑，修为都被它吸走了。", chance: 0.01, color: "c-funny", effects: [{ field: "cultivation", add: -280 }] },
+    { text: "试图用炼丹炉煮火锅，结果炸炉，修为倒退。", chance: 0.02, color: "c-funny", effects: [{ field: "cultivation", add: -160 }] },
+
     // 高天赋专属事件 - 需要天赋达到一定值才能触发
     { text: "天生异象，紫气东来三万里！你顿悟了无上大道。", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 10 }] }, effects: [{ field: "cultivation", add: 2000 }, { field: "stats.wuxing", add: 5 }] },
     { text: "梦中得仙人指点，领悟了一门失传的上古神通。", chance: 0.015, color: "c-epic", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 8 }] }, effects: [{ field: "cultivation", add: 800 }, { field: "stats.qiyun", add: 3 }] },
