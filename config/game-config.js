@@ -117,7 +117,7 @@ window.GAME_CONFIG = {
     { name: "绝世欧皇", color: "#ffd700", desc: "达成条件：气运>30，天命之子", condition: { all: [{ field: "stats.qiyun", op: ">", value: 30 }] } },
     { name: "非酋", color: "#333", desc: "达成条件：气运<-5，脸黑如炭", condition: { all: [{ field: "stats.qiyun", op: "<", value: -5 }] } },
     { name: "万年王八", color: "#4eff4e", desc: "达成条件：体质>100，太能苟了", condition: { all: [{ field: "stats.tizhi", op: ">", value: 100 }] } },
-    { name: "智商欠费", color: "#888", desc: "达成条件：悟性<0，这也想修仙？", condition: { all: [{ field: "stats.wuxing", op: "<", value: 0 }] } },
+    { name: "智商欠费", color: "#888", desc: "达成条件：死亡时悟性<10", condition: { all: [{ field: "stats.wuxing", op: "<", value: 10 }] } },
 
     { name: "键盘侠", color: "#ff77ff", desc: "达成条件：死于天降键盘", condition: { all: [{ field: "deathReason", op: "includes", value: "键盘" }] } },
     { name: "代码修仙", color: "#00ccff", desc: "达成条件：触发程序员事件", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["程序", "Bug", "代码"] }] } },
@@ -125,7 +125,7 @@ window.GAME_CONFIG = {
     { name: "铁头娃", color: "#b088ff", desc: "达成条件：突破失败超过3次", condition: { all: [{ field: "failCount", op: ">", value: 3 }] } },
     { name: "短命鬼", color: "#888", desc: "达成条件：10岁前夭折", condition: { all: [{ field: "age", op: "<", value: 10 }] } },
     { name: "耐杀王", color: "#ff4444", desc: "达成条件：经历2次死亡事件未死", condition: { all: [{ field: "deathEventCount", op: ">=", value: 2 }] } },
-    { name: "大魔法师", color: "#b088ff", desc: "达成条件：死时还是童子身(气运>15且无道侣)", condition: { all: [{ field: "stats.qiyun", op: ">", value: 15 }, { field: "age", op: ">", value: 30 }] } },
+    { name: "大魔法师", color: "#b088ff", desc: "达成条件：死时还是童子身(气运>15、年龄>30且未触发南宫婉或合欢宗事件)", condition: { all: [{ field: "stats.qiyun", op: ">", value: 15 }, { field: "age", op: ">", value: 30 }, { field: "hasTriggeredRomance", op: "==", value: false }] } },
 
     { name: "韩跑跑", color: "#4d94ff", desc: "达成条件：气运>20，逃跑大师", condition: { all: [{ field: "stats.qiyun", op: ">", value: 20 }] } },
     { name: "软饭硬吃", color: "#ff77ff", desc: "达成条件：触发南宫婉或合欢宗事件", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["南宫", "合欢"] }] } },

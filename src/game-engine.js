@@ -128,7 +128,9 @@
       paused: false,
       timer: null,
       failCount: 0,
-      deathReason: ""
+      deathReason: "",
+      deathEventCount: 0,
+      hasTriggeredRomance: false
     },
 
     init() {
@@ -464,6 +466,10 @@
         return;
       }
 
+      if (hit.text.includes("南宫婉") || hit.text.includes("合欢宗")) {
+        s.hasTriggeredRomance = true;
+      }
+
       applyEffects(s, hit.effects);
       if (s.cultivation < 0) s.cultivation = 0;
 
@@ -553,8 +559,19 @@
         always: true
       };
 
-      let myTitle = cfg.titles.find(t => matchCondition(context, t.condition));
-      if (!myTitle) myTitle = cfg.titles[cfg.titles.length - 1];
+      const matchedTitles = cfg.titles.filter(t => matchCondition(context, t.condition));
+      let myTitle = null;
+
+      const unlockedTitles = new Set(this.data.titles);
+      const unownedMatched = matchedTitles.filter(t => !unlockedTitles.has(t.name));
+
+      if (unownedMatched.length > 0) {
+        myTitle = unownedMatched[0];
+      } else if (matchedTitles.length > 0) {
+        myTitle = matchedTitles[0];
+      } else {
+        myTitle = cfg.titles[cfg.titles.length - 1];
+      }
 
       if (!this.data.titles.includes(myTitle.name)) {
         this.data.titles.push(myTitle.name);
