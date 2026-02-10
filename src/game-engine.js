@@ -229,17 +229,10 @@
     renderStats() {
       const con = document.getElementById("stat-rows");
       con.innerHTML = "";
-      const icons = {
-        tianfu: "🎯",
-        wuxing: "💡",
-        tizhi: "💪",
-        qiyun: "🍀"
-      };
       Object.keys(cfg.rules.statLabels).forEach(key => {
         con.innerHTML += `
           <div class="stat-row">
             <div class="stat-row-info">
-              <div class="stat-icon">${icons[key]}</div>
               <span class="stat-name">${cfg.rules.statLabels[key]}</span>
             </div>
             <div class="stat-ctrl">

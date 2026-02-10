@@ -186,8 +186,8 @@
             max-width: 300px;
         }
         .stat-card {
-            background: linear-gradient(135deg, rgba(255,215,0,0.05) 0%, rgba(0,0,0,0.5) 100%);
-            border: 1px solid rgba(255,215,0,0.2);
+            background: linear-gradient(135deg, rgba(255,215,0,0.08) 0%, rgba(0,0,0,0.5) 100%);
+            border: 1px solid rgba(255,215,0,0.3);
             border-radius: 8px;
             padding: 16px 20px;
             display: flex;
@@ -196,20 +196,21 @@
             transition: all 0.3s ease;
         }
         .stat-card:hover {
-            border-color: rgba(255,215,0,0.4);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+            border-color: rgba(255,215,0,0.5);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
             transform: translateX(5px);
         }
         .stat-card-label {
-            font-size: 13px;
-            color: var(--text-dim);
-            letter-spacing: 2px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--color-gold);
+            letter-spacing: 3px;
         }
         .highlight-num { 
             color: var(--color-gold); 
-            font-size: 28px; 
-            font-weight: 700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            font-size: 32px; 
+            font-weight: 900;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
         }
 
         /* --- 顶部状态栏 --- */
@@ -260,18 +261,18 @@
             align-items: center; 
         }
         #realm-name { 
-            width: 50px; 
+            min-width: 60px; 
             color: var(--color-gold); 
             font-weight: 700;
             font-size: 14px;
             text-align: center;
-            writing-mode: vertical-rl;
-            letter-spacing: 4px;
-            padding: 8px 4px;
+            letter-spacing: 2px;
+            padding: 8px 12px;
             background: rgba(255,215,0,0.05);
             border: 1px solid rgba(255,215,0,0.2);
             border-radius: 4px;
             margin-right: 12px;
+            white-space: nowrap;
         }
         .bar-bg { 
             flex-grow: 1; 
@@ -329,28 +330,19 @@
             line-height: 1.8;
             position: relative;
         }
-        #log-area::before {
-            content: '';
-            position: absolute;
-            left: 26px;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: linear-gradient(180deg, transparent 0%, rgba(255,215,0,0.3) 10%, rgba(255,215,0,0.3) 90%, transparent 100%);
-        }
         #log-area::-webkit-scrollbar { width: 4px; }
         #log-area::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
         
         .log-entry { 
             margin-bottom: 12px; 
             animation: fadeIn 0.3s ease; 
-            padding-left: 32px;
+            padding-left: 20px;
             position: relative;
         }
         .log-entry::before {
             content: '';
             position: absolute;
-            left: 20px;
+            left: 0;
             top: 8px;
             width: 10px;
             height: 10px;
@@ -511,10 +503,10 @@
             .btn { padding: 12px; font-size: 14px; }
             .panel { padding: 16px; }
             #realm-name {
-                width: 36px;
+                min-width: 50px;
                 font-size: 12px;
-                letter-spacing: 2px;
-                padding: 6px 2px;
+                letter-spacing: 1px;
+                padding: 6px 8px;
             }
             .talent-grid { gap: 8px; }
             .talent-card { padding: 12px; }
@@ -605,59 +597,52 @@
         .points-display {
             text-align: center;
             margin-bottom: 24px;
-            padding: 20px;
-            background: linear-gradient(135deg, rgba(255,215,0,0.05) 0%, rgba(0,0,0,0.3) 100%);
-            border: 1px solid rgba(255,215,0,0.2);
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(0,0,0,0.5) 100%);
+            border: 2px solid rgba(255,215,0,0.4);
             border-radius: 12px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
         }
         .points-label {
-            font-size: 12px;
-            color: var(--text-dim);
-            letter-spacing: 3px;
-            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--color-gold);
+            font-weight: 700;
+            letter-spacing: 4px;
+            margin-bottom: 12px;
             display: block;
         }
         .points-value {
-            font-size: 42px;
+            font-size: 56px;
             font-weight: 900;
             color: var(--color-gold);
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
             line-height: 1;
         }
         .stat-row { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            padding: 16px; 
-            margin-bottom: 8px;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.05);
+            padding: 18px 20px; 
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 8px;
             transition: all 0.3s ease;
         }
         .stat-row:hover {
-            background: rgba(255,255,255,0.04);
-            border-color: rgba(255,215,0,0.1);
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,215,0,0.2);
         }
         .stat-row-info {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        .stat-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            background: rgba(255,215,0,0.1);
-            border: 1px solid rgba(255,215,0,0.2);
-        }
         .stat-name {
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: 2px;
         }
         .stat-ctrl { display: flex; align-items: center; gap: 12px; }
         .stat-ctrl button { 
@@ -718,7 +703,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(ellipse at center, rgba(139,0,0,0.2) 0%, transparent 70%);
+            background: radial-gradient(ellipse at center, rgba(255,215,0,0.15) 0%, transparent 70%);
             pointer-events: none;
         }
         .result-box { 
@@ -824,7 +809,6 @@
         
         <div id="panel-start" class="panel center-content">
             <h1>修仙模拟器</h1>
-            <div class="font-subtitle" style="writing-mode: vertical-rl; letter-spacing: 8px; margin-bottom: 20px;">凡人转世篇</div>
             
             <div id="start-stats">
                 <div class="stat-card">
@@ -842,7 +826,7 @@
             <button class="btn btn-small btn-secondary" style="margin-top:20px;" onclick="game.resetData()">重置存档</button>
         </div>
 
-        <div id="panel-gallery" class="panel hidden">
+        <div id="panel-gallery" class="panel hidden" style="padding-bottom: calc(40px + var(--safe-bottom));">
             <h2>天道封号榜</h2>
             <div class="progress-ring">
                 <svg width="80" height="80">
@@ -852,8 +836,8 @@
                 </svg>
                 <span class="progress-text" id="gallery-progress">0/21</span>
             </div>
-            <div id="gallery-list" class="gallery-grid"></div>
-            <button class="btn" onclick="game.backToStart()">返回首页</button>
+            <div id="gallery-list" class="gallery-grid" style="margin-bottom: 40px;"></div>
+            <button class="btn" onclick="game.backToStart()" style="margin-top: auto;">返回首页</button>
         </div>
 
         <div id="panel-talent" class="panel hidden">
@@ -905,7 +889,7 @@
             </div>
             <div id="log-area"></div>
             
-            <button id="btn-settle" class="btn hidden" style="position:absolute; bottom:calc(max(var(--safe-bottom), var(--mobile-bottom-fallback)) + 8px); left:0; width:100%; z-index:30; background:linear-gradient(90deg, #8b0000, #ff4444, #8b0000); border:none; margin:0; animation: pulse 2s infinite;" onclick="game.showSettlement()">查看生平结算</button>
+            <button id="btn-settle" class="btn hidden" style="position:absolute; bottom:calc(max(var(--safe-bottom), var(--mobile-bottom-fallback)) + 8px); left:0; width:100%; z-index:30; background:linear-gradient(90deg, #b8860b, #ffd700, #b8860b); border:none; margin:0; animation: pulse 2s infinite; color:#000; font-weight:700;" onclick="game.showSettlement()">查看生平结算</button>
         </div>
 
         <div id="settlement-modal">
