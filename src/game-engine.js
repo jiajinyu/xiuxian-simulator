@@ -347,6 +347,7 @@
     tick() {
       if (this.state.isDead || this.state.paused) return;
       const cultivationBeforeTick = this.state.cultivation;
+      const statsBeforeTick = { ...this.state.stats };
 
       this.state.age++;
       if (
@@ -357,7 +358,7 @@
       }
 
       if (this.state.stats.tizhi <= 0) {
-        this.die("体质耗尽，魂飞魄散。");
+        this.die("寿元耗尽，坐化于洞府。");
         return;
       }
 
@@ -365,27 +366,41 @@
       this.triggerEvent();
 
       if (this.state.stats.tizhi <= 0 && !this.state.isDead) {
-        this.die("体质耗尽，魂飞魄散。");
+        this.showSettlementDirectly();
         return;
       }
 
-      this.logCultivationDelta(cultivationBeforeTick, this.state.cultivation);
+      this.logCultivationDelta(cultivationBeforeTick, this.state.cultivation, statsBeforeTick, this.state.stats);
       this.updateGameUI();
     },
 
-    logCultivationDelta(before, after) {
+    logCultivationDelta(before, after, statsBefore, statsAfter) {
       if (!cfg.rules.debug || !cfg.rules.debug.logCultivationDeltaPerTick) return;
       const delta = after - before;
       const sign = delta >= 0 ? "+" : "";
-      this.log(
-        `<span class="log-age">${this.state.age}岁</span>【调试】本回合修为 ${sign}${delta.toFixed(1)}，当前 ${after.toFixed(1)}`,
-        "c-common"
-      );
+
+      const statChanges = [];
+      Object.keys(cfg.rules.statLabels).forEach(key => {
+        const statDelta = statsAfter[key] - statsBefore[key];
+        if (statDelta !== 0) {
+          const statSign = statDelta > 0 ? "+" : "";
+          statChanges.push(`${cfg.rules.statLabels[key]}${statSign}${statDelta}`);
+        }
+      });
+
+      let message = `<span class="log-age">${this.state.age}岁</span>【调试】本回合修为 ${sign}${delta.toFixed(1)}，当前 ${after.toFixed(1)}`;
+      if (statChanges.length > 0) {
+        message += ` | 属性变化: ${statChanges.join(", ")}`;
+      }
+
+      this.log(message, "c-common");
     },
 
     getBreakthroughRequirement(realmIdx) {
       const lv = realmIdx + 1;
-      return lv * cfg.rules.breakthrough.reqBase * lv;
+      // 使用指数增长，让高境界突破需要更长时间
+      // 公式：reqBase * lv^2.5，让后期增长更快
+      return Math.floor(cfg.rules.breakthrough.reqBase * Math.pow(lv, 2.5));
     },
 
     checkBreakthrough() {
@@ -418,6 +433,10 @@
           `冲击【${cfg.realms[s.realmIdx + 1]}】失败！气血逆流，<span style="color:red">体质-${loss}</span>。`,
           "c-death"
         );
+
+        if (s.stats.tizhi <= 0) {
+          this.showSettlementDirectly();
+        }
       }
     },
 
@@ -437,8 +456,11 @@
         for (let i = 0; i < shuffled.length; i++) {
           const e = shuffled[i];
           if (e.chance) {
-            const qiyunBonus = (s.stats.qiyun || 0) * 0.001;
-            const adjustedChance = e.chance + qiyunBonus;
+            let adjustedChance = e.chance;
+            if (!e.isDeath) {
+              const qiyunBonus = (s.stats.qiyun || 0) * 0.001;
+              adjustedChance = e.chance + qiyunBonus;
+            }
             if (Math.random() < adjustedChance) {
               hit = e;
               break;
@@ -487,14 +509,21 @@
 
     handleDeathEvent(event) {
       const s = this.state;
+
+      const qiyunCheckChance = Math.min((s.stats.qiyun || 0) * 0.5, 80);
+      if (Math.random() * 100 < qiyunCheckChance) {
+        this.log(`${s.age}岁：${event.text}，但你的气运让你化险为夷！`, "c-legend");
+        return;
+      }
+
       const damage = (s.realmIdx + 1) * 10;
       s.stats.tizhi -= damage;
       s.deathEventCount = (s.deathEventCount || 0) + 1;
-      this.log(`生死危机！体质受到重创，<span style="color:red">-${damage}</span>。`, "c-death");
 
       if (s.stats.tizhi <= 0) {
-        this.die(event.text);
+        this.die(`${event.text}（体质-${damage}）`);
       } else {
+        this.log(`${event.text}（体质-<span style="color:red">${damage}</span>）`, "c-death");
         this.log("你顽强地活了下来！", "c-legend");
       }
     },
@@ -602,6 +631,13 @@
       trackFunnelStep("settlement_view", 5, {
         title: this.state.lastTitle || "unknown"
       });
+    },
+
+    showSettlementDirectly() {
+      this.state.isDead = true;
+      clearInterval(this.state.timer);
+      document.getElementById("btn-settle").classList.remove("hidden");
+      this.showSettlement();
     }
   };
 
