@@ -130,7 +130,7 @@ test('modStat shows warning when reaching base stat limit', () => {
   game.modStat('tizhi', -1);
 
   const warningEl = getElementById('stat-warning');
-  assert.strictEqual(warningEl.innerText.includes('体质受天赋影响'), true);
+  assert.strictEqual(warningEl.innerText.includes('不可减少天赋自带属性'), true);
 });
 
 test('tizhi cannot be negative at start', () => {
