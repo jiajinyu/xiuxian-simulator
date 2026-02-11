@@ -260,6 +260,9 @@
       });
 
       this.state.baseStats = { ...this.state.stats };
+      
+      // 隐藏"再抽一次"按钮（每回合只能抽两次）
+      document.getElementById("btn-redraw").classList.add("hidden");
     },
 
     toSetup() {
