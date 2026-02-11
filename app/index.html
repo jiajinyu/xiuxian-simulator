@@ -311,6 +311,31 @@
             width: 100%;
         }
         .gallery-grid { grid-template-columns: 1fr 1fr; }
+        .gallery-progress-panel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .gallery-ring-svg {
+            width: 84px;
+            height: 84px;
+        }
+        .gallery-ring-bg {
+            fill: none;
+            stroke: rgba(220, 203, 181, 0.2);
+            stroke-width: 6;
+        }
+        .gallery-ring-progress {
+            fill: none;
+            stroke: var(--evt-pos);
+            stroke-width: 6;
+            transform-origin: 42px 42px;
+            transform: rotate(-90deg);
+            stroke-linecap: round;
+            stroke-dasharray: 226.19;
+            stroke-dashoffset: 226.19;
+        }
 
         .talent-card, .title-card {
             border: 1px solid var(--border-highlight);
@@ -510,6 +535,12 @@
             <div style="text-align:center; margin-bottom:10px; color:var(--text-dim);">
                 解锁进度：<span id="gallery-progress" style="color:var(--text-main);">0/21</span>
             </div>
+            <div class="gallery-progress-panel">
+                <svg class="gallery-ring-svg" viewBox="0 0 84 84" aria-label="封号收集进度">
+                    <circle class="gallery-ring-bg" cx="42" cy="42" r="36"></circle>
+                    <circle id="gallery-ring" class="gallery-ring-progress" cx="42" cy="42" r="36"></circle>
+                </svg>
+            </div>
             <div id="gallery-list" class="gallery-grid"></div>
             <button class="btn" onclick="game.backToStart()">返回</button>
         </div>
@@ -529,6 +560,7 @@
                 <span id="points-left" class="points-value">20</span>
             </div>
             <div id="stat-rows"></div>
+            <div id="tizhi-warning" style="display:none; text-align:center; color:var(--evt-neg); margin-bottom:10px; font-size:13px;">体质不能为负，请调整属性！</div>
             <div style="display:flex; gap:10px;">
                 <button class="btn" style="flex:1; background:#3e2723;" onclick="game.randomStats()">听天由命</button>
                 <button id="btn-start" class="btn" style="flex:1" disabled onclick="game.startGame()">开始</button>

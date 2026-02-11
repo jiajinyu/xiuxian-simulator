@@ -35,18 +35,16 @@ test('tick can drive settlement path', () => {
 });
 
 test('death event reduces tizhi instead of instant death', () => {
-  const { game, config } = createEnvironment();
+  const { game } = createEnvironment();
 
   game.state.stats.tizhi = 20;
   game.state.realmIdx = 0;
   game.state.isDead = false;
 
-  const deathEvent = {
-    text: "测试死亡事件",
+  game.handleDeathEvent({
+    text: '测试死亡事件',
     isDeath: true
-  };
-
-  game.handleDeathEvent(deathEvent);
+  });
 
   const expectedDamage = (game.state.realmIdx + 1) * 10;
   assert.strictEqual(game.state.stats.tizhi, 20 - expectedDamage);
@@ -61,11 +59,7 @@ test('death event kills when tizhi drops to zero', () => {
   game.state.realmIdx = 0;
   game.state.isDead = false;
 
-  const deathEvent = {
-    text: "测试致命事件"
-  };
-
-  game.handleDeathEvent(deathEvent);
+  game.handleDeathEvent({ text: '测试致命事件' });
 
   assert.strictEqual(game.state.isDead, true);
   assert.strictEqual(game.state.deathEventCount, 1);
@@ -89,10 +83,10 @@ test('tick kills player when tizhi drops to zero after event', () => {
 });
 
 test('qiyun increases event chance', () => {
-  const { context, game, config } = createEnvironment();
+  const { game } = createEnvironment();
 
   const eventWithChance = {
-    text: "测试事件",
+    text: '测试事件',
     chance: 0.1
   };
 
@@ -111,8 +105,8 @@ test('death event count tracks multiple survival events', () => {
   game.state.isDead = false;
   game.state.deathEventCount = 0;
 
-  game.handleDeathEvent({ text: "第一次" });
-  game.handleDeathEvent({ text: "第二次" });
+  game.handleDeathEvent({ text: '第一次' });
+  game.handleDeathEvent({ text: '第二次' });
 
   assert.strictEqual(game.state.deathEventCount, 2);
   assert.strictEqual(game.state.isDead, false);
@@ -124,24 +118,98 @@ test('modStat shows warning when reaching base stat limit', () => {
   game.state.baseStats = { tizhi: 5, tianfu: 0, wuxing: 0, qiyun: 0 };
   game.state.stats = { tizhi: 5, tianfu: 0, wuxing: 0, qiyun: 0 };
   game.state.points = 0;
-
-  const btnStart = getElementById('btn-start');
+  game.renderStats();
 
   game.modStat('tizhi', -1);
 
   const warningEl = getElementById('stat-warning');
+  assert.notStrictEqual(warningEl, null);
   assert.strictEqual(warningEl.innerText.includes('不可减少天赋自带属性'), true);
 });
 
-test('tizhi cannot be negative at start', () => {
+test('tizhi warning is shown when start stats go negative', () => {
   const { game, getElementById } = createEnvironment();
 
   game.state.stats.tizhi = -1;
+  game.renderStats();
   game.updatePoints();
 
-  const btnStart = getElementById('btn-start');
   const warningEl = getElementById('tizhi-warning');
-
-  assert.strictEqual(btnStart.disabled, true);
+  assert.strictEqual(getElementById('btn-start').disabled, true);
   assert.strictEqual(warningEl.style.display, 'block');
+});
+
+test('toGallery does not crash when optional ring element is missing', () => {
+  const { game, getElementById } = createEnvironment({ missingIds: ['gallery-ring'] });
+
+  assert.strictEqual(getElementById('gallery-ring'), null);
+  assert.doesNotThrow(() => game.toGallery());
+});
+
+test('draw then redraw keeps redraw button hidden on second draw', () => {
+  const { game, getElementById } = createEnvironment();
+
+  game.toTalentSelection();
+  game.drawTalents();
+  assert.strictEqual(getElementById('btn-redraw').classList.contains('hidden'), false);
+
+  game.redrawTalents();
+  assert.strictEqual(getElementById('btn-redraw').classList.contains('hidden'), true);
+});
+
+test('event trigger supports arithmetic expression values', () => {
+  const { game, config } = createEnvironment();
+
+  config.events = [{
+    text: '表达式触发事件',
+    chance: 1,
+    trigger: { all: [{ field: 'stats.qiyun', op: '<', value: '(realmIdx-1)*10' }] },
+    effects: [{ field: 'cultivation', add: 123 }]
+  }];
+
+  game.state.realmIdx = 3;
+  game.state.stats.qiyun = 10;
+  game.state.cultivation = 0;
+
+  game.triggerEvent();
+
+  assert.strictEqual(game.state.cultivation, 123);
+});
+
+test('invalid expression in condition does not crash game loop', () => {
+  const { game, config } = createEnvironment();
+
+  config.events = [{
+    text: '非法表达式事件',
+    chance: 1,
+    trigger: { all: [{ field: 'stats.qiyun', op: '<', value: 'realmIdx+unknownVar' }] },
+    effects: [{ field: 'cultivation', add: 999 }]
+  }];
+
+  game.state.realmIdx = 3;
+  game.state.stats.qiyun = 10;
+
+  assert.doesNotThrow(() => game.triggerEvent());
+  assert.notStrictEqual(game.state.cultivation, 999);
+});
+
+test('showSettlementDirectly uses the same death finalization path', () => {
+  const { game, getElementById } = createEnvironment();
+  const beforeGen = game.data.gen;
+
+  game.state.age = 88;
+  game.state.realmIdx = 2;
+  game.showSettlementDirectly('测试直接结算');
+
+  assert.strictEqual(game.state.isDead, true);
+  assert.strictEqual(game.data.gen, beforeGen + 1);
+  assert.strictEqual(getElementById('settlement-modal').style.display, 'flex');
+  assert.strictEqual(getElementById('end-reason').innerText.includes('测试直接结算'), true);
+  assert.strictEqual(Boolean(game.state.lastTitle), true);
+});
+
+test('test harness returns null for unknown ids', () => {
+  const { getElementById } = createEnvironment();
+
+  assert.strictEqual(getElementById('definitely-missing-id'), null);
 });
