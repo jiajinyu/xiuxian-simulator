@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${PROJECT_ROOT}"
+
 PORT="${1:-8000}"
-URL="http://localhost:${PORT}/app/index.html"
+BASE_URL="http://localhost:${PORT}/app/index.html"
+CACHE_BUST="$(date +%s)"
+URL="${BASE_URL}?_ts=${CACHE_BUST}"
 
 if command -v python3 >/dev/null 2>&1; then
   PYTHON_BIN="python3"
@@ -27,13 +33,49 @@ is_port_in_use() {
   return 1
 }
 
+get_port_pids() {
+  if command -v lsof >/dev/null 2>&1; then
+    lsof -tiTCP:"${PORT}" -sTCP:LISTEN 2>/dev/null || true
+    return
+  fi
+
+  if command -v ss >/dev/null 2>&1; then
+    ss -ltnp "( sport = :${PORT} )" 2>/dev/null | sed -n 's/.*pid=\([0-9]\+\).*/\1/p' | sort -u || true
+    return
+  fi
+}
+
 if is_port_in_use; then
-  echo "Port ${PORT} is already in use. Reusing existing server and opening browser..."
-else
-  echo "Starting static server on port ${PORT}..."
-  nohup "${PYTHON_BIN}" -m http.server "${PORT}" >/tmp/xiuxian-simulator-http-server.log 2>&1 &
-  sleep 1
+  EXISTING_PIDS="$(get_port_pids)"
+  if [ -n "${EXISTING_PIDS}" ]; then
+    echo "Port ${PORT} is in use. Killing existing server process(es): ${EXISTING_PIDS}"
+    kill ${EXISTING_PIDS} >/dev/null 2>&1 || true
+    sleep 1
+  else
+    echo "Port ${PORT} is in use, but PID lookup failed. Trying to continue..."
+  fi
 fi
+
+echo "Starting static server on port ${PORT} (cache disabled)..."
+nohup "${PYTHON_BIN}" - "${PORT}" >/tmp/xiuxian-simulator-http-server.log 2>&1 <<'PY' &
+import http.server
+import socketserver
+import sys
+
+port = int(sys.argv[1])
+
+class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        super().end_headers()
+
+socketserver.TCPServer.allow_reuse_address = True
+with socketserver.TCPServer(("", port), NoCacheHandler) as httpd:
+    httpd.serve_forever()
+PY
+sleep 1
 
 echo "Opening ${URL} in Chrome..."
 
