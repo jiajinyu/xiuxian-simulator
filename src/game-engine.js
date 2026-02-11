@@ -175,6 +175,10 @@
     toTalentSelection() {
       document.getElementById("panel-start").classList.add("hidden");
       document.getElementById("panel-talent").classList.remove("hidden");
+      // 保存初始状态（无任何天赋时的状态）
+      this.state.initialStats = { ...cfg.rules.baseStats };
+      this.state.stats = { ...cfg.rules.baseStats };
+      this.state.baseStats = {};
       trackFunnelStep("talent_select", 1);
     },
 
@@ -232,7 +236,30 @@
 
       this.state.baseStats = { ...this.state.stats };
       document.getElementById("btn-draw").classList.add("hidden");
+      document.getElementById("btn-redraw").classList.remove("hidden");
       document.getElementById("btn-confirm-talent").classList.remove("hidden");
+    },
+
+    redrawTalents() {
+      // 重置状态到初始值（清除之前的天赋效果）
+      this.state.stats = { ...this.state.initialStats };
+      this.state.baseStats = {};
+      
+      // 重新抽取
+      const list = document.getElementById("talent-list");
+      list.innerHTML = "";
+
+      const pool = [...cfg.talents].sort(() => 0.5 - Math.random()).slice(0, 3);
+      pool.forEach(t => {
+        applyEffects(this.state, t.effects);
+
+        const div = document.createElement("div");
+        div.className = `talent-card ${t.type}`;
+        div.innerHTML = `<span class="t-name">${t.name}</span><span class="t-desc">${t.desc}</span>`;
+        list.appendChild(div);
+      });
+
+      this.state.baseStats = { ...this.state.stats };
     },
 
     toSetup() {
