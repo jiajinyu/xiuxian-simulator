@@ -265,13 +265,17 @@
       if (delta > 0 && this.state.points > 0) {
         this.state.stats[key]++;
         this.state.points--;
+        this.hideStatWarning();
       } else if (delta < 0 && this.state.stats[key] > this.state.baseStats[key]) {
         this.state.stats[key]--;
         this.state.points++;
+        this.hideStatWarning();
       } else if (delta < 0 && this.state.stats[key] <= this.state.baseStats[key]) {
-        const statName = cfg.rules.statLabels[key];
-        const baseValue = this.state.baseStats[key];
-        this.showStatWarning(`${statName}受天赋影响，最低为${baseValue}点`);
+        this.showStatWarning("不可减少天赋自带属性");
+      }
+      // 检查体质是否小于0
+      if (key === "tizhi" && this.state.stats[key] <= 0) {
+        this.showStatWarning("初始体质不可小于0");
       }
       this.updatePoints();
     },
@@ -291,6 +295,13 @@
       setTimeout(() => {
         warningEl.style.display = "none";
       }, 2000);
+    },
+
+    hideStatWarning() {
+      const warningEl = document.getElementById("stat-warning");
+      if (warningEl) {
+        warningEl.style.display = "none";
+      }
     },
 
     randomStats() {

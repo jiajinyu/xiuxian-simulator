@@ -3,360 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>修仙模拟器：百大称号版</title>
+    <title>修仙模拟器：檀木典藏版</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/zpix-pixel-font@3.1.8/dist/zpix.css">
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&display=swap');
-        
         :root {
-            --bg-color: #080808;
-            --bg-secondary: #0c0c0c;
-            --text-primary: #e0e0e0;
-            --text-dim: #666;
-            --color-danger: #ff4444;
-            --color-gold: #ffd700;
-            --color-gold-dim: #b8860b;
-            --color-purple: #b088ff;
-            --color-blue: #4d94ff;
-            --color-green: #4eff4e;
-            --color-cyan: #00ffff;
-            --border-color: #333;
-            --glass-bg: rgba(20, 20, 20, 0.8);
-            --glass-border: rgba(255, 215, 0, 0.2);
-            --safe-top: env(safe-area-inset-top, 0px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-            --mobile-bottom-fallback: 0px;
-        }
+            /* --- 檀木/古风调色板 --- */
+            --bg-body: #1a120b;   /* 极深褐 */
+            --bg-wood-dark: #2b1d14; /* 深木色 */
+            --bg-wood-light: #3d291b; /* 浅木色 */
+            
+            --border-highlight: #5c4033; /* 铜/木高光 */
+            --border-shadow: #140d08;    /* 阴影 */
+            
+            /* 统一文字颜色 - 羊皮纸色 */
+            --text-main: #dccbb5; 
+            --text-dim: #8a7b6b;
 
-        @supports (-webkit-touch-callout: none) {
-            :root {
-                /* iOS Chrome/Safari 在某些状态下 safe-area-bottom 会返回 0，这里给兜底 */
-                --mobile-bottom-fallback: 56px;
-            }
+            /* 事件颜色系统 */
+            --evt-pos: #50c878;   /* 翡翠绿 - 正面 */
+            --evt-neg: #ff4d4d;   /* 朱砂红 - 负面/死亡 */
+            --evt-rare: #ab82ff;  /* 紫罗兰 - 奇遇 */
+            --evt-god: #ffd700;   /* 流光金 - 传说 */
+            
+            /* 字体 */
+            --font-pixel: "Zpix", "SimSun", monospace;
+            --font-title: "Ma Shan Zheng", cursive;
         }
 
         * { box-sizing: border-box; }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            font-family: 'Noto Serif SC', 'PingFang SC', 'Microsoft YaHei', 'Source Han Sans SC', 'Noto Sans SC', 'Consolas', 'Courier New', monospace;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-pixel);
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
-            min-height: 100vh;
+            align-items: center;
             height: 100vh;
-            height: 100dvh;
-            height: 100svh;
             overflow: hidden;
-            user-select: none;
-            padding-bottom: var(--safe-bottom);
-        }
-
-        #star-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
+            /* 背景纹理：暗纹 */
+            background-image: radial-gradient(#2b1d14 15%, transparent 16%), radial-gradient(#2b1d14 15%, transparent 16%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
         }
 
         #game-container {
             width: 100%;
-            max-width: 600px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(8,8,8,0.98) 100%);
-            border-left: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
+            max-width: 640px;
+            height: 95vh;
+            max-height: 800px;
+            position: relative;
             display: flex;
             flex-direction: column;
-            position: relative;
-            z-index: 1;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
-            height: 100%;
-            padding-bottom: var(--safe-bottom);
+            
+            /* 木纹背景生成 */
+            background-color: var(--bg-wood-dark);
+            background-image: repeating-linear-gradient(45deg, var(--bg-wood-light) 0px, var(--bg-wood-light) 2px, var(--bg-wood-dark) 2px, var(--bg-wood-dark) 8px);
+            
+            /* 复古木框 */
+            border: 6px solid var(--border-highlight);
+            border-radius: 4px; /* 轻微圆角模拟木工打磨 */
+            box-shadow: 
+                inset 0 0 20px #000,
+                0 0 0 4px #1a120b, /* 外圈黑线 */
+                0 10px 30px rgba(0,0,0,0.8);
+            
+            image-rendering: pixelated;
         }
 
-        /* 字体层级系统 */
-        .font-title { font-size: 32px; font-weight: 900; letter-spacing: 8px; }
-        .font-subtitle { font-size: 14px; font-weight: 400; letter-spacing: 4px; color: var(--text-dim); }
-        .font-stat-large { font-size: 24px; font-weight: 700; }
-        .font-stat-medium { font-size: 18px; font-weight: 600; }
-        .font-stat-small { font-size: 13px; font-weight: 400; color: var(--text-dim); }
-        .font-label { font-size: 12px; font-weight: 400; color: var(--text-dim); text-transform: uppercase; letter-spacing: 2px; }
+        /* --- 标题 --- */
+        h1 {
+            font-family: var(--font-title);
+            font-size: 42px;
+            color: var(--evt-god);
+            text-shadow: 2px 2px 0 #3e2723;
+            margin: 20px 0 10px 0;
+            text-align: center;
+            letter-spacing: 4px;
+        }
 
-        /* 通用按钮 */
+        h2 {
+            font-family: var(--font-pixel);
+            font-size: 18px;
+            color: var(--text-main);
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            margin-bottom: 20px;
+            border-top: 1px solid var(--border-highlight);
+            border-bottom: 1px solid var(--border-highlight);
+            text-align: center;
+        }
+
+        /* --- 木质按钮 --- */
         .btn {
-            background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
-            border: 1px solid var(--color-gold-dim);
-            color: var(--color-gold);
-            padding: 14px;
-            font-size: 16px;
-            font-weight: 600;
+            background: #4e342e;
+            color: var(--text-main);
+            font-family: var(--font-pixel);
+            font-size: 18px;
+            padding: 12px 20px;
+            margin-top: 15px;
             cursor: pointer;
-            text-transform: uppercase;
-            margin-top: 12px;
-            transition: all 0.3s ease;
             width: 100%;
-            position: relative;
-            overflow: hidden;
-            font-family: 'Noto Serif SC', serif;
-            letter-spacing: 2px;
+            text-align: center;
+            text-decoration: none;
+            
+            /* 凸起木块效果 */
+            border: 2px solid;
+            border-top-color: #6d4c41;
+            border-left-color: #6d4c41;
+            border-right-color: #281a14;
+            border-bottom-color: #281a14;
+            box-shadow: 0 4px 0 #281a14;
+            transition: transform 0.1s;
         }
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.2), transparent);
-            transition: left 0.5s;
+
+        .btn:hover {
+            background: #5d4037;
+            color: var(--evt-god);
         }
-        .btn:hover::before { left: 100%; }
-        .btn:hover { 
-            background: linear-gradient(135deg, #1a1a1a 0%, #222 100%);
-            border-color: var(--color-gold);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-            transform: translateY(-2px);
+
+        .btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #281a14;
+            border-top-color: #281a14;
+            border-bottom-color: #6d4c41;
         }
-        .btn:disabled { 
-            border-color: #333; 
-            color: #555; 
-            cursor: not-allowed; 
-            background: #0a0a0a;
+
+        .btn:disabled {
+            background: #3e2723;
+            color: #5d4037;
             box-shadow: none;
+            border-color: #3e2723;
+            transform: translateY(3px);
+            cursor: not-allowed;
         }
-        .btn:disabled:hover { transform: none; }
 
-        .btn-small { padding: 8px 16px; font-size: 12px; width: auto; }
-        .btn-secondary { border-color: #555; color: #aaa; }
-        .btn-secondary:hover { border-color: #888; color: #ccc; box-shadow: 0 0 15px rgba(255,255,255,0.1); }
+        .btn-small {
+            font-size: 14px;
+            padding: 4px 10px;
+            width: auto;
+            margin: 0;
+            box-shadow: 0 2px 0 #281a14;
+        }
 
-        /* 面板通用 */
+        /* --- 面板通用 --- */
         .panel {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--bg-color);
+            top: 10px; left: 10px; right: 10px; bottom: 10px;
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            padding-top: max(20px, var(--safe-top));
-            padding-bottom: calc(20px + var(--safe-bottom));
+            padding: 15px;
             z-index: 20;
             overflow-y: auto;
+            /* 羊皮纸/画布纹理叠加 */
+            background: rgba(43, 29, 20, 0.95); 
+            box-shadow: inset 0 0 30px #1a120b;
         }
+        
+        .center-content { justify-content: center; align-items: center; }
         .hidden { display: none !important; }
-        .center-content { justify-content: center; align-items: center; text-align: center; }
 
-        h1 { 
-            font-size: 36px; 
-            letter-spacing: 10px; 
-            margin-bottom: 8px; 
-            background: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-            animation: titleGlow 3s ease-in-out infinite;
-            font-weight: 900;
-        }
-        h2 { 
-            color: var(--color-gold); 
-            margin-bottom: 24px; 
-            text-align: center; 
-            font-size: 24px;
-            letter-spacing: 6px;
-            font-weight: 700;
+        /* 滚动条美化 */
+        ::-webkit-scrollbar { width: 10px; background: #2b1d14; }
+        ::-webkit-scrollbar-thumb { 
+            background: #5c4033; 
+            border: 1px solid #3d291b;
         }
 
-        @keyframes titleGlow {
-            0%, 100% { filter: brightness(1); }
-            50% { filter: brightness(1.2); }
+        /* --- 首页 --- */
+        #start-stats {
+            margin: 30px 0;
+            font-size: 16px;
+            color: var(--text-dim);
+            line-height: 2;
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border: 1px solid var(--border-highlight);
+            width: 90%;
+            text-align: center;
         }
+        .highlight-num { color: var(--evt-pos); font-weight: bold; font-size: 20px; }
 
-        /* --- 初始首页 --- */
-        #start-stats { 
-            margin: 40px 0; 
+        /* --- 状态栏 (嵌入式) --- */
+        #status-bar {
+            padding: 12px;
+            background: rgba(20, 13, 8, 0.8);
+            border: 2px solid var(--border-highlight);
+            border-radius: 4px;
+            z-index: 10;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            width: 100%;
-            max-width: 300px;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, rgba(255,215,0,0.08) 0%, rgba(0,0,0,0.5) 100%);
-            border: 1px solid rgba(255,215,0,0.3);
-            border-radius: 8px;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-        }
-        .stat-card:hover {
-            border-color: rgba(255,215,0,0.5);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
-            transform: translateX(5px);
-        }
-        .stat-card-label {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--color-gold);
-            letter-spacing: 3px;
-        }
-        .highlight-num { 
-            color: var(--color-gold); 
-            font-size: 32px; 
-            font-weight: 900;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+            gap: 10px;
+            margin-bottom: 10px;
         }
 
-        /* --- 顶部状态栏 --- */
-        #status-bar { 
-            padding: 16px; 
-            border-bottom: 1px solid var(--border-color); 
-            background: linear-gradient(180deg, #0c0c0c 0%, #080808 100%);
-            z-index: 10;
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            font-size: 14px;
         }
-        .stat-grid { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 12px; 
-            margin-bottom: 12px; 
-        }
+        
         .stat-item { 
-            text-align: center;
-            padding: 8px;
-            background: rgba(255,255,255,0.02);
-            border-radius: 6px;
-            border: 1px solid transparent;
-            transition: all 0.3s ease;
-        }
-        .stat-item:hover {
-            border-color: rgba(255,215,0,0.2);
-            background: rgba(255,255,255,0.04);
+            text-align: center; 
+            color: var(--text-dim);
         }
         .stat-item .stat-label {
             display: block;
             font-size: 11px;
-            color: var(--text-dim);
             margin-bottom: 4px;
-            letter-spacing: 1px;
         }
         .stat-item .stat-value {
             display: block;
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--color-gold);
-            text-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+            color: var(--text-main);
+            font-size: 18px;
+            margin-top: 2px;
         }
-        
+
         /* 进度条 */
-        .controls-wrapper { display: flex; align-items: center; gap: 12px; }
+        .controls-wrapper { display: flex; align-items: center; gap: 10px; }
         .progress-wrapper { 
             flex-grow: 1; 
             display: flex; 
             align-items: center; 
+            background: #1a120b; 
+            padding: 2px;
+            border: 1px solid #5c4033;
         }
-        #realm-name { 
-            min-width: 60px; 
-            color: var(--color-gold); 
-            font-weight: 700;
-            font-size: 14px;
+        #realm-name {
+            min-width: 50px;
+            color: #1a120b;
+            background: var(--text-main);
+            font-weight: bold;
             text-align: center;
-            letter-spacing: 2px;
-            padding: 8px 12px;
-            background: rgba(255,215,0,0.05);
-            border: 1px solid rgba(255,215,0,0.2);
-            border-radius: 4px;
-            margin-right: 12px;
-            white-space: nowrap;
+            margin-right: 5px;
+            font-size: 12px;
+            line-height: 16px;
+            padding: 2px 4px;
         }
-        .bar-bg { 
-            flex-grow: 1; 
-            height: 8px; 
-            background: #1a1a1a; 
-            border-radius: 4px; 
-            overflow: hidden;
-            position: relative;
-            border: 1px solid #333;
+        .bar-bg {
+            flex-grow: 1;
+            height: 12px;
+            background: #2b1d14;
         }
-        .bar-bg::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
-            animation: barShine 2s linear infinite;
-        }
-        @keyframes barShine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        #bar-fill { 
-            height: 100%; 
-            background: linear-gradient(90deg, var(--color-gold-dim) 0%, var(--color-gold) 50%, var(--color-gold-dim) 100%);
-            width: 0%; 
-            transition: width 0.3s ease;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-            position: relative;
-        }
-        #bar-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 20px;
+        #bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8));
-            animation: barTip 1s ease-in-out infinite;
-        }
-        @keyframes barTip {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
+            background: var(--evt-pos); /* 绿色进度 */
+            width: 0%;
+            box-shadow: 0 0 5px var(--evt-pos);
+            transition: width 0.3s ease;
         }
 
-        /* --- 日志区 --- */
-        #log-area { 
-            flex-grow: 1; 
-            overflow-y: auto; 
-            padding: 16px; 
-            padding-bottom: calc(96px + max(var(--safe-bottom), var(--mobile-bottom-fallback))); 
-            font-size: 15px; 
-            line-height: 1.8;
-            position: relative;
+        /* --- 日志区 (卷轴效果) --- */
+        #log-area {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-main);
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-highlight);
+            /* 内阴影模拟纸张凹陷 */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
-        #log-area::-webkit-scrollbar { width: 4px; }
-        #log-area::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-        
-        .log-entry { 
-            margin-bottom: 12px; 
-            animation: fadeIn 0.3s ease; 
-            padding-left: 20px;
-            position: relative;
+
+        .log-entry {
+            margin-bottom: 6px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed rgba(92, 64, 51, 0.3);
+            animation: fadeIn 0.3s ease;
         }
-        .log-entry::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 8px;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--color-gold);
-            box-shadow: 0 0 8px currentColor;
-        }
-        .log-age { 
-            display: inline-block; 
-            min-width: 50px; 
-            color: var(--color-gold-dim); 
-            font-weight: 700; 
+        .log-age {
+            color: var(--text-dim);
+            margin-right: 6px;
             font-size: 13px;
-            margin-right: 8px;
         }
 
         @keyframes fadeIn { 
@@ -364,403 +288,152 @@
             to { opacity: 1; transform: translateY(0); } 
         }
 
-        /* 颜色定义 */
-        .c-common { color: #aaa; }
-        .c-common::before { background: #666 !important; box-shadow: 0 0 5px #666 !important; }
-        .c-uncommon { color: #fff; }
-        .c-uncommon::before { background: #ccc !important; box-shadow: 0 0 5px #ccc !important; }
-        .c-rare { color: var(--color-blue); }
-        .c-rare::before { background: var(--color-blue) !important; box-shadow: 0 0 8px var(--color-blue) !important; }
-        .c-epic { color: var(--color-purple); }
-        .c-epic::before { background: var(--color-purple) !important; box-shadow: 0 0 10px var(--color-purple) !important; }
-        .c-legend { color: var(--color-gold); }
-        .c-legend::before { background: var(--color-gold) !important; box-shadow: 0 0 12px var(--color-gold) !important; }
-        .c-green { color: var(--color-green); }
-        .c-green::before { background: var(--color-green) !important; box-shadow: 0 0 8px var(--color-green) !important; }
-        .c-death { color: var(--color-danger); }
-        .c-death::before { background: var(--color-danger) !important; box-shadow: 0 0 12px var(--color-danger) !important; animation: pulse 1s ease-in-out infinite !important; }
-        .c-funny { color: #ff77ff; }
-        .c-funny::before { background: #ff77ff !important; box-shadow: 0 0 8px #ff77ff !important; }
+        /* --- 颜色逻辑系统 --- */
+        .c-common { color: var(--text-main); opacity: 0.9; } /* 普通事件 */
+        .c-green  { color: var(--evt-pos); }  /* 正面影响 */
+        .c-red    { color: var(--evt-neg); }  /* 负面影响/死亡 */
+        .c-purple { color: var(--evt-rare); } /* 奇遇 */
+        .c-gold   { color: var(--evt-god); text-shadow: 0 0 2px var(--evt-god); } /* 传说 */
+        .c-crit   { color: var(--evt-god); font-weight: bold; } /* 暴击 */
+        
+        /* 兼容旧代码的类名映射 */
+        .c-death { color: var(--evt-neg); font-weight: bold; }
+        .c-legend { color: var(--evt-god); }
+        .c-funny { color: var(--evt-rare); } 
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.2); opacity: 0.8; }
-        }
-
-        /* --- 天赋卡片 --- */
-        .talent-grid { display: grid; gap: 12px; margin-bottom: 24px; width: 100%; }
-        .talent-card { 
-            border: 1px solid rgba(255,255,255,0.1); 
-            padding: 16px; 
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .talent-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            transition: all 0.3s ease;
-        }
-        .talent-card:hover { 
-            transform: translateX(8px) scale(1.02); 
-            background: rgba(30, 30, 30, 0.9);
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-        }
-        .talent-card.positive { border-color: rgba(78, 255, 78, 0.3); }
-        .talent-card.positive::before { background: var(--color-green); box-shadow: 0 0 10px var(--color-green); }
-        .talent-card.negative { border-color: rgba(255, 68, 68, 0.3); }
-        .talent-card.negative::before { background: var(--color-danger); box-shadow: 0 0 10px var(--color-danger); }
-        .talent-card.neutral { border-color: rgba(77, 148, 255, 0.3); }
-        .talent-card.neutral::before { background: var(--color-blue); box-shadow: 0 0 10px var(--color-blue); }
-        .t-name { 
-            font-weight: 700; 
-            display: block; 
-            margin-bottom: 6px; 
-            color: #fff; 
-            font-size: 16px;
-            letter-spacing: 1px;
-        }
-        .t-desc { 
-            font-size: 13px; 
-            color: #888; 
-            line-height: 1.5;
-        }
-
-        /* --- 称号图鉴样式 --- */
-        .gallery-grid { 
+        /* --- 卡片 --- */
+        .talent-grid, .gallery-grid {
             display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 12px; 
-            margin-bottom: 24px; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+            width: 100%;
         }
-        .title-card { 
-            border: 1px solid rgba(255,255,255,0.05); 
-            background: rgba(10,10,10,0.8); 
-            padding: 14px; 
-            opacity: 0.4;
-            transition: all 0.3s ease;
-            min-height: 80px;
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
+        .gallery-grid { grid-template-columns: 1fr 1fr; }
+
+        .talent-card, .title-card {
+            border: 1px solid var(--border-highlight);
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            transition: all 0.2s;
         }
+        
+        .talent-card:hover, .title-card.unlocked:hover {
+            border-color: var(--evt-god);
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .talent-card.positive { border-left: 3px solid var(--evt-pos); }
+        .talent-card.negative { border-left: 3px solid var(--evt-neg); }
+        .talent-card.neutral { border-left: 3px solid var(--text-dim); }
+
+        .title-card { opacity: 0.6; position: relative; }
         .title-card::before {
             content: '???';
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 24px;
-            color: #333;
-            font-weight: 700;
+            font-size: 20px;
+            color: #444;
+            font-weight: bold;
         }
         .title-card.unlocked { 
             opacity: 1; 
-            border: 1px solid var(--color-gold); 
-            background: linear-gradient(135deg, rgba(255,215,0,0.05) 0%, rgba(10,10,10,0.9) 100%);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
+            background: rgba(80, 200, 120, 0.1);
+            border-color: var(--evt-pos);
         }
         .title-card.unlocked::before { display: none; }
-        .title-card.unlocked:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.25);
-        }
-        .tc-name { 
-            font-weight: 700; 
-            font-size: 15px; 
-            display: block; 
-            margin-bottom: 6px;
-            letter-spacing: 1px;
-        }
-        .tc-desc { 
-            font-size: 11px; 
-            color: #666; 
-            line-height: 1.4; 
-            display: block; 
-        }
-        .unlocked .tc-desc { color: #888; }
 
-        /* ========== 响应式适配 ========== */
-        @media (max-width: 480px) {
-            .stat-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
-            .font-title { font-size: 24px; letter-spacing: 4px; }
-            .font-subtitle { font-size: 12px; letter-spacing: 2px; }
-            .font-stat-large { font-size: 18px; }
-            .font-stat-medium { font-size: 14px; }
-            .stat-item .stat-value { font-size: 16px; }
-            h1 { font-size: 24px; letter-spacing: 6px; }
-            h2 { font-size: 18px; letter-spacing: 4px; }
-            .btn { padding: 12px; font-size: 14px; }
-            .panel { padding: 16px; }
-            #realm-name {
-                min-width: 50px;
-                font-size: 12px;
-                letter-spacing: 1px;
-                padding: 6px 8px;
-            }
-            .talent-grid { gap: 8px; }
-            .talent-card { padding: 12px; }
-            .t-name { font-size: 14px; }
-            .t-desc { font-size: 12px; }
-            .points-value { font-size: 32px; }
-            .stat-row { padding: 12px; }
-            .stat-icon { width: 32px; height: 32px; font-size: 16px; }
-            .stat-name { font-size: 14px; }
-        }
-
-        @media (max-width: 400px) {
-            .gallery-grid {
-                grid-template-columns: 1fr;
-            }
-            .title-card { min-height: 60px; padding: 12px; }
-            .tc-name { font-size: 14px; }
-            .tc-desc { font-size: 10px; }
-        }
-
-        @media (max-width: 768px) {
-            #panel-start.center-content {
-                justify-content: flex-start;
-                padding-top: max(24px, var(--safe-top));
-                padding-bottom: calc(28px + var(--safe-bottom));
-            }
-            .stat-ctrl button {
-                width: 40px;
-                height: 40px;
-            }
-            .btn-small { padding: 10px 14px; font-size: 12px; }
-        }
-
-        @media (orientation: landscape) and (max-height: 500px) {
-            body {
-                overflow-y: auto;
-                height: auto;
-                min-height: 100vh;
-            }
-            #game-container {
-                min-height: 100vh;
-                height: auto;
-            }
-            #panel-game {
-                min-height: 100vh;
-            }
-        }
-
-        @media (min-width: 1200px) {
-            #game-container {
-                max-width: 700px;
-            }
-        }
-
-        .progress-ring {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 16px;
-            position: relative;
-        }
-        .progress-ring svg {
-            transform: rotate(-90deg);
-        }
-        .progress-ring-bg {
-            fill: none;
-            stroke: #222;
-            stroke-width: 4;
-        }
-        .progress-ring-fill {
-            fill: none;
-            stroke: var(--color-gold);
-            stroke-width: 4;
-            stroke-linecap: round;
-            transition: stroke-dashoffset 0.5s ease;
-            filter: drop-shadow(0 0 4px rgba(255,215,0,0.5));
-        }
-        .progress-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--color-gold);
-        }
+        .t-name, .tc-name { display: block; margin-bottom: 5px; font-size: 16px; color: #fff; }
+        .t-desc, .tc-desc { font-size: 12px; color: var(--text-dim); }
 
         /* --- 属性分配 --- */
         .points-display {
             text-align: center;
-            margin-bottom: 24px;
-            padding: 24px;
-            background: linear-gradient(135deg, rgba(255,215,0,0.15) 0%, rgba(0,0,0,0.5) 100%);
-            border: 2px solid rgba(255,215,0,0.4);
-            border-radius: 12px;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-highlight);
         }
         .points-label {
             font-size: 14px;
-            color: var(--color-gold);
-            font-weight: 700;
-            letter-spacing: 4px;
-            margin-bottom: 12px;
+            color: var(--evt-pos);
             display: block;
+            margin-bottom: 8px;
         }
         .points-value {
-            font-size: 56px;
-            font-weight: 900;
-            color: var(--color-gold);
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
-            line-height: 1;
+            font-size: 36px;
+            color: var(--evt-god);
+            font-weight: bold;
         }
-        .stat-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 18px 20px; 
-            margin-bottom: 10px;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 8px;
-            transition: all 0.3s ease;
+        .stat-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px;
+            border-bottom: 1px dashed var(--border-highlight);
+            margin-bottom: 5px;
         }
-        .stat-row:hover {
-            background: rgba(255,255,255,0.06);
-            border-color: rgba(255,215,0,0.2);
-        }
-        .stat-row-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .stat-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-            letter-spacing: 2px;
-        }
-        .stat-ctrl { display: flex; align-items: center; gap: 12px; }
-        .stat-ctrl button { 
-            width: 32px; 
-            height: 32px; 
-            border: 1px solid rgba(255,215,0,0.3); 
-            background: rgba(255,215,0,0.05); 
-            color: var(--color-gold); 
+        .stat-ctrl button {
+            width: 28px; height: 28px;
+            background: #3e2723; 
+            border: 1px solid var(--border-highlight);
+            color: #fff;
             cursor: pointer;
-            border-radius: 50%;
-            font-size: 16px;
-            font-weight: 700;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-family: var(--font-pixel);
         }
         .stat-ctrl button:hover {
-            background: rgba(255,215,0,0.2);
-            box-shadow: 0 0 10px rgba(255,215,0,0.3);
-            transform: scale(1.1);
+            background: #5d4037;
         }
         .stat-ctrl button:disabled {
-            border-color: #333;
-            color: #444;
-            background: transparent;
+            background: #281a14;
+            color: #555;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
         .stat-val { 
-            display: inline-block; 
-            min-width: 40px; 
-            text-align: center; 
-            font-weight: 700;
-            font-size: 20px;
-            color: var(--color-gold);
+            display: inline-block; width: 40px; text-align: center; 
+            font-size: 18px; color: var(--evt-god);
         }
 
         /* --- 结算弹窗 --- */
         #settlement-modal {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.95);
-            display: none;
-            z-index: 50;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: center;
-            padding: 30px;
-            padding-top: max(30px, env(safe-area-inset-top, 0px));
-            padding-bottom: max(80px, calc(env(safe-area-inset-bottom, 0px) + 60px));
-            overflow-y: auto;
+            background: rgba(0,0,0,0.9);
+            display: none; z-index: 50;
+            flex-direction: column; justify-content: center; align-items: center; 
+            padding: 20px;
         }
-        #settlement-modal::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(ellipse at center, rgba(255,215,0,0.15) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        .result-box { 
-            width: 100%; 
-            max-width: 400px;
-            border: 1px solid rgba(255,215,0,0.3); 
-            padding: 28px; 
-            background: linear-gradient(135deg, rgba(20,20,20,0.95) 0%, rgba(10,10,10,0.98) 100%);
-            text-align: center; 
-            margin-bottom: 24px; 
-            border-radius: 12px;
-            position: relative;
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.1);
-        }
-        .result-box::before {
-            content: '';
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg, var(--color-gold), transparent, var(--color-gold));
-            border-radius: 14px;
-            z-index: -1;
-            opacity: 0.5;
+        .result-box {
+            width: 100%;
+            border: 2px solid var(--text-main);
+            padding: 20px;
+            background: #2b1d14;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px #000;
         }
         .end-title-label {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-dim);
-            letter-spacing: 4px;
-            margin-bottom: 8px;
             display: block;
+            margin-bottom: 8px;
         }
         .end-title { 
-            font-size: 36px; 
-            font-weight: 900; 
-            margin: 0 0 8px 0; 
+            font-size: 32px; 
+            font-weight: bold; 
+            margin: 10px 0; 
             display: block; 
-            text-shadow: 0 0 30px currentColor;
-            letter-spacing: 4px;
-            animation: titlePulse 2s ease-in-out infinite;
-        }
-        @keyframes titlePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
         }
         .end-desc { 
             font-size: 12px; 
-            color: #888; 
-            margin-bottom: 20px; 
-            font-style: italic;
-            padding: 0 20px;
+            color: var(--text-dim); 
+            margin-bottom: 15px; 
         }
         .end-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px dashed rgba(255,255,255,0.1);
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-highlight);
         }
         .end-stat-item {
             text-align: center;
@@ -770,22 +443,19 @@
             font-size: 11px;
             color: var(--text-dim);
             margin-bottom: 4px;
-            letter-spacing: 1px;
         }
         .end-stat-value {
             display: block;
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--color-gold);
+            font-size: 16px;
+            color: var(--evt-god);
         }
         .end-reason {
-            margin-top: 16px;
-            padding: 12px;
-            background: rgba(255,68,68,0.1);
-            border: 1px solid rgba(255,68,68,0.2);
-            border-radius: 6px;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(255,77,77,0.1);
+            border: 1px solid rgba(255,77,77,0.3);
             font-size: 13px;
-            color: var(--color-danger);
+            color: var(--evt-neg);
         }
 
         /* 粒子效果层 */
@@ -799,10 +469,20 @@
             pointer-events: none;
             display: none;
         }
+
+        /* 响应式适配 */
+        @media (max-width: 480px) {
+            h1 { font-size: 32px; }
+            h2 { font-size: 16px; }
+            .btn { font-size: 16px; padding: 10px 16px; }
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .gallery-grid { grid-template-columns: 1fr; }
+            .points-value { font-size: 28px; }
+            .end-title { font-size: 24px; }
+        }
     </style>
 </head>
 <body>
-    <canvas id="star-canvas"></canvas>
     <canvas id="particle-canvas"></canvas>
 
     <div id="game-container">
@@ -810,40 +490,30 @@
         <div id="panel-start" class="panel center-content">
             <h1>修仙模拟器</h1>
             
+            
             <div id="start-stats">
-                <div class="stat-card">
-                    <span class="stat-card-label">已轮回</span>
-                    <span id="gen-count" class="highlight-num">1</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-card-label">称号收集</span>
-                    <span id="title-rate" class="highlight-num">0%</span>
-                </div>
+                <div>已轮回 <span id="gen-count" class="highlight-num">1</span> 世</div>
+                <div style="margin-top:10px;">封号收集 <span id="title-rate" class="highlight-num">0%</span></div>
             </div>
 
-            <button class="btn" onclick="game.toTalentSelection()">转世修仙</button>
-            <button class="btn btn-secondary" onclick="game.toGallery()">天道封号榜</button>
-            <button class="btn btn-small btn-secondary" style="margin-top:20px;" onclick="game.resetData()">重置存档</button>
+            <button class="btn" onclick="game.toTalentSelection()">转世重修</button>
+            <button class="btn" style="background:#3e2723" onclick="game.toGallery()">天道金榜</button>
+            <button class="btn btn-small" style="margin-top:30px; opacity:0.6; background:transparent; border:none; color:var(--text-dim);" onclick="game.resetData()">重置尘缘</button>
         </div>
 
-        <div id="panel-gallery" class="panel hidden" style="padding-bottom: calc(40px + var(--safe-bottom));">
-            <h2>天道封号榜</h2>
-            <div class="progress-ring">
-                <svg width="80" height="80">
-                    <circle class="progress-ring-bg" cx="40" cy="40" r="36"/>
-                    <circle class="progress-ring-fill" cx="40" cy="40" r="36" 
-                            stroke-dasharray="226.2" stroke-dashoffset="226.2" id="gallery-ring"/>
-                </svg>
-                <span class="progress-text" id="gallery-progress">0/21</span>
+        <div id="panel-gallery" class="panel hidden">
+            <h2>天道金榜</h2>
+            <div style="text-align:center; margin-bottom:10px; color:var(--text-dim);">
+                解锁进度：<span id="gallery-progress" style="color:var(--text-main);">0/21</span>
             </div>
-            <div id="gallery-list" class="gallery-grid" style="margin-bottom: 40px;"></div>
-            <button class="btn" onclick="game.backToStart()" style="margin-top: auto;">返回首页</button>
+            <div id="gallery-list" class="gallery-grid"></div>
+            <button class="btn" onclick="game.backToStart()">返回</button>
         </div>
 
         <div id="panel-talent" class="panel hidden">
             <h2>天赋觉醒</h2>
             <div id="talent-list" class="talent-grid"></div>
-            <button id="btn-draw" class="btn" onclick="game.drawTalents()">随机抽取天赋 (3个)</button>
+            <button id="btn-draw" class="btn" onclick="game.drawTalents()">抽取天赋</button>
             <button id="btn-confirm-talent" class="btn hidden" onclick="game.toSetup()">确认天赋</button>
         </div>
 
@@ -854,51 +524,53 @@
                 <span id="points-left" class="points-value">20</span>
             </div>
             <div id="stat-rows"></div>
-            <div id="tizhi-warning" style="display:none; color:#ff4444; text-align:center; margin:10px 0; font-size:14px;"></div>
-            <button class="btn btn-secondary" onclick="game.randomStats()">听天由命 (随机)</button>
-            <button id="btn-start" class="btn" disabled onclick="game.startGame()">开始修仙</button>
+            <div style="display:flex; gap:10px;">
+                <button class="btn" style="flex:1; background:#3e2723;" onclick="game.randomStats()">听天由命</button>
+                <button id="btn-start" class="btn" style="flex:1" disabled onclick="game.startGame()">开始</button>
+            </div>
         </div>
 
-        <div id="panel-game" class="panel hidden" style="padding:0; overflow: hidden;">
-            <div id="status-bar">
-                <div class="stat-grid">
-                    <div class="stat-item">
-                        <span class="stat-label">天赋</span>
-                        <span id="s-tianfu" class="stat-value">0</span>
+        <div id="panel-game" class="panel hidden" style="padding:0; overflow: hidden; display:flex; flex-direction:column;">
+            <div style="padding:10px; flex-grow:1; display:flex; flex-direction:column; overflow:hidden;">
+                <div id="status-bar">
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">天赋</span>
+                            <span id="s-tianfu" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">悟性</span>
+                            <span id="s-wuxing" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">体质</span>
+                            <span id="s-tizhi" class="stat-value">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">气运</span>
+                            <span id="s-qiyun" class="stat-value">0</span>
+                        </div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">悟性</span>
-                        <span id="s-wuxing" class="stat-value">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">体质</span>
-                        <span id="s-tizhi" class="stat-value">0</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">气运</span>
-                        <span id="s-qiyun" class="stat-value">0</span>
+                    <div class="controls-wrapper">
+                        <div class="progress-wrapper">
+                            <div id="realm-name">凡人</div>
+                            <div class="bar-bg"><div id="bar-fill"></div></div>
+                        </div>
+                        <button class="btn btn-small" id="btn-pause" onclick="game.togglePause()">II</button>
                     </div>
                 </div>
-                <div class="controls-wrapper">
-                    <div class="progress-wrapper">
-                        <div id="realm-name">凡人</div>
-                        <div class="bar-bg"><div id="bar-fill"></div></div>
-                    </div>
-                    <button class="btn btn-small" id="btn-pause" onclick="game.togglePause()">暂停</button>
-                </div>
+                <div id="log-area"></div>
             </div>
-            <div id="log-area"></div>
             
-            <button id="btn-settle" class="btn hidden" style="position:absolute; bottom:calc(max(var(--safe-bottom), var(--mobile-bottom-fallback)) + 8px); left:0; width:100%; z-index:30; background:linear-gradient(90deg, #b8860b, #ffd700, #b8860b); border:none; margin:0; animation: pulse 2s infinite; color:#000; font-weight:700;" onclick="game.showSettlement()">查看生平结算</button>
+            <button id="btn-settle" class="btn hidden" style="margin:0; z-index:100; box-shadow:0 -5px 20px #000;" onclick="game.showSettlement()">查看生平结算</button>
         </div>
 
         <div id="settlement-modal">
-            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; min-height: min-content;">
-                <h2 class="c-death" style="font-size: 28px; letter-spacing: 6px; margin-bottom: 20px;">道消身殒</h2>
-                <div class="result-box">
-                <span class="end-title-label">天道封号</span>
+            <h2 class="c-red" style="background:transparent; border:none; font-size:32px;">道消身殒</h2>
+            <div class="result-box">
+                <span class="end-title-label">获得封号</span>
                 <span id="end-title" class="end-title" style="color:white">无名小卒</span>
-                <div id="end-title-desc" class="end-desc">获得条件：...</div>
+                <div id="end-title-desc" class="end-desc">...</div>
                 
                 <div class="end-stats">
                     <div class="end-stat-item">
@@ -916,86 +588,12 @@
                 </div>
                 <div id="end-reason" class="end-reason">死因...</div>
             </div>
-                <button class="btn" onclick="location.reload()">再入轮回</button>
-            </div>
+            <button class="btn" onclick="location.reload()">再入轮回</button>
         </div>
 
     </div>
 
     <script src="../config/game-config.js"></script>
     <script src="../src/game-engine.js"></script>
-    <script>
-        // 星空背景动画
-        (function() {
-            const canvas = document.getElementById('star-canvas');
-            const ctx = canvas.getContext('2d');
-            let width, height;
-            const stars = [];
-            const starCount = 150;
-
-            function resize() {
-                const dpr = window.devicePixelRatio || 1;
-                width = window.innerWidth;
-                height = window.innerHeight;
-                canvas.width = width * dpr;
-                canvas.height = height * dpr;
-                canvas.style.width = width + 'px';
-                canvas.style.height = height + 'px';
-                ctx.scale(dpr, dpr);
-            }
-
-            class Star {
-                constructor() {
-                    this.reset();
-                }
-                reset() {
-                    this.x = Math.random() * width;
-                    this.y = Math.random() * height;
-                    this.size = Math.random() * 2 + 0.5;
-                    this.speedX = (Math.random() - 0.5) * 0.3;
-                    this.speedY = (Math.random() - 0.5) * 0.3;
-                    this.brightness = Math.random();
-                    this.blinkSpeed = Math.random() * 0.02 + 0.01;
-                }
-                update() {
-                    this.x += this.speedX;
-                    this.y += this.speedY;
-                    this.brightness += this.blinkSpeed;
-                    if (this.brightness > 1 || this.brightness < 0.3) {
-                        this.blinkSpeed = -this.blinkSpeed;
-                    }
-                    if (this.x < 0 || this.x > width || this.y < 0 || this.y > height) {
-                        this.reset();
-                    }
-                }
-                draw() {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(255, 215, 0, ${this.brightness * 0.6})`;
-                    ctx.fill();
-                }
-            }
-
-            function init() {
-                resize();
-                for (let i = 0; i < starCount; i++) {
-                    stars.push(new Star());
-                }
-            }
-
-            function animate() {
-                ctx.clearRect(0, 0, width, height);
-                stars.forEach(star => {
-                    star.update();
-                    star.draw();
-                });
-                requestAnimationFrame(animate);
-            }
-
-            window.addEventListener('resize', resize);
-            init();
-            animate();
-        })();
-    </script>
 </body>
 </html>
