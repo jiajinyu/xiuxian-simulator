@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
     <title>修仙模拟器：檀木典藏版</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/zpix-pixel-font@3.1.8/dist/zpix.css">
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
@@ -31,7 +31,7 @@
             --font-title: "Ma Shan Zheng", cursive;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; touch-action: manipulation; }
 
         body {
             background-color: var(--bg-body);
@@ -109,6 +109,8 @@
             width: 100%;
             text-align: center;
             text-decoration: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
             
             /* 凸起木块效果 */
             border: 2px solid;
@@ -379,6 +381,8 @@
             color: #fff;
             cursor: pointer;
             font-family: var(--font-pixel);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .stat-ctrl button:hover {
             background: #5d4037;
