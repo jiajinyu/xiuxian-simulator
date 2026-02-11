@@ -392,7 +392,7 @@
 
     togglePause() {
       this.state.paused = !this.state.paused;
-      document.getElementById("btn-pause").innerText = this.state.paused ? "继续" : "暂停";
+      document.getElementById("btn-pause").innerText = this.state.paused ? "▶" : "II";
     },
 
     tick() {
