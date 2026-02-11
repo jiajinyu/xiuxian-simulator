@@ -24,22 +24,39 @@ class ClassList {
 }
 
 class Element {
-  constructor(id) {
-    this.id = id;
+  constructor(id, registerById) {
+    this.id = id || '';
+    this._registerById = registerById;
     this.innerText = '';
-    this.innerHTML = '';
+    this._innerHTML = '';
     this.style = {};
     this.disabled = false;
     this.children = [];
     this.scrollTop = 0;
     this.scrollHeight = 0;
+    this.className = '';
     this.classList = new ClassList();
+  }
+
+  get innerHTML() {
+    return this._innerHTML;
+  }
+
+  set innerHTML(value) {
+    this._innerHTML = String(value);
+    const regex = /\bid="([^"]+)"/g;
+    let match = regex.exec(this._innerHTML);
+    while (match) {
+      this._registerById(new Element(match[1], this._registerById));
+      match = regex.exec(this._innerHTML);
+    }
   }
 
   appendChild(child) {
     this.children.push(child);
     this.scrollHeight = this.children.length;
     this.scrollTop = this.scrollHeight;
+    if (child && child.id) this._registerById(child);
   }
 
   insertBefore(newChild, refChild) {
@@ -51,23 +68,39 @@ class Element {
     }
     this.scrollHeight = this.children.length;
     this.scrollTop = this.scrollHeight;
+    if (newChild && newChild.id) this._registerById(newChild);
   }
 }
 
-function createEnvironment() {
+function extractHtmlIds(htmlSource) {
+  const ids = new Set();
+  const regex = /\bid="([^"]+)"/g;
+  let match = regex.exec(htmlSource);
+  while (match) {
+    ids.add(match[1]);
+    match = regex.exec(htmlSource);
+  }
+  return ids;
+}
+
+function createEnvironment(options) {
+  const opts = options || {};
   const elements = new Map();
   const store = new Map();
+  const missingIds = new Set(Array.isArray(opts.missingIds) ? opts.missingIds : []);
+
+  const registerById = element => {
+    if (element && element.id) elements.set(element.id, element);
+  };
 
   const document = {
     getElementById(id) {
-      if (!elements.has(id)) {
-        elements.set(id, new Element(id));
-      }
-      return elements.get(id);
+      return elements.get(id) || null;
     },
-    createElement(tagName) {
-      return new Element(tagName);
-    }
+    createElement() {
+      return new Element('', registerById);
+    },
+    head: new Element('head', registerById)
   };
 
   const localStorage = {
@@ -92,8 +125,7 @@ function createEnvironment() {
       return 1;
     },
     clearInterval: () => {},
-    setTimeout: (fn, ms) => {
-      // 立即执行，用于测试
+    setTimeout: (fn, _ms) => {
       if (typeof fn === 'function') fn();
       return 1;
     },
@@ -107,8 +139,17 @@ function createEnvironment() {
   vm.createContext(context);
 
   const root = path.resolve(__dirname, '..');
+  const htmlPath = path.join(root, 'app', 'index.html');
   const configPath = path.join(root, 'config', 'game-config.js');
   const enginePath = path.join(root, 'src', 'game-engine.js');
+
+  const htmlSource = fs.readFileSync(htmlPath, 'utf8');
+  const htmlIds = extractHtmlIds(htmlSource);
+  htmlIds.forEach(id => {
+    if (!missingIds.has(id)) {
+      registerById(new Element(id, registerById));
+    }
+  });
 
   vm.runInContext(fs.readFileSync(configPath, 'utf8'), context, { filename: configPath });
   vm.runInContext(fs.readFileSync(enginePath, 'utf8'), context, { filename: enginePath });

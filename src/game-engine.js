@@ -63,19 +63,185 @@
     return list[Math.floor(Math.random() * list.length)];
   }
 
-  function evaluateValue(context, value) {
-    // 支持表达式字符串：如 "(realmIdx-1)*10" 或 "realmIdx-1"
-    if (typeof value === "string") {
-      // 安全地替换变量名
-      const vars = { realmIdx: context.realmIdx || 0 };
-      const expr = value
-        .replace(/\brealmIdx\b/g, vars.realmIdx);
-      try {
-        // eslint-disable-next-line no-eval
-        return eval(expr);
-      } catch {
-        return value;
+  function tokenizeExpression(expr) {
+    const tokens = [];
+    let i = 0;
+
+    while (i < expr.length) {
+      const ch = expr[i];
+      if (/\s/.test(ch)) {
+        i++;
+        continue;
       }
+
+      if ("()+-*/".includes(ch)) {
+        tokens.push(ch);
+        i++;
+        continue;
+      }
+
+      if (/[0-9.]/.test(ch)) {
+        let j = i;
+        let dotCount = 0;
+        while (j < expr.length && /[0-9.]/.test(expr[j])) {
+          if (expr[j] === ".") dotCount++;
+          if (dotCount > 1) return null;
+          j++;
+        }
+        const numberToken = expr.slice(i, j);
+        if (numberToken === ".") return null;
+        tokens.push(numberToken);
+        i = j;
+        continue;
+      }
+
+      if (/[A-Za-z_]/.test(ch)) {
+        let j = i;
+        while (j < expr.length && /[A-Za-z0-9_]/.test(expr[j])) j++;
+        tokens.push(expr.slice(i, j));
+        i = j;
+        continue;
+      }
+
+      return null;
+    }
+
+    return tokens;
+  }
+
+  function toRpn(tokens) {
+    const output = [];
+    const operators = [];
+    const precedence = { "+": 1, "-": 1, "*": 2, "/": 2, "u-": 3 };
+    const rightAssociative = new Set(["u-"]);
+    let expectingValue = true;
+
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+
+      if (/^\d+(\.\d+)?$/.test(token)) {
+        if (!expectingValue) return null;
+        output.push(token);
+        expectingValue = false;
+        continue;
+      }
+
+      if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(token)) {
+        if (!expectingValue) return null;
+        output.push(token);
+        expectingValue = false;
+        continue;
+      }
+
+      if (token === "(") {
+        if (!expectingValue) return null;
+        operators.push(token);
+        continue;
+      }
+
+      if (token === ")") {
+        if (expectingValue) return null;
+        while (operators.length > 0 && operators[operators.length - 1] !== "(") {
+          output.push(operators.pop());
+        }
+        if (operators.length === 0) return null;
+        operators.pop();
+        expectingValue = false;
+        continue;
+      }
+
+      if (!["+","-","*","/"].includes(token)) return null;
+
+      let op = token;
+      if (token === "-" && expectingValue) {
+        op = "u-";
+      } else if (expectingValue) {
+        return null;
+      }
+
+      while (operators.length > 0) {
+        const top = operators[operators.length - 1];
+        if (top === "(") break;
+        const shouldPop = rightAssociative.has(op)
+          ? precedence[op] < precedence[top]
+          : precedence[op] <= precedence[top];
+        if (!shouldPop) break;
+        output.push(operators.pop());
+      }
+      operators.push(op);
+      expectingValue = true;
+    }
+
+    if (expectingValue) return null;
+
+    while (operators.length > 0) {
+      const op = operators.pop();
+      if (op === "(" || op === ")") return null;
+      output.push(op);
+    }
+
+    return output;
+  }
+
+  function evaluateRpn(rpn, vars) {
+    const stack = [];
+    for (let i = 0; i < rpn.length; i++) {
+      const token = rpn[i];
+
+      if (/^\d+(\.\d+)?$/.test(token)) {
+        stack.push(Number(token));
+        continue;
+      }
+
+      if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(token)) {
+        if (!Object.prototype.hasOwnProperty.call(vars, token)) return null;
+        const variableValue = Number(vars[token]);
+        if (!Number.isFinite(variableValue)) return null;
+        stack.push(variableValue);
+        continue;
+      }
+
+      if (token === "u-") {
+        if (stack.length < 1) return null;
+        stack.push(-stack.pop());
+        continue;
+      }
+
+      if (stack.length < 2) return null;
+      const right = stack.pop();
+      const left = stack.pop();
+      let result = null;
+
+      if (token === "+") result = left + right;
+      if (token === "-") result = left - right;
+      if (token === "*") result = left * right;
+      if (token === "/") {
+        if (right === 0) return null;
+        result = left / right;
+      }
+
+      if (!Number.isFinite(result)) return null;
+      stack.push(result);
+    }
+
+    return stack.length === 1 ? stack[0] : null;
+  }
+
+  function evaluateArithmeticExpression(expr, vars) {
+    if (typeof expr !== "string" || expr.trim() === "") return null;
+    const tokens = tokenizeExpression(expr);
+    if (!tokens || tokens.length === 0) return null;
+    const rpn = toRpn(tokens);
+    if (!rpn) return null;
+    return evaluateRpn(rpn, vars);
+  }
+
+  function evaluateValue(context, value) {
+    if (typeof value === "string") {
+      const evaluated = evaluateArithmeticExpression(value, {
+        realmIdx: Number(context.realmIdx || 0)
+      });
+      if (typeof evaluated === "number" && Number.isFinite(evaluated)) return evaluated;
     }
     return value;
   }
@@ -211,7 +377,10 @@
       const progress = unlockedCount / total;
       const circumference = 2 * Math.PI * 36; // r=36
       const offset = circumference - (progress * circumference);
-      document.getElementById("gallery-ring").style.strokeDashoffset = offset;
+      const ring = document.getElementById("gallery-ring");
+      if (ring) {
+        ring.style.strokeDashoffset = offset;
+      }
       document.getElementById("gallery-progress").innerText = `${unlockedCount}/${total}`;
     },
 
@@ -220,11 +389,19 @@
       document.getElementById("panel-start").classList.remove("hidden");
     },
 
-    drawTalents() {
+    sampleTalents(count) {
+      const pool = [...cfg.talents];
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, count);
+    },
+
+    renderTalentCards(pool) {
       const list = document.getElementById("talent-list");
       list.innerHTML = "";
 
-      const pool = [...cfg.talents].sort(() => 0.5 - Math.random()).slice(0, 3);
       pool.forEach(t => {
         applyEffects(this.state, t.effects);
 
@@ -233,36 +410,34 @@
         div.innerHTML = `<span class="t-name">${t.name}</span><span class="t-desc">${t.desc}</span>`;
         list.appendChild(div);
       });
+    },
 
+    finalizeTalentDraw(canRedraw) {
       this.state.baseStats = { ...this.state.stats };
       document.getElementById("btn-draw").classList.add("hidden");
-      document.getElementById("btn-redraw").classList.remove("hidden");
       document.getElementById("btn-confirm-talent").classList.remove("hidden");
+      const redrawBtn = document.getElementById("btn-redraw");
+      if (canRedraw) {
+        redrawBtn.classList.remove("hidden");
+      } else {
+        redrawBtn.classList.add("hidden");
+      }
+    },
+
+    drawTalents() {
+      const pool = this.sampleTalents(3);
+      this.renderTalentCards(pool);
+      this.finalizeTalentDraw(true);
     },
 
     redrawTalents() {
       // 重置状态到初始值（清除之前的天赋效果）
       this.state.stats = { ...this.state.initialStats };
       this.state.baseStats = {};
-      
-      // 重新抽取
-      const list = document.getElementById("talent-list");
-      list.innerHTML = "";
 
-      const pool = [...cfg.talents].sort(() => 0.5 - Math.random()).slice(0, 3);
-      pool.forEach(t => {
-        applyEffects(this.state, t.effects);
-
-        const div = document.createElement("div");
-        div.className = `talent-card ${t.type}`;
-        div.innerHTML = `<span class="t-name">${t.name}</span><span class="t-desc">${t.desc}</span>`;
-        list.appendChild(div);
-      });
-
-      this.state.baseStats = { ...this.state.stats };
-      
-      // 隐藏"再抽一次"按钮（每回合只能抽两次）
-      document.getElementById("btn-redraw").classList.add("hidden");
+      const pool = this.sampleTalents(3);
+      this.renderTalentCards(pool);
+      this.finalizeTalentDraw(false);
     },
 
     toSetup() {
@@ -626,47 +801,19 @@
       document.getElementById("bar-fill").style.width = `${pct}%`;
     },
 
-    die(reason) {
-      this.state.isDead = true;
-      this.state.deathReason = reason;
-      clearInterval(this.state.timer);
-
-      document.getElementById("btn-settle").classList.remove("hidden");
-      this.data.gen++;
-
-      const context = {
-        ...this.state,
-        deathReason: reason,
-        always: true
-      };
-
+    resolveTitle(context) {
       const matchedTitles = cfg.titles.filter(t => matchCondition(context, t.condition));
-      let myTitle = null;
-
       const unlockedTitles = new Set(this.data.titles);
       const unownedMatched = matchedTitles.filter(t => !unlockedTitles.has(t.name));
 
       if (unownedMatched.length > 0) {
-        myTitle = unownedMatched[0];
-      } else if (matchedTitles.length > 0) {
-        myTitle = matchedTitles[0];
-      } else {
-        myTitle = cfg.titles[cfg.titles.length - 1];
+        return unownedMatched[0];
       }
+      if (matchedTitles.length > 0) return matchedTitles[0];
+      return cfg.titles[cfg.titles.length - 1];
+    },
 
-      if (!this.data.titles.includes(myTitle.name)) {
-        this.data.titles.push(myTitle.name);
-      }
-
-      localStorage.setItem("xiuxian_save", JSON.stringify(this.data));
-      this.state.lastTitle = myTitle.name;
-      trackFunnelStep("death", 4, {
-        age: this.state.age,
-        realm: cfg.realms[this.state.realmIdx],
-        title: myTitle.name
-      });
-      trackEvent("game_over", { reason });
-
+    renderSettlement(myTitle, reason) {
       const tEl = document.getElementById("end-title");
       tEl.innerText = myTitle.name;
       tEl.style.color = myTitle.color;
@@ -678,6 +825,47 @@
       document.getElementById("end-reason").innerText = `死因：${reason}`;
     },
 
+    finalizeDeath(reason, options) {
+      const finalReason = reason || "体质耗尽，魂飞魄散。";
+      const opts = options || {};
+
+      this.state.isDead = true;
+      this.state.deathReason = finalReason;
+      clearInterval(this.state.timer);
+
+      document.getElementById("btn-settle").classList.remove("hidden");
+      this.data.gen++;
+
+      const context = {
+        ...this.state,
+        deathReason: finalReason,
+        always: true
+      };
+      const myTitle = this.resolveTitle(context);
+
+      if (!this.data.titles.includes(myTitle.name)) {
+        this.data.titles.push(myTitle.name);
+      }
+      localStorage.setItem("xiuxian_save", JSON.stringify(this.data));
+      this.state.lastTitle = myTitle.name;
+
+      trackFunnelStep("death", 4, {
+        age: this.state.age,
+        realm: cfg.realms[this.state.realmIdx],
+        title: myTitle.name
+      });
+      trackEvent("game_over", { reason: finalReason });
+
+      this.renderSettlement(myTitle, finalReason);
+      if (opts.showSettlement) {
+        this.showSettlement();
+      }
+    },
+
+    die(reason) {
+      this.finalizeDeath(reason, { showSettlement: false });
+    },
+
     showSettlement() {
       document.getElementById("settlement-modal").style.display = "flex";
       trackFunnelStep("settlement_view", 5, {
@@ -686,51 +874,7 @@
     },
 
     showSettlementDirectly(reason) {
-      this.state.isDead = true;
-      this.state.deathReason = reason || "体质耗尽，魂飞魄散。";
-      clearInterval(this.state.timer);
-      document.getElementById("btn-settle").classList.remove("hidden");
-
-      this.data.gen++;
-
-      const context = {
-        ...this.state,
-        deathReason: this.state.deathReason,
-        always: true
-      };
-
-      const matchedTitles = cfg.titles.filter(t => matchCondition(context, t.condition));
-      let myTitle = null;
-
-      const unlockedTitles = new Set(this.data.titles);
-      const unownedMatched = matchedTitles.filter(t => !unlockedTitles.has(t.name));
-
-      if (unownedMatched.length > 0) {
-        myTitle = unownedMatched[0];
-      } else if (matchedTitles.length > 0) {
-        myTitle = matchedTitles[0];
-      } else {
-        myTitle = cfg.titles[cfg.titles.length - 1];
-      }
-
-      if (!this.data.titles.includes(myTitle.name)) {
-        this.data.titles.push(myTitle.name);
-      }
-
-      localStorage.setItem("xiuxian_save", JSON.stringify(this.data));
-      this.state.lastTitle = myTitle.name;
-
-      const tEl = document.getElementById("end-title");
-      tEl.innerText = myTitle.name;
-      tEl.style.color = myTitle.color;
-
-      document.getElementById("end-title-desc").innerText = myTitle.desc;
-      document.getElementById("end-age").innerText = this.state.age;
-      document.getElementById("end-realm").innerText = cfg.realms[this.state.realmIdx];
-      document.getElementById("end-gen").innerText = this.data.gen;
-      document.getElementById("end-reason").innerText = `死因：${this.state.deathReason}`;
-
-      this.showSettlement();
+      this.finalizeDeath(reason || "体质耗尽，魂飞魄散。", { showSettlement: true });
     }
   };
 
