@@ -92,7 +92,18 @@ window.GAME_CONFIG = {
     { name: "莽夫", type: "neutral", desc: "体质+4，悟性-3", effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.wuxing", add: -3 }] },
     { name: "玻璃大炮", type: "neutral", desc: "天赋+4，体质-2", effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.tizhi", add: -2 }] },
     { name: "赌狗", type: "neutral", desc: "气运+4，悟性-4", effects: [{ field: "stats.qiyun", add: 4 }, { field: "stats.wuxing", add: -4 }] },
-    { name: "聪明绝顶", type: "neutral", desc: "悟性+4，体质-2(秃了)", effects: [{ field: "stats.wuxing", add: 4 }, { field: "stats.tizhi", add: -2 }] }
+    { name: "聪明绝顶", type: "neutral", desc: "悟性+4，体质-2(秃了)", effects: [{ field: "stats.wuxing", add: 4 }, { field: "stats.tizhi", add: -2 }] },
+
+    { name: "氪金战士", type: "positive", desc: "气运+5，我也想低调，但实力不允许", effects: [{ field: "stats.qiyun", add: 5 }] },
+    { name: "非酋", type: "negative", desc: "气运-5，喝凉水都塞牙，走路必踩坑", effects: [{ field: "stats.qiyun", add: -5 }] },
+    { name: "熬夜冠军", type: "neutral", desc: "悟性+3，体质-3，修仙（物理）", effects: [{ field: "stats.wuxing", add: 3 }, { field: "stats.tizhi", add: -3 }] },
+    { name: "键盘侠", type: "negative", desc: "悟性-3，体质-2，键道大成，只会嘴炮", effects: [{ field: "stats.wuxing", add: -3 }, { field: "stats.tizhi", add: -2 }] },
+    { name: "老六", type: "positive", desc: "气运+3，悟性+1，从不刚正面，专敲闷棍", effects: [{ field: "stats.qiyun", add: 3 }, { field: "stats.wuxing", add: 1 }] },
+    { name: "二哈血统", type: "neutral", desc: "体质+5，悟性-4，拆家能力一流", effects: [{ field: "stats.tizhi", add: 5 }, { field: "stats.wuxing", add: -4 }] },
+    { name: "恋爱脑", type: "negative", desc: "悟性-5，心中无大道，只有那个TA", effects: [{ field: "stats.wuxing", add: -5 }] },
+    { name: "干饭人", type: "neutral", desc: "体质+3，天赋-1，灵石都被拿去买吃的了", effects: [{ field: "stats.tizhi", add: 3 }, { field: "stats.tianfu", add: -1 }] },
+    { name: "普信", type: "negative", desc: "气运-2，天赋-2，明明那么普通，却那么自信", effects: [{ field: "stats.qiyun", add: -2 }, { field: "stats.tianfu", add: -2 }] },
+    { name: "无效努力", type: "negative", desc: "体质-2，天赋-2，每天假装修炼感动自己", effects: [{ field: "stats.tizhi", add: -2 }, { field: "stats.tianfu", add: -2 }] }
   ],
 
   fillers: [
