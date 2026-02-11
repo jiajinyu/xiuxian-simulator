@@ -30,6 +30,30 @@ bash scripts/serve.sh
 bash scripts/serve.sh 8080
 ```
 
+WSL2 同局域网手机访问可一键启动（会启动 WSL 静态服务，并拉起管理员 PowerShell 配置 Windows 端口转发与防火墙）：
+
+```bash
+bash scripts/mobile_serve.sh
+```
+
+可选参数：
+
+```bash
+bash scripts/mobile_serve.sh <端口> <页面路径> <WSL发行版名>
+```
+
+示例：
+
+```bash
+bash scripts/mobile_serve.sh 8080 /app/index.html Ubuntu-24.04
+```
+
+说明：
+
+- 需要在弹出的 UAC 窗口中确认管理员授权。
+- 默认会保持管理员 PowerShell 窗口不自动关闭，便于查看手机访问 URL。
+- 如果未传发行版名，脚本会使用默认 WSL 发行版获取 IP。
+
 ## 运维 Git 脚本
 
 创建新分支（会先检查并同步 `main` 与 `origin/main`）：
