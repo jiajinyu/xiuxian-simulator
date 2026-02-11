@@ -60,7 +60,7 @@ window.GAME_CONFIG = {
       tianfuMultiplier: 0.05  // 每点天赋增加5%修为获取
     },
     debug: {
-      logCultivationDeltaPerTick: true
+      logCultivationDeltaPerTick: false
     },
     statLabels: {
       tianfu: "天赋",
@@ -79,19 +79,19 @@ window.GAME_CONFIG = {
   realms: ["凡人", "炼气", "筑基", "金丹", "元婴", "化神", "炼虚", "合体", "大乘", "渡劫", "真仙"],
 
   talents: [
-    { name: "荒古圣体", type: "positive", desc: "体质+5，同阶无敌", effects: [{ field: "stats.tizhi", add: 5 }] },
-    { name: "韩跑跑", type: "positive", desc: "气运+5，逃跑速度一流", effects: [{ field: "stats.qiyun", add: 5 }] },
-    { name: "掌天瓶", type: "positive", desc: "悟性+5，催熟灵药", effects: [{ field: "stats.wuxing", add: 5 }] },
-    { name: "天灵根", type: "positive", desc: "天赋+5", effects: [{ field: "stats.tianfu", add: 5 }] },
+    { name: "荒古圣体", type: "positive", desc: "体质+4，同阶无敌", effects: [{ field: "stats.tizhi", add: 4 }] },
+    { name: "韩跑跑", type: "positive", desc: "气运+4，逃跑速度一流", effects: [{ field: "stats.qiyun", add: 4 }] },
+    { name: "掌天瓶", type: "positive", desc: "悟性+4，催熟灵药", effects: [{ field: "stats.wuxing", add: 4 }] },
+    { name: "天灵根", type: "positive", desc: "天赋+4", effects: [{ field: "stats.tianfu", add: 4 }] },
 
     { name: "废灵根", type: "negative", desc: "天赋-3，体质-2", effects: [{ field: "stats.tianfu", add: -3 }, { field: "stats.tizhi", add: -2 }] },
-    { name: "天煞孤星", type: "negative", desc: "气运-5，克死亲友", effects: [{ field: "stats.qiyun", add: -5 }] },
+    { name: "天煞孤星", type: "negative", desc: "气运-4，克死亲友", effects: [{ field: "stats.qiyun", add: -4 }] },
     { name: "经脉郁结", type: "negative", desc: "体质-2，修炼极慢", effects: [{ field: "stats.tizhi", add: -2 }] },
     { name: "招黑体质", type: "negative", desc: "气运-3，容易被追杀", effects: [{ field: "stats.qiyun", add: -3 }] },
 
     { name: "莽夫", type: "neutral", desc: "体质+4，悟性-3", effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.wuxing", add: -3 }] },
     { name: "玻璃大炮", type: "neutral", desc: "天赋+4，体质-2", effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.tizhi", add: -2 }] },
-    { name: "赌狗", type: "neutral", desc: "气运+5，悟性-4", effects: [{ field: "stats.qiyun", add: 5 }, { field: "stats.wuxing", add: -4 }] },
+    { name: "赌狗", type: "neutral", desc: "气运+4，悟性-4", effects: [{ field: "stats.qiyun", add: 4 }, { field: "stats.wuxing", add: -4 }] },
     { name: "聪明绝顶", type: "neutral", desc: "悟性+4，体质-2(秃了)", effects: [{ field: "stats.wuxing", add: 4 }, { field: "stats.tizhi", add: -2 }] }
   ],
 
