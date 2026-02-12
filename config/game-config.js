@@ -184,7 +184,11 @@ window.GAME_CONFIG = {
     { name: "天选打工人", color: "#aaa", desc: "达成条件：死于工地或猝死", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["工地", "猝死"] }] } },
     { name: "吃货", color: "#ffaa00", desc: "达成条件：死于喝奶茶或电饭煲", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["奶茶", "电饭煲"] }] } },
 
-    { name: "无名小卒", color: "#fff", desc: "达成条件：平平淡淡过一生", condition: { all: [{ field: "always", op: "==", value: true }] } }
+    { name: "无名小卒", color: "#fff", desc: "达成条件：平平淡淡过一生", condition: { all: [{ field: "always", op: "==", value: true }] } },
+    { name: "逆天改命", color: "#ff4444", desc: "达成条件：开局3个天赋均为负面天赋，却活过了筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "negative" }, { field: "realmIdx", op: ">=", value: 2 }] } },
+    { name: "平平无奇", color: "#aaa", desc: "达成条件：开局3个天赋均为中性天赋，却活过了筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "neutral" }, { field: "realmIdx", op: ">=", value: 2 }] } },
+    { name: "天妒英才", color: "#8b0000", desc: "达成条件：起手3个正面天赋，却没有活过筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "positive" }, { field: "realmIdx", op: "<", value: 2 }] } },
+    { name: "出道即巅峰", color: "#ffd700", desc: "达成条件：死时除体质外任意一属性小于初始值", condition: { all: [{ field: "declinedStats", op: ">", value: 0 }] } }
   ],
 
   events: [
@@ -229,16 +233,16 @@ window.GAME_CONFIG = {
 
     // 减修为搞笑事件 - 负面事件，需要气运判定豁免
     // 豁免条件：气运 > (realmIdx*2+3)*10
-    { text: "修炼时走火入魔，修为倒退十年！", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", add: -200 }] },
-    { text: "被心魔诱惑，沉迷网络游戏，荒废了修炼。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", add: -150 }] },
-    { text: "误食了有毒的灵果，拉肚子拉了一整天，修为尽失。", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", add: -100 }] },
-    { text: "被一只会说话的鹦鹉骗了，把修为传给了它。", chance: 0.01, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", add: -300 }] },
-    { text: "试图用科学方法修仙，结果走火入魔，修为大跌。", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", add: -250 }] },
-    { text: "被一只会卖萌的妖兽骗了，把修为都用来买它的零食。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", add: -180 }] },
-    { text: "修炼时睡着了，醒来发现修为被老鼠偷走了。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", add: -120 }] },
-    { text: "试图用意念控制飞剑，结果飞剑失控，修为受损。", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", add: -220 }] },
-    { text: "被一只会唱歌的青蛙迷惑，修为都被它吸走了。", chance: 0.01, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", add: -280 }] },
-    { text: "试图用炼丹炉煮火锅，结果炸炉，修为倒退。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", add: -160 }] },
+    { text: "修炼时走火入魔，修为倒退十年！", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "被心魔诱惑，沉迷网络游戏，荒废了修炼。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "误食了有毒的灵果，拉肚子拉了一整天，修为尽失。", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "被一只会说话的鹦鹉骗了，把修为传给了它。", chance: 0.01, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "试图用科学方法修仙，结果走火入魔，修为大跌。", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "被一只会卖萌的妖兽骗了，把修为都用来买它的零食。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "修炼时睡着了，醒来发现修为被老鼠偷走了。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "试图用意念控制飞剑，结果飞剑失控，修为受损。", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "被一只会唱歌的青蛙迷惑，修为都被它吸走了。", chance: 0.01, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "试图用炼丹炉煮火锅，结果炸炉，修为倒退。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
 
     // 高天赋专属事件 - 需要天赋达到一定值才能触发
     { text: "天生异象，紫气东来三万里！你顿悟了无上大道。", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 10 }] }, effects: [{ field: "cultivation", add: 2000 }, { field: "stats.wuxing", add: 5 }] },

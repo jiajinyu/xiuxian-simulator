@@ -267,6 +267,8 @@
         return typeof left === "string" && left.includes(String(right));
       case "includesAny":
         return typeof left === "string" && Array.isArray(right) && right.some(k => left.includes(String(k)));
+      case "every":
+        return Array.isArray(left) && left.every(item => item === right);
       default:
         return false;
     }
@@ -283,14 +285,23 @@
     return true;
   }
 
-  function applyEffects(state, effects) {
+  function applyEffects(state, effects, eventChance) {
     if (!Array.isArray(effects)) return;
     effects.forEach(effect => {
       const oldValue = getByPath(state, effect.field);
-      const delta = Number(effect.add || 0);
-      if (typeof oldValue === "number") {
-        setByPath(state, effect.field, oldValue + delta);
+      if (typeof oldValue !== "number") return;
+
+      // 百分比损失：用于减修为事件，几率越大损失百分比越小（10%-30%）
+      if (effect.percent && eventChance != null) {
+        // chance 范围 0.01-0.02 映射到 30%-10%，越大概率越小
+        const lossPercent = Math.max(0.10, Math.min(0.30, 0.30 - (eventChance - 0.01) / 0.01 * 0.20));
+        const loss = Math.floor(oldValue * lossPercent);
+        setByPath(state, effect.field, oldValue - loss);
+        return;
       }
+
+      const delta = Number(effect.add || 0);
+      setByPath(state, effect.field, oldValue + delta);
     });
   }
 
@@ -476,6 +487,9 @@
     renderTalentCards(pool) {
       const list = document.getElementById("talent-list");
       list.innerHTML = "";
+
+      // 记录开局天赋类型用于称号判定
+      this.state.startTalentTypes = pool.map(t => t.type);
 
       pool.forEach(t => {
         applyEffects(this.state, t.effects);
@@ -888,7 +902,7 @@
         s.hehuanzongCount = (s.hehuanzongCount || 0) + 1;
       }
 
-      applyEffects(s, hit.effects);
+      applyEffects(s, hit.effects, hit.chance);
       if (s.cultivation < 0) s.cultivation = 0;
 
       let txt = hit.text;
@@ -1012,9 +1026,18 @@
       document.getElementById("btn-settle").classList.remove("hidden");
       this.data.gen++;
 
+      // 计算是否有属性（除体质外）低于初始值，用于"出道即巅峰"称号
+      const s = this.state;
+      const declinedStats = (
+        (s.stats.tianfu < s.baseStats.tianfu ? 1 : 0) +
+        (s.stats.wuxing < s.baseStats.wuxing ? 1 : 0) +
+        (s.stats.qiyun < s.baseStats.qiyun ? 1 : 0)
+      );
+
       const context = {
         ...this.state,
         deathReason: finalReason,
+        declinedStats,
         always: true
       };
       const myTitle = this.resolveTitle(context);
