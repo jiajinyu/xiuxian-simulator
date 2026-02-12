@@ -301,7 +301,13 @@
       }
 
       const delta = Number(effect.add || 0);
-      setByPath(state, effect.field, oldValue + delta);
+      const newValue = oldValue + delta;
+      setByPath(state, effect.field, newValue);
+
+      // 追踪体质最大值
+      if (effect.field === "stats.tizhi" && state.maxTizhi !== undefined) {
+        state.maxTizhi = Math.max(state.maxTizhi, newValue);
+      }
     });
   }
 
@@ -328,7 +334,8 @@
       hasTriggeredIndescribable: false,  // 是否触发过"不可描述的事"
       hehuanzongCount: 0,  // 合欢宗事件触发次数
       gender: null,  // 'male' 或 'female'
-      eventCooldowns: {}  // 事件冷却：{ eventText: 剩余冷却年数 }
+      eventCooldowns: {},  // 事件冷却：{ eventText: 剩余冷却年数 }
+      maxTizhi: 0  // 游戏过程中体质达到的最大值
     },
 
     init() {
@@ -651,6 +658,9 @@
 
       // 随机生成性别
       this.state.gender = Math.random() < 0.5 ? "male" : "female";
+
+      // 初始化体质最大值
+      this.state.maxTizhi = this.state.stats.tizhi;
       const genderText = this.state.gender === "male" ? "男婴" : "女婴";
       const birthDesc = cfg.birthDesc?.[this.state.gender] || [];
       const desc = birthDesc.length > 0 ? pickRandom(birthDesc) : "";
@@ -738,7 +748,7 @@
       if (Math.random() * 100 < baseChance) {
         // 第二阶段：悟性+气运判定
         const wuxingQiyunSum = s.stats.wuxing + s.stats.qiyun;
-        const threshold = (s.realmIdx * 2 + 1) * 15;
+        const threshold = (s.realmIdx * 2 + 1) * 10;
 
         if (wuxingQiyunSum > threshold) {
           // 突破成功
@@ -908,7 +918,7 @@
       let txt = hit.text;
       if (!txt.includes("岁")) txt = `${s.age}岁：${txt}`;
 
-      let colorClass = hit.color || this.getEventColor(hit.chance || 1);
+      let colorClass = hit.color || this.getEventColor(hit.chance || 1, eventType);
       if (eventType === "death") colorClass = "c-death";
       this.log(txt, colorClass);
 
@@ -938,7 +948,15 @@
       }
     },
 
-    getEventColor(prob) {
+    getEventColor(prob, eventType) {
+      // 正面事件按概率分级：金 > 紫 > 粉 > 绿
+      if (eventType === "positive") {
+        if (prob < 0.005) return "c-gold";      // 最稀有：金色
+        if (prob < 0.01) return "c-purple";     // 次之：紫色
+        if (prob < 0.02) return "c-pink";       // 再次：粉色
+        return "c-green";                        // 最普通：绿色
+      }
+      // 其他事件使用通用颜色分级
       if (prob < 0.01) return "c-legend";
       if (prob < 0.02) return "c-epic";
       if (prob < 0.05) return "c-rare";
@@ -1003,9 +1021,14 @@
       return cfg.titles[cfg.titles.length - 1];
     },
 
-    renderSettlement(myTitle, reason) {
+    renderSettlement(myTitle, reason, isNewTitle) {
       const tEl = document.getElementById("end-title");
-      tEl.innerText = myTitle.name;
+      // 如果是新称号，添加"新！"标签
+      if (isNewTitle) {
+        tEl.innerHTML = `${myTitle.name}<span class="new-title-badge">新！</span>`;
+      } else {
+        tEl.innerText = myTitle.name;
+      }
       tEl.style.color = myTitle.color;
 
       document.getElementById("end-title-desc").innerText = myTitle.desc;
@@ -1042,7 +1065,8 @@
       };
       const myTitle = this.resolveTitle(context);
 
-      if (!this.data.titles.includes(myTitle.name)) {
+      const isNewTitle = !this.data.titles.includes(myTitle.name);
+      if (isNewTitle) {
         this.data.titles.push(myTitle.name);
       }
       localStorage.setItem("xiuxian_save", JSON.stringify(this.data));
@@ -1055,7 +1079,7 @@
       });
       trackEvent("game_over", { reason: finalReason });
 
-      this.renderSettlement(myTitle, finalReason);
+      this.renderSettlement(myTitle, finalReason, isNewTitle);
       if (opts.showSettlement) {
         this.showSettlement();
       }

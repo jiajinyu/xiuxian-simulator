@@ -27,7 +27,7 @@ class Element {
   constructor(id, registerById) {
     this.id = id || '';
     this._registerById = registerById;
-    this.innerText = '';
+    this._innerText = '';
     this._innerHTML = '';
     this.style = {};
     this.disabled = false;
@@ -38,18 +38,43 @@ class Element {
     this.classList = new ClassList();
   }
 
+  get innerText() {
+    return this._innerText;
+  }
+
+  set innerText(value) {
+    this._innerText = String(value);
+    // 同步更新 innerHTML（转义HTML特殊字符）
+    this._innerHTML = this._escapeHtml(String(value));
+  }
+
   get innerHTML() {
     return this._innerHTML;
   }
 
   set innerHTML(value) {
     this._innerHTML = String(value);
+    // 同步更新 innerText（移除HTML标签）
+    this._innerText = this._stripHtml(String(value));
     const regex = /\bid="([^"]+)"/g;
     let match = regex.exec(this._innerHTML);
     while (match) {
       this._registerById(new Element(match[1], this._registerById));
       match = regex.exec(this._innerHTML);
     }
+  }
+
+  _stripHtml(html) {
+    return html.replace(/<[^>]*>/g, '');
+  }
+
+  _escapeHtml(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   appendChild(child) {

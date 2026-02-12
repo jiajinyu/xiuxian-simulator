@@ -301,7 +301,10 @@
         /* 兼容旧代码的类名映射 */
         .c-death { color: var(--evt-neg); font-weight: bold; }
         .c-legend { color: var(--evt-god); }
-        .c-funny { color: var(--evt-rare); } 
+        .c-funny { color: var(--evt-rare); }
+        
+        /* 正面事件概率分级颜色 */
+        .c-pink { color: #ff69b4; } /* 粉色 - 中概率正面事件 */ 
 
         /* --- 卡片 --- */
         .talent-grid, .gallery-grid {
@@ -450,6 +453,22 @@
             font-weight: bold; 
             margin: 10px 0; 
             display: block; 
+            position: relative;
+        }
+        .new-title-badge {
+            display: inline-block;
+            background: var(--evt-neg);
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            vertical-align: middle;
+            animation: pulse 1s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
         .end-desc { 
             font-size: 12px; 

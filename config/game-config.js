@@ -177,11 +177,11 @@ window.GAME_CONFIG = {
     { name: "耐杀王", color: "#ff4444", desc: "达成条件：经历2次死亡事件未死", condition: { all: [{ field: "deathEventCount", op: ">=", value: 2 }] } },
     { name: "大魔法师", color: "#b088ff", desc: "达成条件：死时还是童子身(气运>15、年龄>30且未触发南宫婉或合欢宗事件)", condition: { all: [{ field: "stats.qiyun", op: ">", value: 15 }, { field: "age", op: ">", value: 30 }, { field: "hasTriggeredRomance", op: "==", value: false }] } },
 
-    { name: "天胡开局", color: "#4d94ff", desc: "达成条件：气运>20，天命之子", condition: { all: [{ field: "stats.qiyun", op: ">", value: 20 }] } },
+    { name: "金刚芭比", color: "#ff69b4", desc: "达成条件：游戏过程中体质曾经超过100且性别为女", condition: { all: [{ field: "maxTizhi", op: ">", value: 100 }, { field: "gender", op: "==", value: "female" }] } },
     { name: "软饭硬吃", color: "#ff77ff", desc: "达成条件：触发'不可描述的事'且'合欢宗'事件>5次", condition: { all: [{ field: "hasTriggeredIndescribable", op: "==", value: true }, { field: "hehuanzongCount", op: ">", value: 5 }] } },
     { name: "药罐子", color: "#4eff4e", desc: "达成条件：体质<5 且活过50岁", condition: { all: [{ field: "stats.tizhi", op: "<", value: 5 }, { field: "age", op: ">", value: 50 }] } },
     { name: "摸鱼大师", color: "#87CEEB", desc: "达成条件：年龄超过100岁但还在金丹以下摸鱼", condition: { all: [{ field: "age", op: ">", value: 100 }, { field: "realmIdx", op: "<=", value: 3 }] } },
-    { name: "天选打工人", color: "#aaa", desc: "达成条件：死于工地或猝死", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["工地", "猝死"] }] } },
+    { name: "天选打工人", color: "#aaa", desc: "达成条件：死于工地或猝死", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["老板", "猝死"] }] } },
     { name: "吃货", color: "#ffaa00", desc: "达成条件：死于喝奶茶或电饭煲", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["奶茶", "电饭煲"] }] } },
 
     { name: "无名小卒", color: "#fff", desc: "达成条件：平平淡淡过一生", condition: { all: [{ field: "always", op: "==", value: true }] } },
@@ -226,8 +226,8 @@ window.GAME_CONFIG = {
     { text: "渡劫关键时刻，天道服务器连接超时，卡在半空被雷劈焦。", chance: 0.001, isDeath: true },
     { text: "试图用电饭煲炼丹，发生高压爆炸。", chance: 0.002, isDeath: true },
     { text: "御剑飞行超速，与前面的仙鹤发生惨烈追尾。", chance: 0.001, isDeath: true },
-    { text: "熬夜修仙（真的熬夜），猝死。", chance: 0.002, isDeath: true },
-    { text: "卡BUG刷灵石被天道（开发者）发现，直接被抹除数据。", chance: 0.001, trigger: { all: [{ field: "stats.wuxing", op: ">", value: 10 }] }, isDeath: true },
+    { text: "熬夜完成炼丹KPI，猝死。", chance: 0.002, isDeath: true },
+    { text: "卡BUG刷灵石被天道（老板）发现，直接被抹除数据。", chance: 0.001, trigger: { all: [{ field: "stats.wuxing", op: ">", value: 10 }] }, isDeath: true },
     { text: "被合欢宗妖女抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.tizhi", add: -10 }, { field: "cultivation", add: -100 }] },
     { text: "被合欢宗男修抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: -10 }, { field: "cultivation", add: -100 }] },
 
