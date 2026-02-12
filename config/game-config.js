@@ -164,9 +164,9 @@ window.GAME_CONFIG = {
     { name: "十里坡剑神", color: "#ffd700", desc: "达成条件：炼气期活过100岁", condition: { all: [{ field: "realmIdx", op: "==", value: 1 }, { field: "age", op: ">", value: 100 }] } },
     { name: "龙套之王", color: "#fff", desc: "达成条件：化神以下，活过150岁", condition: { all: [{ field: "realmIdx", op: "<", value: 5 }, { field: "age", op: ">", value: 150 }] } },
 
-    { name: "绝世欧皇", color: "#ffd700", desc: "达成条件：气运>30，天命之子", condition: { all: [{ field: "stats.qiyun", op: ">", value: 30 }] } },
+    { name: "绝世欧皇", color: "#ffd700", desc: "达成条件：气运>150，天命之子", condition: { all: [{ field: "stats.qiyun", op: ">", value: 150 }] } },
     { name: "非酋", color: "#333", desc: "达成条件：气运<-5，脸黑如炭", condition: { all: [{ field: "stats.qiyun", op: "<", value: -5 }] } },
-    { name: "万年王八", color: "#4eff4e", desc: "达成条件：体质>100，太能苟了", condition: { all: [{ field: "stats.tizhi", op: ">", value: 100 }] } },
+    { name: "万年王八", color: "#4eff4e", desc: "达成条件：死亡时>300岁，太能苟了", condition: { all: [{ field: "age", op: ">", value: 300 }] } },
     { name: "智商欠费", color: "#888", desc: "达成条件：死亡时悟性<10", condition: { all: [{ field: "stats.wuxing", op: "<", value: 10 }] } },
 
     { name: "键盘侠", color: "#ff77ff", desc: "达成条件：死于天降键盘", condition: { all: [{ field: "deathReason", op: "includes", value: "键盘" }] } },
@@ -178,7 +178,7 @@ window.GAME_CONFIG = {
     { name: "大魔法师", color: "#b088ff", desc: "达成条件：死时还是童子身(气运>15、年龄>30且未触发南宫婉或合欢宗事件)", condition: { all: [{ field: "stats.qiyun", op: ">", value: 15 }, { field: "age", op: ">", value: 30 }, { field: "hasTriggeredRomance", op: "==", value: false }] } },
 
     { name: "韩跑跑", color: "#4d94ff", desc: "达成条件：气运>20，逃跑大师", condition: { all: [{ field: "stats.qiyun", op: ">", value: 20 }] } },
-    { name: "软饭硬吃", color: "#ff77ff", desc: "达成条件：触发南宫婉或合欢宗事件", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["南宫", "合欢"] }] } },
+    { name: "软饭硬吃", color: "#ff77ff", desc: "达成条件：触发'不可描述的事'且'合欢宗'事件>5次", condition: { all: [{ field: "hasTriggeredIndescribable", op: "==", value: true }, { field: "hehuanzongCount", op: ">", value: 5 }] } },
     { name: "药罐子", color: "#4eff4e", desc: "达成条件：体质<5 且活过50岁", condition: { all: [{ field: "stats.tizhi", op: "<", value: 5 }, { field: "age", op: ">", value: 50 }] } },
     { name: "摸鱼大师", color: "#87CEEB", desc: "达成条件：年龄超过100岁但还在金丹以下摸鱼", condition: { all: [{ field: "age", op: ">", value: 100 }, { field: "realmIdx", op: "<=", value: 3 }] } },
     { name: "天选打工人", color: "#aaa", desc: "达成条件：死于工地或猝死", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["工地", "猝死"] }] } },

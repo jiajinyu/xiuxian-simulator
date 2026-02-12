@@ -314,6 +314,8 @@
       deathReason: "",
       deathEventCount: 0,
       hasTriggeredRomance: false,
+      hasTriggeredIndescribable: false,  // 是否触发过"不可描述的事"
+      hehuanzongCount: 0,  // 合欢宗事件触发次数
       gender: null,  // 'male' 或 'female'
       eventCooldowns: {}  // 事件冷却：{ eventText: 剩余冷却年数 }
     },
@@ -793,19 +795,17 @@
 
       // 判断事件类型并进行相应处理
       const eventType = this.getEventType(hit);
-      
-      // 负面事件和死亡事件需要进行气运豁免判定
-      if (eventType === "negative" || eventType === "death") {
-        const exemptionThreshold = this.getQiyunExemptionThreshold(s.realmIdx);
-        if (s.stats.qiyun > exemptionThreshold) {
-          // 气运豁免成功
-          this.log(`${s.age}岁：遭遇${eventType === "death" ? "生死危机" : "劫难"}，但你的气运【${s.stats.qiyun}】超过了豁免阈值【${exemptionThreshold}】，化险为夷！`, "c-legend");
-          return;
-        }
-      }
 
       if (hit.text.includes("南宫婉") || hit.text.includes("合欢宗")) {
         s.hasTriggeredRomance = true;
+      }
+      // 追踪"不可描述的事"事件（南宫婉/韩立）
+      if (hit.text.includes("不可描述的事")) {
+        s.hasTriggeredIndescribable = true;
+      }
+      // 追踪合欢宗事件次数
+      if (hit.text.includes("被合欢宗")) {
+        s.hehuanzongCount = (s.hehuanzongCount || 0) + 1;
       }
 
       applyEffects(s, hit.effects);
@@ -826,7 +826,7 @@
     handleDeathEvent(event) {
       const s = this.state;
 
-      const qiyunCheckChance = Math.min((s.stats.qiyun || 0) * 0.5, 80);
+      const qiyunCheckChance = Math.min((s.stats.qiyun || 0) * 0.5, 50);
       if (Math.random() * 100 < qiyunCheckChance) {
         this.log(`${s.age}岁：${event.text}，但你的气运让你化险为夷！`, "c-legend");
         return;
