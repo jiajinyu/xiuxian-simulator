@@ -19,6 +19,12 @@
 
 window.GAME_CONFIG = {
   version: "1.0.0",
+
+  // 出生性别描述
+  birthDesc: {
+    male: ["家族寄予厚望，为你取名添福。", "哭声洪亮，接生婆说此子日后必成大器。"],
+    female: ["眉清目秀，母亲见了甚是欢喜。", "天降异香，据说女婴面带祥瑞。"]
+  },
   rules: {
     startPoints: 20,
     tickMs: 300,
@@ -82,7 +88,7 @@ window.GAME_CONFIG = {
     { name: "荒古圣体", type: "positive", desc: "体质+4，同阶无敌", effects: [{ field: "stats.tizhi", add: 4 }] },
     { name: "韩跑跑", type: "positive", desc: "气运+4，逃跑速度一流", effects: [{ field: "stats.qiyun", add: 4 }] },
     { name: "掌天瓶", type: "positive", desc: "悟性+4，催熟灵药", effects: [{ field: "stats.wuxing", add: 4 }] },
-    { name: "天灵根", type: "positive", desc: "天赋+4", effects: [{ field: "stats.tianfu", add: 4 }] },
+    { name: "大聪明", type: "positive", desc: "天赋+4", effects: [{ field: "stats.tianfu", add: 4 }] },
 
     { name: "废灵根", type: "negative", desc: "天赋-3，体质-2", effects: [{ field: "stats.tianfu", add: -3 }, { field: "stats.tizhi", add: -2 }] },
     { name: "天煞孤星", type: "negative", desc: "气运-4，克死亲友", effects: [{ field: "stats.qiyun", add: -4 }] },
@@ -104,6 +110,39 @@ window.GAME_CONFIG = {
     { name: "干饭人", type: "neutral", desc: "体质+3，天赋-1，灵石都被拿去买吃的了", effects: [{ field: "stats.tizhi", add: 3 }, { field: "stats.tianfu", add: -1 }] },
     { name: "普信", type: "negative", desc: "气运-2，天赋-2，明明那么普通，却那么自信", effects: [{ field: "stats.qiyun", add: -2 }, { field: "stats.tianfu", add: -2 }] },
     { name: "无效努力", type: "negative", desc: "体质-2，天赋-2，每天假装修炼感动自己", effects: [{ field: "stats.tizhi", add: -2 }, { field: "stats.tianfu", add: -2 }] }
+  ],
+
+  // 童年事件（1-10岁专属，数值增减较少）
+  childhoodEvents: [
+    { text: "学会走路，摇摇晃晃地扑向母亲。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 1 }, { field: "age", op: "<=", value: 3 }] }, effects: [{ field: "stats.tizhi", add: 1 }] },
+    { text: "第一次开口说话，口齿不清地喊着'修仙'。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 1 }, { field: "age", op: "<=", value: 3 }] }, effects: [{ field: "stats.tianfu", add: 1 }] },
+    { text: "在院子里追逐蝴蝶，摔了一跤但笑得很开心。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 2 }, { field: "age", op: "<=", value: 5 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: 1 }] },
+    { text: "偷吃家里的灵果，肚子胀了一整天。", chance: 0.05, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 3 }, { field: "age", op: "<=", value: 6 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.wuxing", add: -1 }] },
+    { text: "听爷爷讲修仙故事，眼睛里闪烁着光芒。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 3 }, { field: "age", op: "<=", value: 7 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
+    { text: "和邻居小孩打架，打赢了但也挂彩了。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: -1 }] },
+    { text: "在溪边捡到一颗漂亮的石头，当作宝贝收藏。", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.qiyun", add: 2 }] },
+    { text: "被父亲逼着背诵《三字经》，背得磕磕巴巴。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
+    { text: "帮家里喂鸡，被大公鸡追着跑了半个村子。", chance: 0.05, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.tizhi", add: 1 }] },
+    { text: "第一次尝试打坐，结果坐着睡着了。", chance: 0.05, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 6 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "cultivation", add: 10 }, { field: "stats.wuxing", add: 1 }] },
+    { text: "在山脚下发现一株野生草药，卖了个好价钱。", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 6 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "stats.qiyun", add: 1 }, { field: "cultivation", add: 15 }] },
+    { text: "跟村里的武师学了一套拳法，练得有模有样。", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 7 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "stats.tizhi", add: 2 }] },
+    { text: "发了一场高烧，梦里似乎看到了仙人。", chance: 0.03, color: "c-rare", trigger: { all: [{ field: "age", op: ">=", value: 2 }, { field: "age", op: "<=", value: 6 }] }, effects: [{ field: "stats.tianfu", add: 2 }, { field: "stats.tizhi", add: -1 }] },
+    { text: "偷偷下河游泳，差点被水冲走。", chance: 0.04, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: -1 }] },
+    { text: "过生日时长辈送了一块平安符。", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 3 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.qiyun", add: 2 }] },
+    { text: "躺在草地上数星星，不知不觉睡着了。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
+    { text: "被村里的恶犬追赶，爬上了树才脱险。", chance: 0.04, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: -1 }] },
+    { text: "第一次学写字，毛笔字歪歪扭扭像蚯蚓。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
+    { text: "帮母亲捶背，被夸奖是个懂事的孩子。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 6 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: 1 }] },
+    { text: "雨后捉到一只大蚯蚓，吓得甩到了妹妹脸上。", chance: 0.04, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.wuxing", add: -1 }] }
+  ],
+
+  // 童年专用填充文本（1-10岁未触发事件时使用）
+  childhoodFillers: [
+    "在院子里追着蜻蜓跑了一整天。",
+    "和小伙伴玩捉迷藏，躲在草垛里睡着了。",
+    "趴在父亲膝头听他讲村里的趣事。",
+    "用树枝在地上画着想象中的飞剑。",
+    "抱着母亲的腿撒娇，讨要糖葫芦。"
   ],
 
   fillers: [
@@ -156,9 +195,10 @@ window.GAME_CONFIG = {
     { text: "遇到一位名为‘厉飞雨’的友人，他虽然没有灵根，但武功盖世。", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "<", value: 2 }] }, effects: [{ field: "stats.tizhi", add: 2 }] },
     { text: "遭遇强敌，你眉头一皱，退至众人身后……", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: ">", value: 1 }] }, effects: [{ field: "stats.qiyun", add: 2 }] },
     { text: "参加血色试炼，利用隐匿符苟到了最后，采摘了千年灵药。", chance: 0.01, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "==", value: 1 }] }, effects: [{ field: "cultivation", add: 500 }, { field: "stats.wuxing", add: 2 }] },
-    { text: "偶遇‘南宫婉’，发生了一些不可描述的事...", chance: 0.005, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }] }, effects: [{ field: "stats.tizhi", add: -5 }, { field: "stats.qiyun", add: 5 }, { field: "cultivation", add: 1000 }] },
+    { text: "偶遇‘南宫婉’，发生了一些不可描述的事...", chance: 0.005, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.tizhi", add: -5 }, { field: "stats.qiyun", add: 5 }, { field: "cultivation", add: 1000 }] },
+    { text: "偶遇'韩立'，发生了一些不可描述的事...", chance: 0.005, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: -5 }, { field: "stats.qiyun", add: 5 }, { field: "cultivation", add: 1000 }] },
     { text: "炼制筑基丹，炸炉了三十次终于成功。", chance: 0.03, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "==", value: 1 }] }, effects: [{ field: "cultivation", add: 200 }] },
-    { text: "获得一本秘籍，第一页写着“欲练此功……”", chance: 0.01, color: "c-green", trigger: { all: [{ field: "realmIdx", op: ">=", value: 3 }] }, effects: [{ field: "stats.tianfu", add: 5 }] },
+    { text: "获得一本秘籍，第一页写着“欲练此功……”", chance: 0.01, color: "c-green", trigger: { all: [{ field: "realmIdx", op: ">=", value: 3 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.tianfu", add: 5 }] },
     { text: "借高利贷炒“飞剑股”失败，被钱庄打手堵在洞府门口活活打死。", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "==", value: 0 }] }, effects: [{ field: "stats.wuxing", add: 3 }, { field: "stats.qiyun", add: 2 }] },
     { text: "在乱星海猎杀妖兽，获得了一枚六级妖丹。", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: ">=", value: 3 }] }, effects: [{ field: "cultivation", add: 600 }] },
     { text: "大喊一声‘道友请留步’，对方吓得落荒而逃。", chance: 0.02, color: "c-green" },
@@ -184,7 +224,8 @@ window.GAME_CONFIG = {
     { text: "御剑飞行超速，与前面的仙鹤发生惨烈追尾。", chance: 0.001, isDeath: true },
     { text: "熬夜修仙（真的熬夜），猝死。", chance: 0.002, isDeath: true },
     { text: "卡BUG刷灵石被天道（开发者）发现，直接被抹除数据。", chance: 0.001, trigger: { all: [{ field: "stats.wuxing", op: ">", value: 10 }] }, isDeath: true },
-    { text: "被合欢宗妖女抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }] }, effects: [{ field: "stats.tizhi", add: -10 }, { field: "cultivation", add: -100 }] },
+    { text: "被合欢宗妖女抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.tizhi", add: -10 }, { field: "cultivation", add: -100 }] },
+    { text: "被合欢宗男修抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: -10 }, { field: "cultivation", add: -100 }] },
 
     // 减修为搞笑事件 - 负面事件，气运差才会遇到，概率不享受气运加成，需要气运判定
     // 气运判定：气运 < （境界值-1）*10 才会触发（境界越高，越容易遭遇负面事件）
@@ -203,6 +244,13 @@ window.GAME_CONFIG = {
     { text: "天生异象，紫气东来三万里！你顿悟了无上大道。", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 10 }] }, effects: [{ field: "cultivation", add: 2000 }, { field: "stats.wuxing", add: 5 }] },
     { text: "梦中得仙人指点，领悟了一门失传的上古神通。", chance: 0.015, color: "c-epic", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 8 }] }, effects: [{ field: "cultivation", add: 800 }, { field: "stats.qiyun", add: 3 }] },
     { text: "你的修炼速度远超常人，宗门长老惊叹你为千年难遇的奇才。", chance: 0.02, color: "c-rare", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 6 }] }, effects: [{ field: "cultivation", add: 400 }, { field: "stats.tianfu", add: 1 }] },
-    { text: "参悟天地法则时，你隐约触摸到了一丝大道真意。", chance: 0.025, color: "c-uncommon", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 200 }, { field: "stats.wuxing", add: 1 }] }
+    { text: "参悟天地法则时，你隐约触摸到了了一丝大道真意。", chance: 0.025, color: "c-uncommon", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 200 }, { field: "stats.wuxing", add: 1 }] },
+
+    // 女修专属事件 - 仅限女性角色触发
+    { text: "在遗迹捡到【九天玄女甲】（比基尼款），穿上后虽羞耻度爆表，但因皮肤直接接触天地灵气，修炼效率翻倍。", chance: 0.01, color: "c-purple", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tianfu", add: 3 }] },
+    { text: "被魔教少主壁咚霸道示爱，你反手一个大嘴巴子将其抽飞，顿悟了'心中无男人，拔刀自然神'的真谛。", chance: 0.01, color: "c-purple", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.wuxing", add: 5 }] },
+    { text: "闭关减肥饿昏了头，把师父养的'招财灵蟾'当牛蛙刺身生吞了，虽然拉了三天肚子，但肉身强度暴涨。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: 10 }] },
+    { text: "沉迷修仙界'盲盒'抽奖，散尽家财只抽到一堆'谢谢惠顾'的空丹瓶，喝凉水都塞牙。", chance: 0.015, color: "c-red", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.qiyun", add: -5 }] },
+    { text: "识破了绿茶师妹的'哥哥我不是故意的'装柔弱把戏，当众将其踹下擂台，念头通达，体内灵力瞬间暴涨。", chance: 0.012, color: "c-green", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "cultivation", add: 50 }] }
   ]
 };

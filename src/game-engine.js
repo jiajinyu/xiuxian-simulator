@@ -313,7 +313,8 @@
       failCount: 0,
       deathReason: "",
       deathEventCount: 0,
-      hasTriggeredRomance: false
+      hasTriggeredRomance: false,
+      gender: null  // 'male' 或 'female'
     },
 
     init() {
@@ -560,7 +561,13 @@
       document.getElementById("panel-setup").classList.add("hidden");
       document.getElementById("panel-game").classList.remove("hidden");
 
-      this.log("轮回转世，再踏仙途。", "c-legend");
+      // 随机生成性别
+      this.state.gender = Math.random() < 0.5 ? "male" : "female";
+      const genderText = this.state.gender === "male" ? "男婴" : "女婴";
+      const birthDesc = cfg.birthDesc?.[this.state.gender] || [];
+      const desc = birthDesc.length > 0 ? pickRandom(birthDesc) : "";
+
+      this.log(`轮回转世，再踏仙途。你出生时为${genderText}。${desc}`, "c-legend");
       this.state.timer = setInterval(() => this.tick(), cfg.rules.tickMs);
       trackFunnelStep("game_start", 3);
     },
@@ -671,10 +678,18 @@
       const context = {
         ...s,
         deathReason: s.deathReason,
+        gender: s.gender,
         always: true
       };
 
-      const valid = cfg.events.filter(e => matchCondition(context, e.trigger));
+      // 1-10岁严格只从童年事件中抽取
+      const isChildhood = s.age >= 1 && s.age <= 10;
+      let valid;
+      if (isChildhood && cfg.childhoodEvents && cfg.childhoodEvents.length > 0) {
+        valid = cfg.childhoodEvents.filter(e => matchCondition(context, e.trigger));
+      } else {
+        valid = cfg.events.filter(e => matchCondition(context, e.trigger));
+      }
 
       let hit = valid.find(e => e.text.includes(`${s.age}岁`));
       if (!hit) {
@@ -697,7 +712,16 @@
       }
 
       if (!hit) {
-        const text = pickRandom(cfg.fillers);
+        // 1-10岁使用童年专用filler，否则使用普通filler
+        const isChildhood = s.age >= 1 && s.age <= 10;
+        const fillerPool = (isChildhood && cfg.childhoodFillers && cfg.childhoodFillers.length > 0)
+          ? cfg.childhoodFillers
+          : cfg.fillers;
+        let text = pickRandom(fillerPool);
+        // 性别适配：替换 filler 中的人名
+        if (s.gender === "female" && text.includes("二丫")) {
+          text = text.replace("二丫", "狗剩");
+        }
         const realmIdx = s.realmIdx || 0;
         const baseValue = (cfg.rules.realmBaseCultivation && cfg.rules.realmBaseCultivation[realmIdx]) || 10;
         const tianfuMultiplier = (cfg.rules.cultivationFormula && cfg.rules.cultivationFormula.tianfuMultiplier) || 0.1;
