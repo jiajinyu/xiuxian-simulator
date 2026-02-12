@@ -738,7 +738,7 @@
       if (Math.random() * 100 < baseChance) {
         // 第二阶段：悟性+气运判定
         const wuxingQiyunSum = s.stats.wuxing + s.stats.qiyun;
-        const threshold = (s.realmIdx * 2 + 1) * 20;
+        const threshold = (s.realmIdx * 2 + 1) * 15;
 
         if (wuxingQiyunSum > threshold) {
           // 突破成功

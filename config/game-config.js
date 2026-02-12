@@ -86,12 +86,12 @@ window.GAME_CONFIG = {
 
   talents: [
     { name: "荒古圣体", type: "positive", desc: "体质+4，同阶无敌", effects: [{ field: "stats.tizhi", add: 4 }] },
-    { name: "韩跑跑", type: "positive", desc: "气运+4，逃跑速度一流", effects: [{ field: "stats.qiyun", add: 4 }] },
+    { name: "韩跑跑", type: "positive", desc: "气运+4", effects: [{ field: "stats.qiyun", add: 4 }] },
     { name: "掌天瓶", type: "positive", desc: "悟性+4，催熟灵药", effects: [{ field: "stats.wuxing", add: 4 }] },
     { name: "大聪明", type: "positive", desc: "天赋+4", effects: [{ field: "stats.tianfu", add: 4 }] },
 
     { name: "废灵根", type: "negative", desc: "天赋-3，体质-2", effects: [{ field: "stats.tianfu", add: -3 }, { field: "stats.tizhi", add: -2 }] },
-    { name: "天煞孤星", type: "negative", desc: "气运-4，克死亲友", effects: [{ field: "stats.qiyun", add: -4 }] },
+    { name: "天煞孤星", type: "negative", desc: "气运-4", effects: [{ field: "stats.qiyun", add: -4 }] },
     { name: "经脉郁结", type: "negative", desc: "体质-2，修炼极慢", effects: [{ field: "stats.tizhi", add: -2 }] },
     { name: "招黑体质", type: "negative", desc: "气运-3，容易被追杀", effects: [{ field: "stats.qiyun", add: -3 }] },
 
