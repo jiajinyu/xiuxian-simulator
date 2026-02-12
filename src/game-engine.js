@@ -652,22 +652,36 @@
       if (s.cultivation < req || s.realmIdx >= cfg.realms.length - 1) return;
 
       const b = cfg.rules.breakthrough;
-      const checkType = pickRandom(b.checkStats);
-      const baseChance = b.baseChance - s.realmIdx * b.perRealmPenalty;
-      const bonus = s.stats[checkType] * b.statBonusMul;
-      const finalChance = baseChance + bonus;
+      // 第一阶段：基础成功率判定
+      const baseChance = 60 - s.realmIdx * 5;
 
-      if (Math.random() * 100 < finalChance) {
-        const gain = (s.realmIdx + 1) * b.successTizhiGainMul;
-        s.realmIdx++;
-        s.cultivation = 0;
-        s.stats.tizhi += gain;
-        s.stats.tianfu += b.successTianfuGain;
-        this.log(
-          `突破瓶颈！判定【${checkType === "wuxing" ? "悟性" : "气运"}】通过，晋升【${cfg.realms[s.realmIdx]}】！体质+${gain}。`,
-          "c-legend"
-        );
+      if (Math.random() * 100 < baseChance) {
+        // 第二阶段：悟性+气运判定
+        const wuxingQiyunSum = s.stats.wuxing + s.stats.qiyun;
+        const threshold = (s.realmIdx * 2 + 1) * 20;
+
+        if (wuxingQiyunSum > threshold) {
+          // 突破成功
+          const gain = (s.realmIdx + 1) * b.successTizhiGainMul;
+          s.realmIdx++;
+          s.cultivation = 0;
+          s.stats.tizhi += gain;
+          s.stats.tianfu += b.successTianfuGain;
+          this.log(
+            `突破瓶颈！判定【悟性+气运=${wuxingQiyunSum}】超过阈值【${threshold}】，晋升【${cfg.realms[s.realmIdx]}】！体质+${gain}。`,
+            "c-legend"
+          );
+        } else {
+          // 第二阶段判定失败，计入失败但不扣体质（只扣修为）
+          s.cultivation *= b.failCultivationKeep;
+          s.failCount++;
+          this.log(
+            `冲击【${cfg.realms[s.realmIdx + 1]}】失败！悟性+气运【${wuxingQiyunSum}】未超过阈值【${threshold}】，修为损失30%。`,
+            "c-death"
+          );
+        }
       } else {
+        // 第一阶段判定失败
         const loss = (s.realmIdx + 1) * b.failTizhiLossMul;
         s.cultivation *= b.failCultivationKeep;
         s.stats.tizhi -= loss;
@@ -894,6 +908,13 @@
       const matchedTitles = cfg.titles.filter(t => matchCondition(context, t.condition));
       const unlockedTitles = new Set(this.data.titles);
       const unownedMatched = matchedTitles.filter(t => !unlockedTitles.has(t.name));
+
+      // 优先判定：如果真仙境界，优先给予"仙帝"称号
+      const xianDi = matchedTitles.find(t => t.name === "仙帝");
+      if (xianDi) {
+        // 如果仙帝未解锁，优先解锁；如果已解锁，优先展示
+        return xianDi;
+      }
 
       if (unownedMatched.length > 0) {
         return unownedMatched[0];

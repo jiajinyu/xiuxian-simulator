@@ -247,10 +247,10 @@ window.GAME_CONFIG = {
     { text: "参悟天地法则时，你隐约触摸到了了一丝大道真意。", chance: 0.025, color: "c-uncommon", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 200 }, { field: "stats.wuxing", add: 1 }] },
 
     // 女修专属事件 - 仅限女性角色触发
-    { text: "在遗迹捡到【九天玄女甲】（比基尼款），穿上后虽羞耻度爆表，但因皮肤直接接触天地灵气，修炼效率翻倍。", chance: 0.01, color: "c-purple", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tianfu", add: 3 }] },
+    { text: "捡到【比基尼款九天玄女甲】，穿上后因皮肤直接接触天地灵气，修炼效率翻倍。", chance: 0.01, color: "c-purple", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tianfu", add: 3 }] },
     { text: "被魔教少主壁咚霸道示爱，你反手一个大嘴巴子将其抽飞，顿悟了'心中无男人，拔刀自然神'的真谛。", chance: 0.01, color: "c-purple", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.wuxing", add: 5 }] },
-    { text: "闭关减肥饿昏了头，把师父养的'招财灵蟾'当牛蛙刺身生吞了，虽然拉了三天肚子，但肉身强度暴涨。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: 10 }] },
-    { text: "沉迷修仙界'盲盒'抽奖，散尽家财只抽到一堆'谢谢惠顾'的空丹瓶，喝凉水都塞牙。", chance: 0.015, color: "c-red", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.qiyun", add: -5 }] },
-    { text: "识破了绿茶师妹的'哥哥我不是故意的'装柔弱把戏，当众将其踹下擂台，念头通达，体内灵力瞬间暴涨。", chance: 0.012, color: "c-green", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "cultivation", add: 50 }] }
+    { text: "闭关减肥饿昏了头，把师父养的'招财灵蟾'生吞了，虽然拉了三天肚子，但肉身强度暴涨。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: 10 }] },
+    { text: "沉迷修仙界'盲盒'抽奖，散尽家财只抽到一堆'谢谢惠顾'的空丹瓶。", chance: 0.015, color: "c-red", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.qiyun", add: -5 }] },
+    { text: "识破了绿茶师妹的'哥哥我不是故意的'装柔弱把戏，当众将其踹下擂台，念头通达，灵力暴涨。", chance: 0.012, color: "c-green", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "cultivation", add: 50 }] }
   ]
 };
