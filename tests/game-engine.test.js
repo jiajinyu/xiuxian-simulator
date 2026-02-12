@@ -381,5 +381,136 @@ test('gender-specific filler shows correct text for female', () => {
   assert.strictEqual(lastLog.includes('女版文本'), true);
 });
 
+// ========== 天赋互斥系统测试 ==========
+
+test('getTalentAffectedStats correctly extracts affected stats', () => {
+  const { game } = createEnvironment();
+
+  // 正面天赋：体质+4
+  const positiveTalent = {
+    name: '测试正面',
+    effects: [{ field: 'stats.tizhi', add: 4 }]
+  };
+  const positiveStats = game.getTalentAffectedStats(positiveTalent);
+  assert.strictEqual(positiveStats.has('tizhi'), true);
+  assert.strictEqual(positiveStats.get('tizhi').has('+'), true);
+
+  // 负面天赋：天赋-3
+  const negativeTalent = {
+    name: '测试负面',
+    effects: [{ field: 'stats.tianfu', add: -3 }]
+  };
+  const negativeStats = game.getTalentAffectedStats(negativeTalent);
+  assert.strictEqual(negativeStats.has('tianfu'), true);
+  assert.strictEqual(negativeStats.get('tianfu').has('-'), true);
+
+  // 混合天赋：体质+4，悟性-3
+  const mixedTalent = {
+    name: '测试混合',
+    effects: [
+      { field: 'stats.tizhi', add: 4 },
+      { field: 'stats.wuxing', add: -3 }
+    ]
+  };
+  const mixedStats = game.getTalentAffectedStats(mixedTalent);
+  assert.strictEqual(mixedStats.has('tizhi'), true);
+  assert.strictEqual(mixedStats.has('wuxing'), true);
+  assert.strictEqual(mixedStats.get('tizhi').has('+'), true);
+  assert.strictEqual(mixedStats.get('wuxing').has('-'), true);
+});
+
+test('hasStatConflict detects same stat increase and decrease', () => {
+  const { game } = createEnvironment();
+
+  // 冲突情况：一个天赋增加体质，一个天赋减少体质
+  const conflictTalents = [
+    { name: '荒古圣体', effects: [{ field: 'stats.tizhi', add: 4 }] },
+    { name: '废灵根', effects: [{ field: 'stats.tizhi', add: -3 }] }
+  ];
+  assert.strictEqual(game.hasStatConflict(conflictTalents), true);
+
+  // 无冲突：都增加不同属性
+  const noConflictTalents1 = [
+    { name: '大聪明', effects: [{ field: 'stats.tianfu', add: 4 }] },
+    { name: '韩跑跑', effects: [{ field: 'stats.qiyun', add: 4 }] }
+  ];
+  assert.strictEqual(game.hasStatConflict(noConflictTalents1), false);
+
+  // 无冲突：一个增加，一个减少不同属性
+  const noConflictTalents2 = [
+    { name: '大聪明', effects: [{ field: 'stats.tianfu', add: 4 }] },
+    { name: '招黑体质', effects: [{ field: 'stats.qiyun', add: -3 }] }
+  ];
+  assert.strictEqual(game.hasStatConflict(noConflictTalents2), false);
+
+  // 冲突情况：通过混合天赋间接产生冲突
+  const indirectConflict = [
+    { name: '大聪明', effects: [{ field: 'stats.tianfu', add: 4 }] },
+    { name: '玻璃大炮', effects: [{ field: 'stats.tianfu', add: 4 }, { field: 'stats.tizhi', add: -2 }] },
+    { name: '无效努力', effects: [{ field: 'stats.tianfu', add: -2 }] }
+  ];
+  assert.strictEqual(game.hasStatConflict(indirectConflict), true);
+});
+
+test('hasStatConflict detects same stat decreased multiple times', () => {
+  const { game } = createEnvironment();
+
+  // 冲突情况：同一属性被减少两次
+  const doubleDecrease = [
+    { name: '天煞孤星', effects: [{ field: 'stats.qiyun', add: -4 }] },
+    { name: '招黑体质', effects: [{ field: 'stats.qiyun', add: -3 }] }
+  ];
+  assert.strictEqual(game.hasStatConflict(doubleDecrease), true);
+
+  // 冲突情况：同一属性被减少三次
+  const tripleDecrease = [
+    { name: '废灵根', effects: [{ field: 'stats.tizhi', add: -2 }] },
+    { name: '经脉郁结', effects: [{ field: 'stats.tizhi', add: -2 }] },
+    { name: '键盘侠', effects: [{ field: 'stats.tizhi', add: -2 }] }
+  ];
+  assert.strictEqual(game.hasStatConflict(tripleDecrease), true);
+
+  // 冲突情况：通过混合天赋间接导致同一属性被减少多次
+  const mixedDoubleDecrease = [
+    { name: '熬夜冠军', effects: [{ field: 'stats.wuxing', add: 3 }, { field: 'stats.tizhi', add: -3 }] },
+    { name: '玻璃大炮', effects: [{ field: 'stats.tianfu', add: 4 }, { field: 'stats.tizhi', add: -2 }] }
+  ];
+  assert.strictEqual(game.hasStatConflict(mixedDoubleDecrease), true);
+
+  // 无冲突：不同属性各减少一次
+  const noConflictDecrease = [
+    { name: '天煞孤星', effects: [{ field: 'stats.qiyun', add: -4 }] },
+    { name: '经脉郁结', effects: [{ field: 'stats.tizhi', add: -2 }] }
+  ];
+  assert.strictEqual(game.hasStatConflict(noConflictDecrease), false);
+
+  // 无冲突：同一属性只减少一次（不影响其他属性的增加）
+  const singleDecrease = [
+    { name: '韩跑跑', effects: [{ field: 'stats.qiyun', add: 4 }] },
+    { name: '废灵根', effects: [{ field: 'stats.tianfu', add: -3 }, { field: 'stats.tizhi', add: -2 }] }
+  ];
+  assert.strictEqual(game.hasStatConflict(singleDecrease), false);
+});
+
+test('sampleTalents avoids stat conflicts', () => {
+  const { game, config } = createEnvironment();
+
+  // 创建一个人工配置，确保可能产生冲突
+  config.talents = [
+    { name: '天赋A+', effects: [{ field: 'stats.tizhi', add: 4 }] },
+    { name: '天赋A-', effects: [{ field: 'stats.tizhi', add: -3 }] },
+    { name: '天赋B+', effects: [{ field: 'stats.qiyun', add: 4 }] },
+    { name: '天赋B-', effects: [{ field: 'stats.qiyun', add: -4 }] },
+    { name: '天赋C+', effects: [{ field: 'stats.wuxing', add: 4 }] },
+    { name: '天赋C-', effects: [{ field: 'stats.wuxing', add: -3 }] }
+  ];
+
+  // 多次抽样验证没有冲突
+  for (let i = 0; i < 20; i++) {
+    const selected = game.sampleTalents(3);
+    assert.strictEqual(game.hasStatConflict(selected), false);
+  }
+});
+
 
 

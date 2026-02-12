@@ -398,12 +398,78 @@
       location.reload();
     },
 
+    // 获取天赋影响的所有属性及其增减方向
+    getTalentAffectedStats(talent) {
+      const stats = new Map(); // field -> set of signs ('+' or '-')
+      if (!talent.effects) return stats;
+      
+      talent.effects.forEach(effect => {
+        if (effect.field && effect.field.startsWith('stats.')) {
+          const statName = effect.field.replace('stats.', '');
+          const sign = effect.add >= 0 ? '+' : '-';
+          if (!stats.has(statName)) {
+            stats.set(statName, new Set());
+          }
+          stats.get(statName).add(sign);
+        }
+      });
+      return stats;
+    },
+
+    // 检查一组天赋是否有属性冲突
+    // 冲突规则：
+    // 1. 同一属性既有增加又有减少
+    // 2. 同一属性被减少多次
+    hasStatConflict(talents) {
+      const globalStats = new Map(); // field -> { addCount, subCount }
+
+      for (const talent of talents) {
+        const talentStats = this.getTalentAffectedStats(talent);
+        for (const [statName, signs] of talentStats) {
+          if (!globalStats.has(statName)) {
+            globalStats.set(statName, { addCount: 0, subCount: 0 });
+          }
+          const stat = globalStats.get(statName);
+          for (const sign of signs) {
+            if (sign === '+') stat.addCount++;
+            if (sign === '-') stat.subCount++;
+          }
+          // 规则1：同一属性既有 '+' 又有 '-'，说明有冲突
+          if (stat.addCount > 0 && stat.subCount > 0) {
+            return true;
+          }
+          // 规则2：同一属性被减少多次，说明有冲突
+          if (stat.subCount > 1) {
+            return true;
+          }
+        }
+      }
+      return false;
+    },
+
     sampleTalents(count) {
       const pool = [...cfg.talents];
-      for (let i = pool.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [pool[i], pool[j]] = [pool[j], pool[i]];
-      }
+      let attempts = 0;
+      const maxAttempts = 100; // 防止无限循环
+
+      do {
+        // 打乱数组（Fisher-Yates 洗牌算法）
+        for (let i = pool.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        
+        const selected = pool.slice(0, count);
+        
+        // 检查是否有属性冲突，没有冲突则返回
+        if (!this.hasStatConflict(selected)) {
+          return selected;
+        }
+        
+        attempts++;
+      } while (attempts < maxAttempts);
+
+      // 如果多次尝试后仍有冲突，直接返回（避免无限循环）
       return pool.slice(0, count);
     },
 
