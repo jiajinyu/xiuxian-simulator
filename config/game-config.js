@@ -86,21 +86,21 @@ window.GAME_CONFIG = {
 
   talents: [
     { name: "荒古圣体", type: "positive", desc: "体质+4，同阶无敌", effects: [{ field: "stats.tizhi", add: 4 }] },
-    { name: "韩跑跑", type: "positive", desc: "气运+4", effects: [{ field: "stats.qiyun", add: 4 }] },
+    { name: "天胡开局", type: "positive", desc: "气运+4", effects: [{ field: "stats.qiyun", add: 4 }] },
     { name: "掌天瓶", type: "positive", desc: "悟性+4，催熟灵药", effects: [{ field: "stats.wuxing", add: 4 }] },
     { name: "大聪明", type: "positive", desc: "天赋+4", effects: [{ field: "stats.tianfu", add: 4 }] },
 
     { name: "废灵根", type: "negative", desc: "天赋-3，体质-2", effects: [{ field: "stats.tianfu", add: -3 }, { field: "stats.tizhi", add: -2 }] },
-    { name: "天煞孤星", type: "negative", desc: "气运-4", effects: [{ field: "stats.qiyun", add: -4 }] },
+    { name: "天崩开局", type: "negative", desc: "气运-4", effects: [{ field: "stats.qiyun", add: -4 }] },
     { name: "经脉郁结", type: "negative", desc: "体质-2，修炼极慢", effects: [{ field: "stats.tizhi", add: -2 }] },
     { name: "招黑体质", type: "negative", desc: "气运-3，容易被追杀", effects: [{ field: "stats.qiyun", add: -3 }] },
 
-    { name: "莽夫", type: "neutral", desc: "体质+4，悟性-3", effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.wuxing", add: -3 }] },
-    { name: "玻璃大炮", type: "neutral", desc: "天赋+4，体质-2", effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.tizhi", add: -2 }] },
+    { name: "体修", type: "neutral", desc: "体质+4，悟性-3", effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.wuxing", add: -3 }] },
+    { name: "邪修", type: "neutral", desc: "天赋+4，体质-2", effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.tizhi", add: -2 }] },
     { name: "赌狗", type: "neutral", desc: "气运+4，悟性-4", effects: [{ field: "stats.qiyun", add: 4 }, { field: "stats.wuxing", add: -4 }] },
     { name: "聪明绝顶", type: "neutral", desc: "悟性+4，体质-2(秃了)", effects: [{ field: "stats.wuxing", add: 4 }, { field: "stats.tizhi", add: -2 }] },
 
-    { name: "氪金战士", type: "positive", desc: "气运+5，我也想低调，但实力不允许", effects: [{ field: "stats.qiyun", add: 5 }] },
+    { name: "氪金大佬", type: "positive", desc: "气运+5，我也想低调，但实力不允许", effects: [{ field: "stats.qiyun", add: 5 }] },
     { name: "非酋", type: "negative", desc: "气运-5，喝凉水都塞牙，走路必踩坑", effects: [{ field: "stats.qiyun", add: -5 }] },
     { name: "熬夜冠军", type: "neutral", desc: "悟性+3，体质-3，修仙（物理）", effects: [{ field: "stats.wuxing", add: 3 }, { field: "stats.tizhi", add: -3 }] },
     { name: "键盘侠", type: "negative", desc: "悟性-3，体质-2，键道大成，只会嘴炮", effects: [{ field: "stats.wuxing", add: -3 }, { field: "stats.tizhi", add: -2 }] },
@@ -177,7 +177,7 @@ window.GAME_CONFIG = {
     { name: "耐杀王", color: "#ff4444", desc: "达成条件：经历2次死亡事件未死", condition: { all: [{ field: "deathEventCount", op: ">=", value: 2 }] } },
     { name: "大魔法师", color: "#b088ff", desc: "达成条件：死时还是童子身(气运>15、年龄>30且未触发南宫婉或合欢宗事件)", condition: { all: [{ field: "stats.qiyun", op: ">", value: 15 }, { field: "age", op: ">", value: 30 }, { field: "hasTriggeredRomance", op: "==", value: false }] } },
 
-    { name: "韩跑跑", color: "#4d94ff", desc: "达成条件：气运>20，逃跑大师", condition: { all: [{ field: "stats.qiyun", op: ">", value: 20 }] } },
+    { name: "天胡开局", color: "#4d94ff", desc: "达成条件：气运>20，天命之子", condition: { all: [{ field: "stats.qiyun", op: ">", value: 20 }] } },
     { name: "软饭硬吃", color: "#ff77ff", desc: "达成条件：触发'不可描述的事'且'合欢宗'事件>5次", condition: { all: [{ field: "hasTriggeredIndescribable", op: "==", value: true }, { field: "hehuanzongCount", op: ">", value: 5 }] } },
     { name: "药罐子", color: "#4eff4e", desc: "达成条件：体质<5 且活过50岁", condition: { all: [{ field: "stats.tizhi", op: "<", value: 5 }, { field: "age", op: ">", value: 50 }] } },
     { name: "摸鱼大师", color: "#87CEEB", desc: "达成条件：年龄超过100岁但还在金丹以下摸鱼", condition: { all: [{ field: "age", op: ">", value: 100 }, { field: "realmIdx", op: "<=", value: 3 }] } },
