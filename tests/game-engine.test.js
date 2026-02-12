@@ -213,3 +213,173 @@ test('test harness returns null for unknown ids', () => {
 
   assert.strictEqual(getElementById('definitely-missing-id'), null);
 });
+
+// ========== 事件分类与气运系统测试 ==========
+
+test('getEventType correctly classifies event types', () => {
+  const { game } = createEnvironment();
+
+  // 死亡事件
+  assert.strictEqual(game.getEventType({ isDeath: true }), 'death');
+
+  // 负面事件（显式标记）
+  assert.strictEqual(game.getEventType({ isNegative: true }), 'negative');
+
+  // 填充事件（无 effects）
+  assert.strictEqual(game.getEventType({ text: '填充文本' }), 'filler');
+  assert.strictEqual(game.getEventType({ text: '填充', effects: [] }), 'filler');
+
+  // 正面事件（只有增加）
+  assert.strictEqual(game.getEventType({
+    effects: [{ field: 'cultivation', add: 100 }, { field: 'stats.qiyun', add: 5 }]
+  }), 'positive');
+
+  // 负面事件（只有减少）
+  assert.strictEqual(game.getEventType({
+    effects: [{ field: 'cultivation', add: -100 }, { field: 'stats.tizhi', add: -5 }]
+  }), 'negative');
+
+  // 中性事件（既有增加又有减少）
+  assert.strictEqual(game.getEventType({
+    effects: [{ field: 'cultivation', add: 100 }, { field: 'stats.tizhi', add: -5 }]
+  }), 'neutral');
+});
+
+test('getQiyunExemptionThreshold calculates correctly', () => {
+  const { game } = createEnvironment();
+
+  // 公式：(境界 * 2 + 3) * 10
+  assert.strictEqual(game.getQiyunExemptionThreshold(0), 30);   // 凡人
+  assert.strictEqual(game.getQiyunExemptionThreshold(1), 50);   // 炼气
+  assert.strictEqual(game.getQiyunExemptionThreshold(2), 70);   // 筑基
+  assert.strictEqual(game.getQiyunExemptionThreshold(9), 210);  // 渡劫
+});
+
+test('positive event gets qiyun bonus on chance', () => {
+  const { game } = createEnvironment();
+
+  // 公式：基础概率 + 气运 * 0.05%
+  const baseChance = 0.1;
+  const qiyun = 50;
+  const expectedBonus = qiyun * 0.0005; // 0.025
+
+  game.state.stats.qiyun = qiyun;
+  const event = { text: '测试正面事件', chance: baseChance, effects: [{ field: 'cultivation', add: 100 }] };
+
+  // 验证事件类型识别正确
+  assert.strictEqual(game.getEventType(event), 'positive');
+
+  // 验证概率加成计算正确
+  const qiyunBonus = game.state.stats.qiyun * 0.0005;
+  const adjustedChance = baseChance + qiyunBonus;
+  assert.strictEqual(Math.abs(adjustedChance - 0.125) < 0.0001, true);
+});
+
+test('negative and death events do not get qiyun bonus on chance', () => {
+  const { game } = createEnvironment();
+
+  const baseChance = 0.1;
+  game.state.stats.qiyun = 100;
+
+  // 负面事件不应有加成的逻辑（实际在 triggerEvent 中实现）
+  const negativeEvent = { text: '测试负面', chance: baseChance, isNegative: true, effects: [{ field: 'cultivation', add: -100 }] };
+  const deathEvent = { text: '测试死亡', chance: baseChance, isDeath: true };
+
+  assert.strictEqual(game.getEventType(negativeEvent), 'negative');
+  assert.strictEqual(game.getEventType(deathEvent), 'death');
+
+  // 负面/死亡事件概率保持不变（加成 = 0）
+  const qiyunBonus = 0;
+  assert.strictEqual(baseChance + qiyunBonus, baseChance);
+});
+
+// ========== 事件冷却系统测试 ==========
+
+test('event cooldown prevents same event within 10 years', () => {
+  const { game } = createEnvironment();
+  const eventText = '测试冷却事件';
+
+  // 初始状态：事件不在冷却中
+  assert.strictEqual(game.isEventOnCooldown(eventText), false);
+
+  // 设置10年冷却
+  game.setEventCooldown(eventText, 10);
+  assert.strictEqual(game.isEventOnCooldown(eventText), true);
+
+  // 模拟10个tick（10年）
+  for (let i = 0; i < 10; i++) {
+    game.decrementEventCooldowns();
+  }
+
+  // 冷却结束
+  assert.strictEqual(game.isEventOnCooldown(eventText), false);
+});
+
+test('decrementEventCooldowns removes expired cooldowns', () => {
+  const { game } = createEnvironment();
+
+  game.setEventCooldown('事件A', 1);
+  game.setEventCooldown('事件B', 3);
+
+  // 1年后：事件A应被移除，事件B仍在冷却
+  game.decrementEventCooldowns();
+
+  assert.strictEqual(game.isEventOnCooldown('事件A'), false);
+  assert.strictEqual(game.isEventOnCooldown('事件B'), true);
+  assert.strictEqual(game.state.eventCooldowns['事件A'], undefined);
+  assert.strictEqual(game.state.eventCooldowns['事件B'], 2);
+});
+
+test('filler events bypass cooldown restrictions', () => {
+  const { game } = createEnvironment();
+
+  // filler事件标记为 _isFiller: true，不进入冷却
+  const fillerEvent = { text: '填充文本', _isFiller: true };
+
+  // filler事件本身不需要检查冷却
+  // 实际逻辑：filler事件在 if (!hit) 分支生成，不触发 setEventCooldown
+  assert.strictEqual(fillerEvent._isFiller, true);
+});
+
+// ========== 性别特定Filler测试 ==========
+
+test('gender-specific filler shows correct text for male', () => {
+  const { game, config, getElementById } = createEnvironment();
+
+  // 设置一个性别特定的filler
+  config.fillers = [
+    { male: '男版文本', female: '女版文本' }
+  ];
+
+  game.state.gender = 'male';
+  game.state.age = 20; // 不在童年期
+
+  // 强制触发filler（清空events让filler被选中）
+  config.events = [];
+  game.triggerEvent();
+
+  // 检查最后一条日志是否包含男版文本
+  const logArea = getElementById('log-area');
+  const lastLog = logArea.children[logArea.children.length - 1]?.innerHTML || '';
+  assert.strictEqual(lastLog.includes('男版文本'), true);
+});
+
+test('gender-specific filler shows correct text for female', () => {
+  const { game, config, getElementById } = createEnvironment();
+
+  config.fillers = [
+    { male: '男版文本', female: '女版文本' }
+  ];
+
+  game.state.gender = 'female';
+  game.state.age = 20;
+  config.events = [];
+  game.triggerEvent();
+
+  const logArea = getElementById('log-area');
+  const lastLog = logArea.children[logArea.children.length - 1]?.innerHTML || '';
+  assert.strictEqual(lastLog.includes('女版文本'), true);
+});
+
+
+

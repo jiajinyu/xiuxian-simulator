@@ -314,7 +314,8 @@
       deathReason: "",
       deathEventCount: 0,
       hasTriggeredRomance: false,
-      gender: null  // 'male' 或 'female'
+      gender: null,  // 'male' 或 'female'
+      eventCooldowns: {}  // 事件冷却：{ eventText: 剩余冷却年数 }
     },
 
     init() {
@@ -388,6 +389,11 @@
     backToStart() {
       document.getElementById("panel-gallery").classList.add("hidden");
       document.getElementById("panel-start").classList.remove("hidden");
+    },
+
+    restartGame() {
+      // 使用页面刷新来确保完全重置状态
+      location.reload();
     },
 
     sampleTalents(count) {
@@ -583,6 +589,8 @@
       const statsBeforeTick = { ...this.state.stats };
 
       this.state.age++;
+      // 递减事件冷却时间
+      this.decrementEventCooldowns();
       if (
         this.state.age > cfg.rules.oldAgeStart &&
         this.state.age % cfg.rules.oldAgeStep === 0
@@ -673,6 +681,31 @@
       }
     },
 
+    // 判断事件类型：positive(正面), negative(负面), death(死亡), filler(填充)
+    getEventType(event) {
+      if (event.isDeath) return "death";
+      if (event.isNegative) return "negative";
+      if (!event.effects || event.effects.length === 0) return "filler";
+      
+      // 根据effects判断：增加属性为正面，减少属性为负面
+      let hasPositive = false;
+      let hasNegative = false;
+      for (const effect of event.effects) {
+        const add = effect.add || 0;
+        if (add > 0) hasPositive = true;
+        if (add < 0) hasNegative = true;
+      }
+      
+      if (hasPositive && !hasNegative) return "positive";
+      if (hasNegative && !hasPositive) return "negative";
+      return "neutral";
+    },
+
+    // 计算负面/死亡事件的豁免阈值：气运 > (境界×2+3)×10 可豁免
+    getQiyunExemptionThreshold(realmIdx) {
+      return (realmIdx * 2 + 3) * 10;
+    },
+
     triggerEvent() {
       const s = this.state;
       const context = {
@@ -690,6 +723,10 @@
       } else {
         valid = cfg.events.filter(e => matchCondition(context, e.trigger));
       }
+      // 排除冷却期内的非filler事件
+      valid = valid.filter(e => !this.isEventOnCooldown(e.text));
+
+
 
       let hit = valid.find(e => e.text.includes(`${s.age}岁`));
       if (!hit) {
@@ -697,12 +734,16 @@
         for (let i = 0; i < shuffled.length; i++) {
           const e = shuffled[i];
           if (e.chance) {
+            const eventType = this.getEventType(e);
             let adjustedChance = e.chance;
-            // 负面事件和死亡事件不使用气运加成公式（基础概率不变）
-            if (!e.isDeath && !e.isNegative) {
-              const qiyunBonus = (s.stats.qiyun || 0) * 0.001;
+            
+            // 正面事件受气运加成：基础概率 + 气运×0.05%
+            if (eventType === "positive") {
+              const qiyunBonus = (s.stats.qiyun || 0) * 0.0005; // 0.05% = 0.0005
               adjustedChance = e.chance + qiyunBonus;
             }
+            // 负面事件和死亡事件基础概率不变，但会单独进行豁免判定
+            
             if (Math.random() < adjustedChance) {
               hit = e;
               break;
@@ -717,7 +758,14 @@
         const fillerPool = (isChildhood && cfg.childhoodFillers && cfg.childhoodFillers.length > 0)
           ? cfg.childhoodFillers
           : cfg.fillers;
-        let text = pickRandom(fillerPool);
+        let rawFiller = pickRandom(fillerPool);
+        // 处理对象格式的性别特定filler
+        let text;
+        if (typeof rawFiller === 'object' && rawFiller !== null) {
+          text = s.gender === 'female' ? rawFiller.female : rawFiller.male;
+        } else {
+          text = rawFiller;
+        }
         // 性别适配：替换 filler 中的人名
         if (s.gender === "female" && text.includes("二丫")) {
           text = text.replace("二丫", "狗剩");
@@ -730,13 +778,30 @@
         hit = {
           text,
           color: "c-common",
-          effects: [{ field: "cultivation", add: gain }]
+          effects: [{ field: "cultivation", add: gain }],
+          _isFiller: true
         };
+      } else {
+        // 非filler事件触发后进入10年冷却
+        this.setEventCooldown(hit.text, 10);
       }
 
       if (hit.requiresQiyunCheck && s.stats.qiyun < hit.minQiyun) {
         this.log(`${s.age}岁：遇到机缘但气运不足，错失良机。`, "c-common");
         return;
+      }
+
+      // 判断事件类型并进行相应处理
+      const eventType = this.getEventType(hit);
+      
+      // 负面事件和死亡事件需要进行气运豁免判定
+      if (eventType === "negative" || eventType === "death") {
+        const exemptionThreshold = this.getQiyunExemptionThreshold(s.realmIdx);
+        if (s.stats.qiyun > exemptionThreshold) {
+          // 气运豁免成功
+          this.log(`${s.age}岁：遭遇${eventType === "death" ? "生死危机" : "劫难"}，但你的气运【${s.stats.qiyun}】超过了豁免阈值【${exemptionThreshold}】，化险为夷！`, "c-legend");
+          return;
+        }
       }
 
       if (hit.text.includes("南宫婉") || hit.text.includes("合欢宗")) {
@@ -750,10 +815,10 @@
       if (!txt.includes("岁")) txt = `${s.age}岁：${txt}`;
 
       let colorClass = hit.color || this.getEventColor(hit.chance || 1);
-      if (hit.isDeath) colorClass = "c-death";
+      if (eventType === "death") colorClass = "c-death";
       this.log(txt, colorClass);
 
-      if (hit.isDeath) {
+      if (eventType === "death") {
         this.handleDeathEvent(hit);
       }
     },
@@ -888,6 +953,29 @@
 
     die(reason) {
       this.finalizeDeath(reason, { showSettlement: false });
+    },
+
+    // 递减所有事件的冷却时间
+    decrementEventCooldowns() {
+      const cd = this.state.eventCooldowns;
+      for (const key in cd) {
+        if (cd[key] > 0) {
+          cd[key]--;
+        }
+        if (cd[key] <= 0) {
+          delete cd[key];
+        }
+      }
+    },
+
+    // 设置事件冷却时间
+    setEventCooldown(eventText, years) {
+      this.state.eventCooldowns[eventText] = years;
+    },
+
+    // 检查事件是否在冷却中
+    isEventOnCooldown(eventText) {
+      return (this.state.eventCooldowns[eventText] || 0) > 0;
     },
 
     showSettlement() {
