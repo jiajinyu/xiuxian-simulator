@@ -1169,6 +1169,52 @@
       });
     },
 
+    async shareSettlement() {
+      const content = document.getElementById("settlement-content");
+      if (!content) return;
+      
+      try {
+        // 使用 html2canvas 截图
+        const canvas = await html2canvas(content, {
+          backgroundColor: "#2b1d14",
+          scale: 2,
+          useCORS: true,
+          allowTaint: true
+        });
+        
+        // 转换为图片数据
+        const imageData = canvas.toDataURL("image/png");
+        
+        // 尝试使用 Web Share API (移动端)
+        if (navigator.share && navigator.canShare) {
+          try {
+            const response = await fetch(imageData);
+            const blob = await response.blob();
+            const file = new File([blob], "修仙结算.png", { type: "image/png" });
+            
+            if (navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                title: "修仙模拟器 - 生平结算",
+                text: `我在修仙模拟器中获得了【${this.state.lastTitle || "无名小卒"}】的称号！`,
+                files: [file]
+              });
+              return;
+            }
+          } catch (shareErr) {
+            // 分享失败，回退到下载
+          }
+        }
+        
+        // 回退：下载图片
+        const link = document.createElement("a");
+        link.download = `修仙结算_${this.state.age}岁_${this.state.lastTitle || "无名小卒"}.png`;
+        link.href = imageData;
+        link.click();
+      } catch (err) {
+        alert("截图失败，请重试");
+      }
+    },
+
     showSettlementDirectly(reason) {
       this.finalizeDeath(reason || "体质耗尽，魂飞魄散。", { showSettlement: true });
     }

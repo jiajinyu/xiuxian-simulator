@@ -468,11 +468,10 @@
         }
         .result-box {
             width: 100%;
-            border: 2px solid var(--text-main);
+            border: 2px solid var(--border-highlight);
             padding: 20px;
             background: #2b1d14;
             text-align: center;
-            margin-bottom: 20px;
             box-shadow: 0 0 20px #000;
         }
         .end-title-label {
@@ -659,7 +658,9 @@
 
         <div id="settlement-modal">
             <h2 class="c-red" style="background:transparent; border:none; font-size:32px;">道消身殒</h2>
-            <div class="result-box">
+            <div id="end-reason" class="end-reason" style="margin-bottom:15px; margin-top:0;">死因...</div>
+            
+            <div id="settlement-content" class="result-box">
                 <span class="end-title-label">获得封号</span>
                 <span id="end-title" class="end-title" style="color:white">无名小卒</span>
                 <div id="end-title-desc" class="end-desc">...</div>
@@ -678,14 +679,17 @@
                         <span id="end-gen" class="end-stat-value">1</span>
                     </div>
                 </div>
-                <div id="end-reason" class="end-reason">死因...</div>
-                <div id="end-reincarnation-bonus" class="end-reincarnation-bonus" style="display:none; margin-top:15px; padding:10px; background:rgba(80,200,120,0.15); border:1px solid var(--evt-pos); color:var(--evt-pos); font-size:14px; text-align:center; cursor:help; position:relative;" title="上一世结算时最高的属性，可在下一世起始时获得+1加成"></div>
             </div>
+            
+            <div id="end-reincarnation-bonus" class="end-reincarnation-bonus" style="display:none; width:100%; margin-bottom:15px; padding:10px; background:rgba(80,200,120,0.15); border:1px solid var(--evt-pos); color:var(--evt-pos); font-size:14px; text-align:center; cursor:help; position:relative;" title="上一世结算时最高的属性，可在下一世起始时获得+1加成"></div>
+            
+            <button class="btn" style="margin-bottom:10px; background:#4a3728;" onclick="game.shareSettlement()">📷 分享生平</button>
             <button class="btn" onclick="game.restartGame()">再入轮回</button>
         </div>
 
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="../config/game-config.js"></script>
     <script src="../src/game-engine.js"></script>
 </body>
