@@ -611,6 +611,9 @@
                 <span class="points-label">可用点数</span>
                 <span id="points-left" class="points-value">20</span>
             </div>
+            <div style="text-align:center; color:var(--text-dim); font-size:12px; margin-bottom:15px; padding:0 10px;">
+                提示：属性值不可低于天赋赋予的初始数值
+            </div>
             <div id="stat-rows"></div>
             <div id="tizhi-warning" style="display:none; text-align:center; color:var(--evt-neg); margin-bottom:10px; font-size:13px;">体质不能为负，请调整属性！</div>
             <div style="display:flex; gap:10px;">
@@ -676,6 +679,7 @@
                     </div>
                 </div>
                 <div id="end-reason" class="end-reason">死因...</div>
+                <div id="end-reincarnation-bonus" class="end-reincarnation-bonus" style="display:none; margin-top:15px; padding:10px; background:rgba(80,200,120,0.15); border:1px solid var(--evt-pos); color:var(--evt-pos); font-size:14px; text-align:center; cursor:help; position:relative;" title="上一世结算时最高的属性，可在下一世起始时获得+1加成"></div>
             </div>
             <button class="btn" onclick="game.restartGame()">再入轮回</button>
         </div>

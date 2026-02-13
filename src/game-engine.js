@@ -314,7 +314,8 @@
   const game = {
     data: {
       gen: 1,
-      titles: []
+      titles: [],
+      highestStatFromLastLife: null  // 上一世最高属性名（转世继承+1）
     },
 
     state: {
@@ -351,6 +352,27 @@
       document.getElementById("gen-count").innerText = this.data.gen;
       const rate = Math.floor((this.data.titles.length / cfg.titles.length) * 100);
       document.getElementById("title-rate").innerText = `${rate}%`;
+      
+      // 显示转世继承属性加成
+      this.renderReincarnationBonus();
+    },
+
+    renderReincarnationBonus() {
+      let bonusEl = document.getElementById("reincarnation-bonus");
+      if (this.data.highestStatFromLastLife && this.data.gen > 1) {
+        const statName = cfg.rules.statLabels[this.data.highestStatFromLastLife] || this.data.highestStatFromLastLife;
+        if (!bonusEl) {
+          bonusEl = document.createElement("div");
+          bonusEl.id = "reincarnation-bonus";
+          bonusEl.style.cssText = "margin-top:15px; padding:10px; background:rgba(80,200,120,0.15); border:1px solid var(--evt-pos); color:var(--evt-pos); font-size:14px; cursor:help;";
+          bonusEl.title = "上一世结算时最高的属性，可在下一世起始时获得+1加成";
+          document.getElementById("start-stats").appendChild(bonusEl);
+        }
+        bonusEl.innerText = `转世福泽：下一世${statName}+1`;
+        bonusEl.style.display = "block";
+      } else if (bonusEl) {
+        bonusEl.style.display = "none";
+      }
     },
 
     resetData() {
@@ -363,9 +385,16 @@
     toTalentSelection() {
       document.getElementById("panel-start").classList.add("hidden");
       document.getElementById("panel-talent").classList.remove("hidden");
-      // 保存初始状态（无任何天赋时的状态）
-      this.state.initialStats = { ...cfg.rules.baseStats };
-      this.state.stats = { ...cfg.rules.baseStats };
+      // 保存初始状态（无任何天赋时的状态），应用转世继承加成
+      const baseStats = { ...cfg.rules.baseStats };
+      if (this.data.highestStatFromLastLife) {
+        const statKey = this.data.highestStatFromLastLife;
+        if (baseStats[statKey] !== undefined) {
+          baseStats[statKey]++;
+        }
+      }
+      this.state.initialStats = baseStats;
+      this.state.stats = { ...baseStats };
       this.state.baseStats = {};
       trackFunnelStep("talent_select", 1);
     },
@@ -1037,6 +1066,14 @@
       document.getElementById("end-realm").innerText = cfg.realms[this.state.realmIdx];
       document.getElementById("end-gen").innerText = this.data.gen;
       document.getElementById("end-reason").innerText = `死因：${reason}`;
+      
+      // 显示转世福泽
+      const bonusEl = document.getElementById("end-reincarnation-bonus");
+      if (bonusEl && this.data.highestStatFromLastLife) {
+        const statName = cfg.rules.statLabels[this.data.highestStatFromLastLife] || this.data.highestStatFromLastLife;
+        bonusEl.innerText = `转世福泽：下一世${statName}+1`;
+        bonusEl.style.display = "block";
+      }
     },
 
     finalizeDeath(reason, options) {
@@ -1057,6 +1094,18 @@
         (s.stats.wuxing < s.baseStats.wuxing ? 1 : 0) +
         (s.stats.qiyun < s.baseStats.qiyun ? 1 : 0)
       );
+
+      // 记录本世最高属性，用于下一世继承
+      const finalStats = s.stats;
+      let maxStatValue = -Infinity;
+      let maxStatName = null;
+      for (const [key, value] of Object.entries(finalStats)) {
+        if (value > maxStatValue) {
+          maxStatValue = value;
+          maxStatName = key;
+        }
+      }
+      this.data.highestStatFromLastLife = maxStatName;
 
       const context = {
         ...this.state,

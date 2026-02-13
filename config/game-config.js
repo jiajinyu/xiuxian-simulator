@@ -102,7 +102,7 @@ window.GAME_CONFIG = {
     { name: "经脉郁结", type: "negative", desc: "体质-2，修炼极慢", effects: [{ field: "stats.tizhi", add: -2 }] },
     { name: "招黑体质", type: "negative", desc: "气运-3，容易被追杀", effects: [{ field: "stats.qiyun", add: -3 }] },
 
-    { name: "体修", type: "neutral", desc: "体质+4，悟性-3", effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.wuxing", add: -3 }] },
+    { name: "地主家的傻儿子", type: "neutral", desc: "体质+4，悟性-3", effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.wuxing", add: -3 }] },
     { name: "邪修", type: "neutral", desc: "天赋+4，体质-2", effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.tizhi", add: -2 }] },
     { name: "赌狗", type: "neutral", desc: "气运+4，悟性-4", effects: [{ field: "stats.qiyun", add: 4 }, { field: "stats.wuxing", add: -4 }] },
     { name: "聪明绝顶", type: "neutral", desc: "悟性+4，体质-2(秃了)", effects: [{ field: "stats.wuxing", add: 4 }, { field: "stats.tizhi", add: -2 }] },
@@ -115,7 +115,6 @@ window.GAME_CONFIG = {
     { name: "二哈血统", type: "neutral", desc: "体质+5，悟性-4，拆家能力一流", effects: [{ field: "stats.tizhi", add: 5 }, { field: "stats.wuxing", add: -4 }] },
     { name: "恋爱脑", type: "negative", desc: "悟性-5，心中无大道，只有那个TA", effects: [{ field: "stats.wuxing", add: -5 }] },
     { name: "干饭人", type: "neutral", desc: "体质+3，天赋-1，灵石都被拿去买吃的了", effects: [{ field: "stats.tizhi", add: 3 }, { field: "stats.tianfu", add: -1 }] },
-    { name: "平平无奇", type: "neutral", desc: "没有任何属性加成，平凡也是一种特质", effects: [] },
     { name: "普信", type: "negative", desc: "气运-2，天赋-2，明明那么普通，却那么自信", effects: [{ field: "stats.qiyun", add: -2 }, { field: "stats.tianfu", add: -2 }] },
     { name: "无效努力", type: "negative", desc: "体质-2，天赋-2，每天假装修炼感动自己", effects: [{ field: "stats.tizhi", add: -2 }, { field: "stats.tianfu", add: -2 }] }
   ],
@@ -181,13 +180,13 @@ window.GAME_CONFIG = {
     { name: "代码修仙", color: "#00ccff", desc: "达成条件：触发程序员事件", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["程序", "Bug", "代码"] }] } },
     { name: "绿化带之主", color: "#4eff4e", desc: "达成条件：气运<0 但活过30岁", condition: { all: [{ field: "stats.qiyun", op: "<", value: 0 }, { field: "age", op: ">", value: 30 }] } },
     { name: "铁头娃", color: "#b088ff", desc: "达成条件：突破失败超过3次", condition: { all: [{ field: "failCount", op: ">", value: 3 }] } },
-    { name: "短命鬼", color: "#888", desc: "达成条件：10岁前夭折", condition: { all: [{ field: "age", op: "<", value: 10 }] } },
+    { name: "就这？", color: "#888", desc: "达成条件：10岁前夭折", condition: { all: [{ field: "age", op: "<", value: 10 }] } },
     { name: "耐杀王", color: "#ff4444", desc: "达成条件：经历2次死亡事件未死", condition: { all: [{ field: "deathEventCount", op: ">=", value: 2 }] } },
     { name: "大魔法师", color: "#b088ff", desc: "达成条件：死时还是童子身(气运>15、年龄>30且未触发南宫婉或合欢宗事件)", condition: { all: [{ field: "stats.qiyun", op: ">", value: 15 }, { field: "age", op: ">", value: 30 }, { field: "hasTriggeredRomance", op: "==", value: false }] } },
 
     { name: "金刚芭比", color: "#ff69b4", desc: "达成条件：游戏过程中体质曾经超过100且性别为女", condition: { all: [{ field: "maxTizhi", op: ">", value: 100 }, { field: "gender", op: "==", value: "female" }] } },
     { name: "软饭硬吃", color: "#ff77ff", desc: "达成条件：触发'不可描述的事'且'合欢宗'事件>5次", condition: { all: [{ field: "hasTriggeredIndescribable", op: "==", value: true }, { field: "hehuanzongCount", op: ">", value: 5 }] } },
-    { name: "药罐子", color: "#4eff4e", desc: "达成条件：体质<5 且活过50岁", condition: { all: [{ field: "stats.tizhi", op: "<", value: 5 }, { field: "age", op: ">", value: 50 }] } },
+    { name: "凡人修仙", color: "#4eff4e", desc: "达成条件：体质<5 且活过50岁", condition: { all: [{ field: "stats.tizhi", op: "<", value: 5 }, { field: "age", op: ">", value: 50 }] } },
     { name: "摸鱼大师", color: "#87CEEB", desc: "达成条件：年龄超过100岁但还在金丹以下摸鱼", condition: { all: [{ field: "age", op: ">", value: 100 }, { field: "realmIdx", op: "<=", value: 3 }] } },
     { name: "天选打工人", color: "#aaa", desc: "达成条件：死于工地或猝死", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["老板", "猝死"] }] } },
     { name: "吃货", color: "#ffaa00", desc: "达成条件：死于喝奶茶或电饭煲", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["奶茶", "电饭煲"] }] } },
