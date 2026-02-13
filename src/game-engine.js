@@ -548,8 +548,9 @@
       const con = document.getElementById("stat-rows");
       con.innerHTML = "";
       Object.keys(cfg.rules.statLabels).forEach(key => {
+        const desc = cfg.rules.statDescriptions?.[key] || "";
         con.innerHTML += `
-          <div class="stat-row">
+          <div class="stat-row" title="${desc}">
             <div class="stat-row-info">
               <span class="stat-name">${cfg.rules.statLabels[key]}</span>
             </div>

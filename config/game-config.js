@@ -73,6 +73,13 @@ window.GAME_CONFIG = {
       wuxing: "悟性",
       tizhi: "体质",
       qiyun: "气运"
+    },
+    // 属性说明（鼠标悬停显示）
+    statDescriptions: {
+      tianfu: "影响修为获取速度，每点天赋增加5%修为",
+      wuxing: "影响突破成功率，突破时与气运共同判定",
+      tizhi: "决定寿命上限，体质归零时死亡；突破成功可回复",
+      qiyun: "影响奇遇概率与突破判定，高气运可豁免死亡事件"
     }
   },
   // 行为统计（默认关闭，填写 GA4 Measurement ID 后开启）
@@ -108,6 +115,7 @@ window.GAME_CONFIG = {
     { name: "二哈血统", type: "neutral", desc: "体质+5，悟性-4，拆家能力一流", effects: [{ field: "stats.tizhi", add: 5 }, { field: "stats.wuxing", add: -4 }] },
     { name: "恋爱脑", type: "negative", desc: "悟性-5，心中无大道，只有那个TA", effects: [{ field: "stats.wuxing", add: -5 }] },
     { name: "干饭人", type: "neutral", desc: "体质+3，天赋-1，灵石都被拿去买吃的了", effects: [{ field: "stats.tizhi", add: 3 }, { field: "stats.tianfu", add: -1 }] },
+    { name: "平平无奇", type: "neutral", desc: "没有任何属性加成，平凡也是一种特质", effects: [] },
     { name: "普信", type: "negative", desc: "气运-2，天赋-2，明明那么普通，却那么自信", effects: [{ field: "stats.qiyun", add: -2 }, { field: "stats.tianfu", add: -2 }] },
     { name: "无效努力", type: "negative", desc: "体质-2，天赋-2，每天假装修炼感动自己", effects: [{ field: "stats.tizhi", add: -2 }, { field: "stats.tianfu", add: -2 }] }
   ],
@@ -255,6 +263,15 @@ window.GAME_CONFIG = {
     { text: "被魔教少主壁咚霸道示爱，你反手一个大嘴巴子将其抽飞，顿悟了'心中无男人，拔刀自然神'的真谛。", chance: 0.01, color: "c-purple", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.wuxing", add: 5 }] },
     { text: "闭关减肥饿昏了头，把师父养的'招财灵蟾'生吞了，虽然拉了三天肚子，但肉身强度暴涨。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: 10 }] },
     { text: "沉迷修仙界'盲盒'抽奖，散尽家财只抽到一堆'谢谢惠顾'的空丹瓶。", chance: 0.015, color: "c-red", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.qiyun", add: -5 }] },
-    { text: "识破了绿茶师妹的'哥哥我不是故意的'装柔弱把戏，当众将其踹下擂台，念头通达，灵力暴涨。", chance: 0.012, color: "c-green", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "cultivation", add: 50 }] }
+    { text: "识破了绿茶师妹的'哥哥我不是故意的'装柔弱把戏，当众将其踹下擂台，念头通达，灵力暴涨。", chance: 0.012, color: "c-green", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "cultivation", add: 50 }] },
+
+    // 元婴期专属事件 - 达到元婴之后才可触发
+    { text: "神识外放八百里，本想搜寻天材地宝，结果听了一整晚隔壁合欢宗长老的情感纠葛，道心微乱但很刺激。", chance: 0.015, color: "c-purple", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: -2 }, { field: "stats.qiyun", add: 3 }] },
+    { text: "偶遇绝色仙子想结善缘，神识一扫，发现对方神魂竟是个抠脚三万年的糟老头子", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.wuxing", add: -1 }, { field: "stats.qiyun", add: 2 }] },
+    { text: "闭关打了个盹，醒来发现自家宗门已经换了三茬掌门，现在的掌门还得管你的徒孙叫师祖，辈分乱成一锅粥。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: 3 }, { field: "stats.qiyun", add: -1 }] },
+    { text: "终于明白了'道生一，一生二'原来就是二进制，你对大道的理解达到了全新的维度。", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: 5 }] },
+    { text: "你的本命法宝产生了器灵，但这器灵是个话痨，每天在你识海里喋喋不休。", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.tianfu", add: 2 }, { field: "stats.wuxing", add: -1 }] },
+    { text: "看到一株长得像韭菜的千年灵草，随手拔了拿回去炒了鸡蛋，味道有点苦。", chance: 0.015, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.tizhi", add: 2 }, { field: "stats.qiyun", add: -1 }] },
+    { text: "将自己的供奉画像过度美化，导致宗门小辈认不出祖师奶", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.wuxing", add: 2 }, { field: "stats.qiyun", add: -1 }] }
   ]
 };

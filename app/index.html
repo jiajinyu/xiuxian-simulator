@@ -401,6 +401,39 @@
             padding: 10px;
             border-bottom: 1px dashed var(--border-highlight);
             margin-bottom: 5px;
+            cursor: help;
+            position: relative;
+        }
+        .stat-row:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .stat-row:hover::after {
+            content: attr(title);
+            position: absolute;
+            left: 50%;
+            bottom: 100%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.9);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 100;
+            border: 1px solid var(--border-highlight);
+            pointer-events: none;
+            margin-bottom: 5px;
+        }
+        .stat-row:hover::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% - 5px);
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0,0,0,0.9);
+            z-index: 100;
+            pointer-events: none;
         }
         .stat-ctrl button {
             width: 28px; height: 28px;
