@@ -1,5 +1,3 @@
-'use strict';
-
 const test = require('node:test');
 const assert = require('assert');
 const { createEnvironment } = require('../scripts/game-test-harness');
@@ -46,7 +44,13 @@ test('death event reduces tizhi instead of instant death', () => {
     isDeath: true
   });
 
-  const expectedDamage = (game.state.realmIdx + 1) * 10;
+  // 体质扣除：取基础数值和体质80%中较大的那个
+  // 基础值 = (realmIdx + 1) * 10 = 10
+  // 体质80% = Math.floor(20 * 0.8) = 16
+  // 实际扣除 = max(10, 16) = 16
+  const baseDamage = (game.state.realmIdx + 1) * 10;
+  const tizhiPercentDamage = Math.floor(20 * 0.8);
+  const expectedDamage = Math.max(baseDamage, tizhiPercentDamage);
   assert.strictEqual(game.state.stats.tizhi, 20 - expectedDamage);
   assert.strictEqual(game.state.isDead, false);
   assert.strictEqual(game.state.deathEventCount, 1);
@@ -100,7 +104,12 @@ test('qiyun increases event chance', () => {
 test('death event count tracks multiple survival events', () => {
   const { game } = createEnvironment();
 
-  game.state.stats.tizhi = 50;
+  // 体质需要足够高以存活两次死亡事件
+  // 新逻辑：伤害 = max((realmIdx+1)*10, floor(体质*0.8))
+  // 境界0时：基础伤害=10，体质80%
+  // 体质100时：第一次伤害=max(10,80)=80，剩余20
+  // 体质20时：第二次伤害=max(10,16)=16，剩余4，存活
+  game.state.stats.tizhi = 100;
   game.state.realmIdx = 0;
   game.state.isDead = false;
   game.state.deathEventCount = 0;
@@ -509,6 +518,41 @@ test('sampleTalents avoids stat conflicts', () => {
     const selected = game.sampleTalents(3);
     assert.strictEqual(game.hasStatConflict(selected), false);
   }
+});
+
+// ========== 死亡流程回归测试 ==========
+
+test('die() shows settlement button but not modal', () => {
+  const { game, getElementById } = createEnvironment();
+
+  game.state.age = 50;
+  game.state.realmIdx = 1;
+  game.die('测试死亡');
+
+  // 验证：死亡状态正确
+  assert.strictEqual(game.state.isDead, true);
+
+  // 验证：按钮应该显示（移除 hidden 类）
+  const btnSettle = getElementById('btn-settle');
+  assert.strictEqual(btnSettle.classList.contains('hidden'), false);
+
+  // 验证：结算弹窗不应该自动弹出（display 不应为 'flex'）
+  const modal = getElementById('settlement-modal');
+  assert.strictEqual(modal.style.display !== 'flex', true);
+});
+
+test('showSettlement() displays the modal after die()', () => {
+  const { game, getElementById } = createEnvironment();
+
+  game.state.age = 50;
+  game.state.realmIdx = 1;
+  game.die('测试死亡');
+
+  // 调用 showSettlement 后弹窗应该显示
+  game.showSettlement();
+
+  const modal = getElementById('settlement-modal');
+  assert.strictEqual(modal.style.display, 'flex');
 });
 
 

@@ -729,7 +729,7 @@
       this.triggerEvent();
 
       if (this.state.stats.tizhi <= 0 && !this.state.isDead) {
-        this.showSettlementDirectly("寿元耗尽，坐化于洞府。");
+        this.die("寿元耗尽，坐化于洞府。");
         return;
       }
 
@@ -812,7 +812,7 @@
         );
 
         if (s.stats.tizhi <= 0) {
-          this.showSettlementDirectly(`冲击【${cfg.realms[s.realmIdx + 1]}】失败，气血攻心而亡。`);
+          this.die(`冲击【${cfg.realms[s.realmIdx + 1]}】失败，气血攻心而亡。`);
         }
       }
     },
@@ -873,9 +873,9 @@
             const eventType = this.getEventType(e);
             let adjustedChance = e.chance;
             
-            // 正面事件受气运加成：基础概率 + 气运×0.05%
+            // 正面事件受气运加成：基础概率 + 气运×0.05%，最高加成50%
             if (eventType === "positive") {
-              const qiyunBonus = (s.stats.qiyun || 0) * 0.0005; // 0.05% = 0.0005
+              const qiyunBonus = Math.min((s.stats.qiyun || 0) * 0.0005, 0.5); // 0.05% = 0.0005，最高50%
               adjustedChance = e.chance + qiyunBonus;
             }
             // 负面事件和死亡事件基础概率不变，但会单独进行豁免判定
@@ -930,6 +930,15 @@
       // 判断事件类型并进行相应处理
       const eventType = this.getEventType(hit);
 
+      // 负面事件豁免判定：气运×0.5%，最高40%
+      if (eventType === "negative") {
+        const qiyunExemptChance = Math.min((s.stats.qiyun || 0) * 0.005, 0.4);
+        if (Math.random() < qiyunExemptChance) {
+          this.log(`${s.age}岁：${hit.text}，但你的气运让你化险为夷！`, "c-legend");
+          return;
+        }
+      }
+
       if (hit.text.includes("南宫婉") || hit.text.includes("合欢宗")) {
         s.hasTriggeredRomance = true;
       }
@@ -960,13 +969,17 @@
     handleDeathEvent(event) {
       const s = this.state;
 
-      const qiyunCheckChance = Math.min((s.stats.qiyun || 0) * 0.5, 50);
+      // 死亡事件豁免：气运×0.5%，最高30%
+      const qiyunCheckChance = Math.min((s.stats.qiyun || 0) * 0.5, 30);
       if (Math.random() * 100 < qiyunCheckChance) {
         this.log(`${s.age}岁：${event.text}，但你的气运让你化险为夷！`, "c-legend");
         return;
       }
 
-      const damage = (s.realmIdx + 1) * 10;
+      // 体质扣除：取基础数值和体质80%中较大的那个
+      const baseDamage = (s.realmIdx + 1) * 10;
+      const tizhiPercentDamage = Math.floor(s.stats.tizhi * 0.8);
+      const damage = Math.max(baseDamage, tizhiPercentDamage);
       s.stats.tizhi -= damage;
       s.deathEventCount = (s.deathEventCount || 0) + 1;
 
@@ -1180,12 +1193,12 @@
       canvas.height = size;
       const ctx = canvas.getContext("2d");
 
-      // 绘制白色背景
-      ctx.fillStyle = "#ffffff";
+      // 绘制深木色背景（与游戏背景协调）
+      ctx.fillStyle = "#2b1d14";
       ctx.fillRect(0, 0, size, size);
 
-      // 绘制二维码模块
-      ctx.fillStyle = "#000000";
+      // 绘制二维码模块（羊皮纸色，与游戏文字协调）
+      ctx.fillStyle = "#dccbb5";
       for (let row = 0; row < qr.getModuleCount(); row++) {
         for (let col = 0; col < qr.getModuleCount(); col++) {
           if (qr.isDark(row, col)) {
