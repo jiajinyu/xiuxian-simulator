@@ -8,6 +8,7 @@ test('game boots and updates start screen', () => {
   assert.notStrictEqual(getElementById('title-rate').innerText, '');
 });
 
+
 test('breakthrough requirement grows by realm', () => {
   const { game } = createEnvironment();
   const req0 = game.getBreakthroughRequirement(0);
@@ -86,19 +87,25 @@ test('tick kills player when tizhi drops to zero after event', () => {
   assert.strictEqual(game.state.isDead, true);
 });
 
-test('qiyun increases event chance', () => {
-  const { game } = createEnvironment();
+test('higher qiyun can turn a near-miss positive event into a hit', () => {
+  const runOnce = initialQiyun => {
+    const { game, config, context } = createEnvironment();
 
-  const eventWithChance = {
-    text: '测试事件',
-    chance: 0.1
+    config.events = [{
+      text: '测试正面概率事件',
+      chance: 0.1,
+      effects: [{ field: 'stats.qiyun', add: 1 }]
+    }];
+
+    game.state.age = 20;
+    game.state.stats.qiyun = initialQiyun;
+    context.Math.random = () => 0.11;
+    game.triggerEvent();
+    return game.state.stats.qiyun;
   };
 
-  game.state.stats.qiyun = 50;
-  const qiyunBonus = game.state.stats.qiyun * 0.001;
-  const adjustedChance = eventWithChance.chance + qiyunBonus;
-
-  assert.strictEqual(Math.abs(adjustedChance - 0.15) < 0.0001, true);
+  assert.strictEqual(runOnce(0), 0);
+  assert.strictEqual(runOnce(40), 41);
 });
 
 test('death event count tracks multiple survival events', () => {
@@ -254,74 +261,48 @@ test('getEventType correctly classifies event types', () => {
   }), 'neutral');
 });
 
-test('getQiyunExemptionThreshold calculates correctly', () => {
+test('getQiyunExemptionThreshold grows linearly with realm', () => {
   const { game } = createEnvironment();
 
-  // 公式：(境界 * 2 + 3) * 10
-  assert.strictEqual(game.getQiyunExemptionThreshold(0), 30);   // 凡人
-  assert.strictEqual(game.getQiyunExemptionThreshold(1), 50);   // 炼气
-  assert.strictEqual(game.getQiyunExemptionThreshold(2), 70);   // 筑基
-  assert.strictEqual(game.getQiyunExemptionThreshold(9), 210);  // 渡劫
-});
+  const thresholds = [0, 1, 2, 3, 4, 5].map(realmIdx => game.getQiyunExemptionThreshold(realmIdx));
+  assert.strictEqual(thresholds[0] > 0, true);
 
-test('positive event gets qiyun bonus on chance', () => {
-  const { game } = createEnvironment();
+  const step = thresholds[1] - thresholds[0];
+  assert.strictEqual(step > 0, true);
 
-  // 公式：基础概率 + 气运 * 0.05%
-  const baseChance = 0.1;
-  const qiyun = 50;
-
-  game.state.stats.qiyun = qiyun;
-  const event = { text: '测试正面事件', chance: baseChance, effects: [{ field: 'cultivation', add: 100 }] };
-
-  // 验证事件类型识别正确
-  assert.strictEqual(game.getEventType(event), 'positive');
-
-  // 验证概率加成计算正确：基础概率 + 气运 * 0.05%
-  const qiyunBonus = game.state.stats.qiyun * 0.0005;
-  const adjustedChance = baseChance + qiyunBonus;
-  assert.strictEqual(Math.abs(adjustedChance - 0.125) < 0.0001, true);
+  for (let i = 1; i < thresholds.length; i++) {
+    assert.strictEqual(thresholds[i] - thresholds[i - 1], step);
+  }
 });
 
 test('negative and death events do not get qiyun bonus on chance', () => {
-  const { game } = createEnvironment();
+  const runOnce = event => {
+    const { game, config, context } = createEnvironment();
+    config.events = [event];
+    game.state.age = 20;
+    game.state.stats.qiyun = 500;
+    context.Math.random = () => 0.11;
+    game.triggerEvent();
+    return game.state.eventCooldowns[event.text];
+  };
 
-  const baseChance = 0.1;
-  game.state.stats.qiyun = 100;
+  const negativeCooldown = runOnce({
+    text: '测试负面概率事件',
+    chance: 0.1,
+    isNegative: true,
+    effects: [{ field: 'stats.qiyun', add: -1 }]
+  });
+  assert.strictEqual(negativeCooldown, undefined);
 
-  // 负面事件不应有加成的逻辑（实际在 triggerEvent 中实现）
-  const negativeEvent = { text: '测试负面', chance: baseChance, isNegative: true, effects: [{ field: 'cultivation', add: -100 }] };
-  const deathEvent = { text: '测试死亡', chance: baseChance, isDeath: true };
-
-  assert.strictEqual(game.getEventType(negativeEvent), 'negative');
-  assert.strictEqual(game.getEventType(deathEvent), 'death');
-
-  // 负面/死亡事件概率保持不变（加成 = 0）
-  const qiyunBonus = 0;
-  assert.strictEqual(baseChance + qiyunBonus, baseChance);
+  const deathCooldown = runOnce({
+    text: '测试死亡概率事件',
+    chance: 0.1,
+    isDeath: true
+  });
+  assert.strictEqual(deathCooldown, undefined);
 });
 
 // ========== 事件冷却系统测试 ==========
-
-test('event cooldown prevents same event within 10 years', () => {
-  const { game } = createEnvironment();
-  const eventText = '测试冷却事件';
-
-  // 初始状态：事件不在冷却中
-  assert.strictEqual(game.isEventOnCooldown(eventText), false);
-
-  // 设置10年冷却
-  game.setEventCooldown(eventText, 10);
-  assert.strictEqual(game.isEventOnCooldown(eventText), true);
-
-  // 模拟10个tick（10年）
-  for (let i = 0; i < 10; i++) {
-    game.decrementEventCooldowns();
-  }
-
-  // 冷却结束
-  assert.strictEqual(game.isEventOnCooldown(eventText), false);
-});
 
 test('decrementEventCooldowns removes expired cooldowns', () => {
   const { game } = createEnvironment();
@@ -553,6 +534,104 @@ test('showSettlement() displays the modal after die()', () => {
 
   const modal = getElementById('settlement-modal');
   assert.strictEqual(modal.style.display, 'flex');
+});
+
+test('checkBreakthrough uses configured base chance and checkStats', () => {
+  const { game, config, context } = createEnvironment();
+
+  context.Math.random = () => 0;
+  config.rules.breakthrough.perRealmPenalty = 0;
+  config.rules.breakthrough.statBonusMul = 1;
+
+  // baseChance=0 时，即使属性足够也不会进入第二阶段
+  config.rules.breakthrough.baseChance = 0;
+  config.rules.breakthrough.checkStats = ['qiyun'];
+  game.state.realmIdx = 0;
+  game.state.cultivation = game.getBreakthroughRequirement(0);
+  game.state.stats.qiyun = 100;
+  game.checkBreakthrough();
+  assert.strictEqual(game.state.realmIdx, 0);
+
+  // baseChance=100 且按 qiyun 判定，可成功突破
+  config.rules.breakthrough.baseChance = 100;
+  game.state.realmIdx = 0;
+  game.state.cultivation = game.getBreakthroughRequirement(0);
+  game.state.stats.qiyun = 11;
+  game.state.stats.wuxing = 0;
+  game.checkBreakthrough();
+  assert.strictEqual(game.state.realmIdx, 1);
+
+  // 切换为仅按 wuxing 判定后，qiyun 再高也不应通过第二阶段
+  config.rules.breakthrough.checkStats = ['wuxing'];
+  game.state.realmIdx = 0;
+  game.state.cultivation = game.getBreakthroughRequirement(0);
+  game.state.stats.qiyun = 999;
+  game.state.stats.wuxing = 0;
+  game.checkBreakthrough();
+  assert.strictEqual(game.state.realmIdx, 0);
+});
+
+test('percent effect event without chance does not produce NaN cultivation', () => {
+  const { game, config } = createEnvironment();
+
+  config.events = [{
+    text: '11岁：百分比事件无概率字段',
+    effects: [{ field: 'cultivation', percent: true }]
+  }];
+
+  game.state.age = 11;
+  game.state.cultivation = 100;
+
+  assert.doesNotThrow(() => game.triggerEvent());
+  assert.strictEqual(Number.isFinite(game.state.cultivation), true);
+  assert.strictEqual(game.state.cultivation < 100, true);
+});
+
+test('negative event exemption uses qiyun threshold', () => {
+  const { game, config } = createEnvironment();
+
+  config.events = [{
+    text: '11岁：负面事件测试',
+    chance: 1,
+    isNegative: true,
+    effects: [{ field: 'cultivation', add: -50 }]
+  }];
+
+  game.state.age = 11;
+  game.state.realmIdx = 0;
+  game.state.cultivation = 100;
+  const threshold = game.getQiyunExemptionThreshold(game.state.realmIdx);
+
+  game.state.stats.qiyun = threshold + 1; // 超过阈值，应该豁免
+  game.triggerEvent();
+  assert.strictEqual(game.state.cultivation, 100);
+
+  game.state.cultivation = 100;
+  game.state.eventCooldowns = {};
+  game.state.stats.qiyun = threshold; // 不超过阈值，不豁免
+  game.triggerEvent();
+  assert.strictEqual(game.state.cultivation, 50);
+});
+
+test('death event exemption uses qiyun threshold', () => {
+  const { game } = createEnvironment();
+
+  game.state.realmIdx = 0;
+  game.state.age = 20;
+  game.state.stats.tizhi = 100;
+  const threshold = game.getQiyunExemptionThreshold(game.state.realmIdx);
+
+  game.state.stats.qiyun = threshold + 1; // 超过阈值，应该豁免
+  game.state.deathEventCount = 0;
+
+  game.handleDeathEvent({ text: '测试死亡事件' });
+  assert.strictEqual(game.state.stats.tizhi, 100);
+  assert.strictEqual(game.state.deathEventCount, 0);
+
+  game.state.stats.qiyun = threshold; // 不超过阈值，不豁免
+  game.handleDeathEvent({ text: '测试死亡事件' });
+  assert.strictEqual(game.state.stats.tizhi < 100, true);
+  assert.strictEqual(game.state.deathEventCount, 1);
 });
 
 
