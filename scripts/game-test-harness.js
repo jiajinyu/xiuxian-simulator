@@ -97,35 +97,15 @@ class Element {
   }
 }
 
-function extractHtmlElements(htmlSource) {
-  const elements = new Map();
-  // 匹配包含 id 属性的 HTML 标签
-  const regex = /<(\w+)[^>]*\bid="([^"]+)"[^>]*>/g;
+function extractHtmlIds(htmlSource) {
+  const ids = new Set();
+  const regex = /\bid="([^"]+)"/g;
   let match = regex.exec(htmlSource);
   while (match) {
-    const id = match[2];
-    // 提取 class 属性
-    const classMatch = match[0].match(/\bclass="([^"]*)"/);
-    const className = classMatch ? classMatch[1] : '';
-    // 提取 style 属性
-    const styleMatch = match[0].match(/\bstyle="([^"]*)"/);
-    const styleStr = styleMatch ? styleMatch[1] : '';
-    // 解析 style 字符串为对象
-    const styleObj = {};
-    if (styleStr) {
-      styleStr.split(';').forEach(rule => {
-        const [prop, value] = rule.split(':').map(s => s.trim());
-        if (prop && value) {
-          // 将 kebab-case 转换为 camelCase
-          const camelProp = prop.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
-          styleObj[camelProp] = value;
-        }
-      });
-    }
-    elements.set(id, { className, style: styleObj });
+    ids.add(match[1]);
     match = regex.exec(htmlSource);
   }
-  return elements;
+  return ids;
 }
 
 function createEnvironment(options) {
@@ -136,16 +116,6 @@ function createEnvironment(options) {
 
   const registerById = element => {
     if (element && element.id) elements.set(element.id, element);
-  };
-
-  // 从 className 字符串初始化 classList
-  const initClassList = (element, className) => {
-    if (className) {
-      const classes = className.trim().split(/\s+/);
-      classes.forEach(cls => {
-        if (cls) element.classList.add(cls);
-      });
-    }
   };
 
   const document = {
@@ -199,15 +169,10 @@ function createEnvironment(options) {
   const enginePath = path.join(root, 'src', 'game-engine.js');
 
   const htmlSource = fs.readFileSync(htmlPath, 'utf8');
-  const htmlElements = extractHtmlElements(htmlSource);
-  htmlElements.forEach((data, id) => {
+  const htmlIds = extractHtmlIds(htmlSource);
+  htmlIds.forEach(id => {
     if (!missingIds.has(id)) {
-      const element = new Element(id, registerById);
-      element.className = data.className;
-      initClassList(element, data.className);
-      // 应用内联样式
-      Object.assign(element.style, data.style);
-      registerById(element);
+      registerById(new Element(id, registerById));
     }
   });
 

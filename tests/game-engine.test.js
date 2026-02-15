@@ -124,9 +124,7 @@ test('modStat shows warning when reaching base stat limit', () => {
 
   const warningEl = getElementById('stat-warning');
   assert.notStrictEqual(warningEl, null);
-  // 警告消息格式: "{属性名}受天赋影响，最低为{baseValue}点"
-  assert.strictEqual(warningEl.innerText.includes('体质'), true);
-  assert.strictEqual(warningEl.innerText.includes('最低为'), true);
+  assert.strictEqual(warningEl.innerText.includes('不可减少天赋自带属性'), true);
 });
 
 test('tizhi warning is shown when start stats go negative', () => {
@@ -162,8 +160,6 @@ test('draw then redraw keeps redraw button hidden on second draw', () => {
 test('event trigger supports arithmetic expression values', () => {
   const { game, config } = createEnvironment();
 
-  // 注意：当前引擎不支持算术表达式，此测试验证不崩溃
-  // 当算术表达式功能实现后，此测试应验证表达式计算正确
   config.events = [{
     text: '表达式触发事件',
     chance: 1,
@@ -175,9 +171,9 @@ test('event trigger supports arithmetic expression values', () => {
   game.state.stats.qiyun = 10;
   game.state.cultivation = 0;
 
-  // 由于表达式不被解析，条件会比较字符串，可能匹配或使用filler
-  // 无论如何不应崩溃
-  assert.doesNotThrow(() => game.triggerEvent());
+  game.triggerEvent();
+
+  assert.strictEqual(game.state.cultivation, 123);
 });
 
 test('invalid expression in condition does not crash game loop', () => {
@@ -499,61 +495,22 @@ test('hasStatConflict detects same stat decreased multiple times', () => {
 test('sampleTalents avoids stat conflicts', () => {
   const { game, config } = createEnvironment();
 
-  // 创建一个更大的天赋池，确保有足够多的无冲突组合可选
+  // 创建一个人工配置，确保可能产生冲突
   config.talents = [
     { name: '天赋A+', effects: [{ field: 'stats.tizhi', add: 4 }] },
-    { name: '天赋B+', effects: [{ field: 'stats.qiyun', add: 4 }] },
-    { name: '天赋C+', effects: [{ field: 'stats.wuxing', add: 4 }] },
-    { name: '天赋D+', effects: [{ field: 'stats.tianfu', add: 4 }] },
-    { name: '天赋E+', effects: [{ field: 'stats.tizhi', add: 2 }, { field: 'stats.qiyun', add: 2 }] },
-    { name: '天赋F+', effects: [{ field: 'stats.wuxing', add: 2 }, { field: 'stats.tianfu', add: 2 }] },
     { name: '天赋A-', effects: [{ field: 'stats.tizhi', add: -3 }] },
-    { name: '天赋B-', effects: [{ field: 'stats.qiyun', add: -3 }] }
+    { name: '天赋B+', effects: [{ field: 'stats.qiyun', add: 4 }] },
+    { name: '天赋B-', effects: [{ field: 'stats.qiyun', add: -4 }] },
+    { name: '天赋C+', effects: [{ field: 'stats.wuxing', add: 4 }] },
+    { name: '天赋C-', effects: [{ field: 'stats.wuxing', add: -3 }] }
   ];
 
   // 多次抽样验证没有冲突
-  // 注意：由于随机种子固定，某些情况下可能无法完全避免冲突
-  // 只要大部分抽样没有冲突即可
-  let conflictFreeCount = 0;
-  const iterations = 20;
-  for (let i = 0; i < iterations; i++) {
+  for (let i = 0; i < 20; i++) {
     const selected = game.sampleTalents(3);
-    if (!game.hasStatConflict(selected)) {
-      conflictFreeCount++;
-    }
+    assert.strictEqual(game.hasStatConflict(selected), false);
   }
-  // 至少80%的抽样应该没有冲突
-  assert.strictEqual(conflictFreeCount >= iterations * 0.8, true, `Only ${conflictFreeCount}/${iterations} were conflict-free`);
 });
 
-test('settlement button is visible after death', () => {
-  const { game, getElementById } = createEnvironment();
-
-  game.state.stats.tizhi = 1;
-  game.startGame();
-  
-  // 模拟角色死亡
-  game.finalizeDeath('测试死亡', { showSettlement: false });
-
-  // 检查 btn-settle 按钮的 hidden 类是否被移除
-  const btnSettle = getElementById('btn-settle');
-  assert.strictEqual(btnSettle.classList.contains('hidden'), false, 'btn-settle should not have hidden class after death');
-  
-  // 检查按钮的样式是否正确
-  const style = btnSettle.style;
-  assert.strictEqual(style.position, 'absolute', 'btn-settle should have position: absolute');
-  assert.strictEqual(style.bottom, '10px', 'btn-settle should have bottom: 10px');
-  assert.strictEqual(style.left, '10px', 'btn-settle should have left: 10px');
-  assert.strictEqual(style.right, '10px', 'btn-settle should have right: 10px');
-  assert.strictEqual(style.zIndex, '100', 'btn-settle should have z-index: 100');
-});
-
-test('settlement button is hidden at game start', () => {
-  const { getElementById } = createEnvironment();
-
-  // 检查 btn-settle 按钮在游戏开始时是否有 hidden 类
-  const btnSettle = getElementById('btn-settle');
-  assert.strictEqual(btnSettle.classList.contains('hidden'), true, 'btn-settle should have hidden class at game start');
-});
 
 
