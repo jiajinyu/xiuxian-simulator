@@ -261,8 +261,7 @@
 
         /* --- 日志区 (卷轴效果) --- */
         #log-area {
-            flex: 1;
-            min-height: 0;
+            flex-grow: 1;
             overflow-y: auto;
             padding: 10px;
             font-size: 15px;
@@ -538,36 +537,6 @@
             font-size: 13px;
             color: var(--evt-neg);
         }
-        .share-footer {
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px dashed var(--border-highlight);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-        .game-name {
-            font-size: 16px;
-            color: var(--evt-god);
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-        .qrcode-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .qrcode-container img {
-            display: block;
-            max-width: 100%;
-        }
-        .game-url {
-            font-size: 10px;
-            color: var(--text-dim);
-            word-break: break-all;
-            max-width: 100%;
-        }
 
         /* 粒子效果层 */
         #particle-canvas {
@@ -653,7 +622,7 @@
         </div>
 
         <div id="panel-game" class="panel hidden" style="padding:0; overflow: hidden; display:flex; flex-direction:column;">
-            <div style="padding:10px; flex:1; display:flex; flex-direction:column; overflow:hidden; min-height:0;">
+            <div style="padding:10px; flex-grow:1; display:flex; flex-direction:column; overflow:hidden;">
                 <div id="status-bar">
                     <div class="stat-grid">
                         <div class="stat-item">
@@ -684,7 +653,7 @@
                 <div id="log-area"></div>
             </div>
             
-            <button id="btn-settle" class="btn hidden" style="position:absolute; bottom:10px; left:10px; right:10px; z-index:100; box-shadow:0 -5px 20px #000;" onclick="game.showSettlement()">查看生平结算</button>
+            <button id="btn-settle" class="btn hidden" style="margin:0; z-index:100; box-shadow:0 -5px 20px #000;" onclick="game.showSettlement()">查看生平结算</button>
         </div>
 
         <div id="settlement-modal">
@@ -712,12 +681,6 @@
                 </div>
             </div>
             
-            <div id="share-footer" class="share-footer hidden">
-                <div class="game-name">修仙模拟器</div>
-                <div id="qrcode-container" class="qrcode-container"></div>
-                <div class="game-url">https://jiajinyu.github.io/xiuxian-simulator/app/index.html</div>
-            </div>
-            
             <div id="end-reincarnation-bonus" class="end-reincarnation-bonus" style="display:none; width:100%; margin-bottom:15px; padding:10px; background:rgba(80,200,120,0.15); border:1px solid var(--evt-pos); color:var(--evt-pos); font-size:14px; text-align:center; cursor:help; position:relative;" title="上一世结算时最高的属性，可在下一世起始时获得+1加成"></div>
             
             <button class="btn" style="margin-bottom:10px; background:#4a3728;" onclick="game.shareSettlement()">📷 分享生平</button>
@@ -727,7 +690,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="../config/game-config.js"></script>
     <script src="../src/game-engine.js"></script>
 </body>
