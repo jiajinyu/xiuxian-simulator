@@ -261,7 +261,6 @@ test('positive event gets qiyun bonus on chance', () => {
   // 公式：基础概率 + 气运 * 0.05%
   const baseChance = 0.1;
   const qiyun = 50;
-  const expectedBonus = qiyun * 0.0005; // 0.025
 
   game.state.stats.qiyun = qiyun;
   const event = { text: '测试正面事件', chance: baseChance, effects: [{ field: 'cultivation', add: 100 }] };
@@ -269,7 +268,7 @@ test('positive event gets qiyun bonus on chance', () => {
   // 验证事件类型识别正确
   assert.strictEqual(game.getEventType(event), 'positive');
 
-  // 验证概率加成计算正确
+  // 验证概率加成计算正确：基础概率 + 气运 * 0.05%
   const qiyunBonus = game.state.stats.qiyun * 0.0005;
   const adjustedChance = baseChance + qiyunBonus;
   assert.strictEqual(Math.abs(adjustedChance - 0.125) < 0.0001, true);
@@ -331,7 +330,7 @@ test('decrementEventCooldowns removes expired cooldowns', () => {
 });
 
 test('filler events bypass cooldown restrictions', () => {
-  const { game } = createEnvironment();
+  createEnvironment();
 
   // filler事件标记为 _isFiller: true，不进入冷却
   const fillerEvent = { text: '填充文本', _isFiller: true };

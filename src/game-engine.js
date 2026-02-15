@@ -1,4 +1,4 @@
-/* global setTimeout */
+/* global setTimeout, qrcode, html2canvas, navigator, fetch, File, alert */
 (function () {
   const cfg = window.GAME_CONFIG;
   if (!cfg) {
@@ -292,7 +292,7 @@
       if (typeof oldValue !== "number") return;
 
       // 百分比损失：用于减修为事件，几率越大损失百分比越小（10%-30%）
-      if (effect.percent && eventChance != null) {
+      if (effect.percent && eventChance !== null) {
         // chance 范围 0.01-0.02 映射到 30%-10%，越大概率越小
         const lossPercent = Math.max(0.10, Math.min(0.30, 0.30 - (eventChance - 0.01) / 0.01 * 0.20));
         const loss = Math.floor(oldValue * lossPercent);
@@ -1162,6 +1162,65 @@
       return (this.state.eventCooldowns[eventText] || 0) > 0;
     },
 
+    // 生成二维码并返回 canvas 元素
+    createQRCodeCanvas() {
+      if (typeof qrcode === "undefined") return null;
+
+      // 生成二维码
+      const url = "https://jiajinyu.github.io/xiuxian-simulator/app/index.html";
+      const qr = qrcode(0, "M");
+      qr.addData(url);
+      qr.make();
+
+      // 创建 canvas
+      const size = 80;
+      const cellSize = size / qr.getModuleCount();
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+
+      // 绘制白色背景
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, size, size);
+
+      // 绘制二维码模块
+      ctx.fillStyle = "#000000";
+      for (let row = 0; row < qr.getModuleCount(); row++) {
+        for (let col = 0; col < qr.getModuleCount(); col++) {
+          if (qr.isDark(row, col)) {
+            ctx.fillRect(col * cellSize, row * cellSize, cellSize, cellSize);
+          }
+        }
+      }
+
+      return canvas;
+    },
+
+    // 创建分享区域元素
+    createShareFooter() {
+      const footer = document.createElement("div");
+      footer.className = "share-footer";
+      footer.id = "share-footer-temp";
+
+      const gameName = document.createElement("div");
+      gameName.className = "game-name";
+      gameName.innerText = "修仙模拟器";
+
+      const qrContainer = document.createElement("div");
+      qrContainer.className = "qr-container";
+
+      const qrCanvas = this.createQRCodeCanvas();
+      if (qrCanvas) {
+        qrContainer.appendChild(qrCanvas);
+      }
+
+      footer.appendChild(gameName);
+      footer.appendChild(qrContainer);
+
+      return footer;
+    },
+
     showSettlement() {
       document.getElementById("settlement-modal").style.display = "flex";
       trackFunnelStep("settlement_view", 5, {
@@ -1172,7 +1231,11 @@
     async shareSettlement() {
       const content = document.getElementById("settlement-content");
       if (!content) return;
-      
+
+      // 动态添加分享区域
+      const shareFooter = this.createShareFooter();
+      content.appendChild(shareFooter);
+
       try {
         // 使用 html2canvas 截图
         const canvas = await html2canvas(content, {
@@ -1181,17 +1244,17 @@
           useCORS: true,
           allowTaint: true
         });
-        
+
         // 转换为图片数据
         const imageData = canvas.toDataURL("image/png");
-        
+
         // 尝试使用 Web Share API (移动端)
         if (navigator.share && navigator.canShare) {
           try {
             const response = await fetch(imageData);
             const blob = await response.blob();
             const file = new File([blob], "修仙结算.png", { type: "image/png" });
-            
+
             if (navigator.canShare({ files: [file] })) {
               await navigator.share({
                 title: "修仙模拟器 - 生平结算",
@@ -1200,18 +1263,24 @@
               });
               return;
             }
-          } catch (shareErr) {
+          } catch {
             // 分享失败，回退到下载
           }
         }
-        
+
         // 回退：下载图片
         const link = document.createElement("a");
         link.download = `修仙结算_${this.state.age}岁_${this.state.lastTitle || "无名小卒"}.png`;
         link.href = imageData;
         link.click();
-      } catch (err) {
+      } catch {
         alert("截图失败，请重试");
+      } finally {
+        // 无论成功失败，都移除分享区域
+        const tempFooter = document.getElementById("share-footer-temp");
+        if (tempFooter) {
+          tempFooter.remove();
+        }
       }
     },
 

@@ -538,6 +538,31 @@
             color: var(--evt-neg);
         }
 
+        /* 分享区域：游戏名称和二维码 */
+        .share-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-highlight);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .share-footer .game-name {
+            font-family: var(--font-title);
+            font-size: 20px;
+            color: var(--evt-god);
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 0 #3e2723;
+        }
+        .share-footer .qr-container {
+            background: #fff;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .share-footer .qr-container canvas {
+            display: block;
+        }
+
         /* 粒子效果层 */
         #particle-canvas {
             position: fixed;
@@ -690,6 +715,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script src="../config/game-config.js"></script>
     <script src="../src/game-engine.js"></script>
 </body>
