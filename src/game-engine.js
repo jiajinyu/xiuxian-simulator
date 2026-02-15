@@ -63,192 +63,9 @@
     return list[Math.floor(Math.random() * list.length)];
   }
 
-  function tokenizeExpression(expr) {
-    const tokens = [];
-    let i = 0;
-
-    while (i < expr.length) {
-      const ch = expr[i];
-      if (/\s/.test(ch)) {
-        i++;
-        continue;
-      }
-
-      if ("()+-*/".includes(ch)) {
-        tokens.push(ch);
-        i++;
-        continue;
-      }
-
-      if (/[0-9.]/.test(ch)) {
-        let j = i;
-        let dotCount = 0;
-        while (j < expr.length && /[0-9.]/.test(expr[j])) {
-          if (expr[j] === ".") dotCount++;
-          if (dotCount > 1) return null;
-          j++;
-        }
-        const numberToken = expr.slice(i, j);
-        if (numberToken === ".") return null;
-        tokens.push(numberToken);
-        i = j;
-        continue;
-      }
-
-      if (/[A-Za-z_]/.test(ch)) {
-        let j = i;
-        while (j < expr.length && /[A-Za-z0-9_]/.test(expr[j])) j++;
-        tokens.push(expr.slice(i, j));
-        i = j;
-        continue;
-      }
-
-      return null;
-    }
-
-    return tokens;
-  }
-
-  function toRpn(tokens) {
-    const output = [];
-    const operators = [];
-    const precedence = { "+": 1, "-": 1, "*": 2, "/": 2, "u-": 3 };
-    const rightAssociative = new Set(["u-"]);
-    let expectingValue = true;
-
-    for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-
-      if (/^\d+(\.\d+)?$/.test(token)) {
-        if (!expectingValue) return null;
-        output.push(token);
-        expectingValue = false;
-        continue;
-      }
-
-      if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(token)) {
-        if (!expectingValue) return null;
-        output.push(token);
-        expectingValue = false;
-        continue;
-      }
-
-      if (token === "(") {
-        if (!expectingValue) return null;
-        operators.push(token);
-        continue;
-      }
-
-      if (token === ")") {
-        if (expectingValue) return null;
-        while (operators.length > 0 && operators[operators.length - 1] !== "(") {
-          output.push(operators.pop());
-        }
-        if (operators.length === 0) return null;
-        operators.pop();
-        expectingValue = false;
-        continue;
-      }
-
-      if (!["+","-","*","/"].includes(token)) return null;
-
-      let op = token;
-      if (token === "-" && expectingValue) {
-        op = "u-";
-      } else if (expectingValue) {
-        return null;
-      }
-
-      while (operators.length > 0) {
-        const top = operators[operators.length - 1];
-        if (top === "(") break;
-        const shouldPop = rightAssociative.has(op)
-          ? precedence[op] < precedence[top]
-          : precedence[op] <= precedence[top];
-        if (!shouldPop) break;
-        output.push(operators.pop());
-      }
-      operators.push(op);
-      expectingValue = true;
-    }
-
-    if (expectingValue) return null;
-
-    while (operators.length > 0) {
-      const op = operators.pop();
-      if (op === "(" || op === ")") return null;
-      output.push(op);
-    }
-
-    return output;
-  }
-
-  function evaluateRpn(rpn, vars) {
-    const stack = [];
-    for (let i = 0; i < rpn.length; i++) {
-      const token = rpn[i];
-
-      if (/^\d+(\.\d+)?$/.test(token)) {
-        stack.push(Number(token));
-        continue;
-      }
-
-      if (/^[A-Za-z_][A-Za-z0-9_]*$/.test(token)) {
-        if (!Object.prototype.hasOwnProperty.call(vars, token)) return null;
-        const variableValue = Number(vars[token]);
-        if (!Number.isFinite(variableValue)) return null;
-        stack.push(variableValue);
-        continue;
-      }
-
-      if (token === "u-") {
-        if (stack.length < 1) return null;
-        stack.push(-stack.pop());
-        continue;
-      }
-
-      if (stack.length < 2) return null;
-      const right = stack.pop();
-      const left = stack.pop();
-      let result = null;
-
-      if (token === "+") result = left + right;
-      if (token === "-") result = left - right;
-      if (token === "*") result = left * right;
-      if (token === "/") {
-        if (right === 0) return null;
-        result = left / right;
-      }
-
-      if (!Number.isFinite(result)) return null;
-      stack.push(result);
-    }
-
-    return stack.length === 1 ? stack[0] : null;
-  }
-
-  function evaluateArithmeticExpression(expr, vars) {
-    if (typeof expr !== "string" || expr.trim() === "") return null;
-    const tokens = tokenizeExpression(expr);
-    if (!tokens || tokens.length === 0) return null;
-    const rpn = toRpn(tokens);
-    if (!rpn) return null;
-    return evaluateRpn(rpn, vars);
-  }
-
-  function evaluateValue(context, value) {
-    if (typeof value === "string") {
-      const evaluated = evaluateArithmeticExpression(value, {
-        realmIdx: Number(context.realmIdx || 0)
-      });
-      if (typeof evaluated === "number" && Number.isFinite(evaluated)) return evaluated;
-    }
-    return value;
-  }
-
   function matchRule(context, rule) {
     const left = getByPath(context, rule.field);
-    const right = evaluateValue(context, rule.value);
+    const right = rule.value;
 
     switch (rule.op) {
       case "==":
@@ -267,8 +84,6 @@
         return typeof left === "string" && left.includes(String(right));
       case "includesAny":
         return typeof left === "string" && Array.isArray(right) && right.some(k => left.includes(String(k)));
-      case "every":
-        return Array.isArray(left) && left.every(item => item === right);
       default:
         return false;
     }
@@ -285,28 +100,13 @@
     return true;
   }
 
-  function applyEffects(state, effects, eventChance) {
+  function applyEffects(state, effects) {
     if (!Array.isArray(effects)) return;
     effects.forEach(effect => {
       const oldValue = getByPath(state, effect.field);
-      if (typeof oldValue !== "number") return;
-
-      // 百分比损失：用于减修为事件，几率越大损失百分比越小（10%-30%）
-      if (effect.percent && eventChance != null) {
-        // chance 范围 0.01-0.02 映射到 30%-10%，越大概率越小
-        const lossPercent = Math.max(0.10, Math.min(0.30, 0.30 - (eventChance - 0.01) / 0.01 * 0.20));
-        const loss = Math.floor(oldValue * lossPercent);
-        setByPath(state, effect.field, oldValue - loss);
-        return;
-      }
-
       const delta = Number(effect.add || 0);
-      const newValue = oldValue + delta;
-      setByPath(state, effect.field, newValue);
-
-      // 追踪体质最大值
-      if (effect.field === "stats.tizhi" && state.maxTizhi !== undefined) {
-        state.maxTizhi = Math.max(state.maxTizhi, newValue);
+      if (typeof oldValue === "number") {
+        setByPath(state, effect.field, oldValue + delta);
       }
     });
   }
@@ -314,8 +114,7 @@
   const game = {
     data: {
       gen: 1,
-      titles: [],
-      highestStatFromLastLife: null  // 上一世最高属性名（转世继承+1）
+      titles: []
     },
 
     state: {
@@ -331,12 +130,7 @@
       failCount: 0,
       deathReason: "",
       deathEventCount: 0,
-      hasTriggeredRomance: false,
-      hasTriggeredIndescribable: false,  // 是否触发过"不可描述的事"
-      hehuanzongCount: 0,  // 合欢宗事件触发次数
-      gender: null,  // 'male' 或 'female'
-      eventCooldowns: {},  // 事件冷却：{ eventText: 剩余冷却年数 }
-      maxTizhi: 0  // 游戏过程中体质达到的最大值
+      hasTriggeredRomance: false
     },
 
     init() {
@@ -352,27 +146,6 @@
       document.getElementById("gen-count").innerText = this.data.gen;
       const rate = Math.floor((this.data.titles.length / cfg.titles.length) * 100);
       document.getElementById("title-rate").innerText = `${rate}%`;
-      
-      // 显示转世继承属性加成
-      this.renderReincarnationBonus();
-    },
-
-    renderReincarnationBonus() {
-      let bonusEl = document.getElementById("reincarnation-bonus");
-      if (this.data.highestStatFromLastLife && this.data.gen > 1) {
-        const statName = cfg.rules.statLabels[this.data.highestStatFromLastLife] || this.data.highestStatFromLastLife;
-        if (!bonusEl) {
-          bonusEl = document.createElement("div");
-          bonusEl.id = "reincarnation-bonus";
-          bonusEl.style.cssText = "margin-top:15px; padding:10px; background:rgba(80,200,120,0.15); border:1px solid var(--evt-pos); color:var(--evt-pos); font-size:14px; cursor:help;";
-          bonusEl.title = "上一世结算时最高的属性，可在下一世起始时获得+1加成";
-          document.getElementById("start-stats").appendChild(bonusEl);
-        }
-        bonusEl.innerText = `转世福泽：下一世${statName}+1`;
-        bonusEl.style.display = "block";
-      } else if (bonusEl) {
-        bonusEl.style.display = "none";
-      }
     },
 
     resetData() {
@@ -385,17 +158,6 @@
     toTalentSelection() {
       document.getElementById("panel-start").classList.add("hidden");
       document.getElementById("panel-talent").classList.remove("hidden");
-      // 保存初始状态（无任何天赋时的状态），应用转世继承加成
-      const baseStats = { ...cfg.rules.baseStats };
-      if (this.data.highestStatFromLastLife) {
-        const statKey = this.data.highestStatFromLastLife;
-        if (baseStats[statKey] !== undefined) {
-          baseStats[statKey]++;
-        }
-      }
-      this.state.initialStats = baseStats;
-      this.state.stats = { ...baseStats };
-      this.state.baseStats = {};
       trackFunnelStep("talent_select", 1);
     },
 
@@ -423,16 +185,19 @@
         list.appendChild(div);
       });
 
-      // 更新环形进度条
+      // 更新环形进度条（可选元素）
       const total = cfg.titles.length;
       const progress = unlockedCount / total;
-      const circumference = 2 * Math.PI * 36; // r=36
-      const offset = circumference - (progress * circumference);
-      const ring = document.getElementById("gallery-ring");
-      if (ring) {
-        ring.style.strokeDashoffset = offset;
+      const galleryRing = document.getElementById("gallery-ring");
+      if (galleryRing) {
+        const circumference = 2 * Math.PI * 36; // r=36
+        const offset = circumference - (progress * circumference);
+        galleryRing.style.strokeDashoffset = offset;
       }
-      document.getElementById("gallery-progress").innerText = `${unlockedCount}/${total}`;
+      const progressEl = document.getElementById("gallery-progress");
+      if (progressEl) {
+        progressEl.innerText = `${unlockedCount}/${total}`;
+      }
     },
 
     backToStart() {
@@ -440,93 +205,219 @@
       document.getElementById("panel-start").classList.remove("hidden");
     },
 
-    restartGame() {
-      // 使用页面刷新来确保完全重置状态
-      location.reload();
-    },
+    // ========== 事件分类与气运系统 ==========
 
-    // 获取天赋影响的所有属性及其增减方向
-    getTalentAffectedStats(talent) {
-      const stats = new Map(); // field -> set of signs ('+' or '-')
-      if (!talent.effects) return stats;
+    getEventType(event) {
+      if (event.isDeath) return 'death';
+      if (event.isNegative) return 'negative';
+      if (!event.effects || event.effects.length === 0) return 'filler';
       
-      talent.effects.forEach(effect => {
-        if (effect.field && effect.field.startsWith('stats.')) {
-          const statName = effect.field.replace('stats.', '');
-          const sign = effect.add >= 0 ? '+' : '-';
-          if (!stats.has(statName)) {
-            stats.set(statName, new Set());
-          }
-          stats.get(statName).add(sign);
-        }
-      });
-      return stats;
+      const hasPositive = event.effects.some(e => (e.add || 0) > 0);
+      const hasNegative = event.effects.some(e => (e.add || 0) < 0);
+      
+      if (hasPositive && hasNegative) return 'neutral';
+      if (hasNegative) return 'negative';
+      return 'positive';
     },
 
-    // 检查一组天赋是否有属性冲突
-    // 冲突规则：
-    // 1. 同一属性既有增加又有减少
-    // 2. 同一属性被减少多次
-    hasStatConflict(talents) {
-      const globalStats = new Map(); // field -> { addCount, subCount }
+    getQiyunExemptionThreshold(realmIdx) {
+      // 公式：(境界 * 2 + 3) * 10
+      return (realmIdx * 2 + 3) * 10;
+    },
 
-      for (const talent of talents) {
-        const talentStats = this.getTalentAffectedStats(talent);
-        for (const [statName, signs] of talentStats) {
-          if (!globalStats.has(statName)) {
-            globalStats.set(statName, { addCount: 0, subCount: 0 });
-          }
-          const stat = globalStats.get(statName);
-          for (const sign of signs) {
-            if (sign === '+') stat.addCount++;
-            if (sign === '-') stat.subCount++;
-          }
-          // 规则1：同一属性既有 '+' 又有 '-'，说明有冲突
-          if (stat.addCount > 0 && stat.subCount > 0) {
-            return true;
-          }
-          // 规则2：同一属性被减少多次，说明有冲突
-          if (stat.subCount > 1) {
-            return true;
-          }
+    // ========== 事件冷却系统 ==========
+
+    isEventOnCooldown(eventText) {
+      if (!this.state.eventCooldowns) return false;
+      const cooldown = this.state.eventCooldowns[eventText];
+      return !!(cooldown && cooldown > 0);
+    },
+
+    setEventCooldown(eventText, years) {
+      if (!this.state.eventCooldowns) this.state.eventCooldowns = {};
+      this.state.eventCooldowns[eventText] = years;
+    },
+
+    decrementEventCooldowns() {
+      if (!this.state.eventCooldowns) return;
+      for (const key in this.state.eventCooldowns) {
+        this.state.eventCooldowns[key]--;
+        if (this.state.eventCooldowns[key] <= 0) {
+          delete this.state.eventCooldowns[key];
         }
       }
+    },
+
+    // ========== 天赋系统 ==========
+
+    getTalentAffectedStats(talent) {
+      const result = new Map();
+      if (!talent.effects) return result;
+      
+      talent.effects.forEach(effect => {
+        // 从 field 中提取属性名，如 "stats.tizhi" -> "tizhi"
+        const fieldName = effect.field;
+        if (fieldName.startsWith('stats.')) {
+          const statName = fieldName.substring(6);
+          if (!result.has(statName)) {
+            result.set(statName, new Set());
+          }
+          if ((effect.add || 0) > 0) {
+            result.get(statName).add('+');
+          } else if ((effect.add || 0) < 0) {
+            result.get(statName).add('-');
+          }
+        }
+      });
+      
+      return result;
+    },
+
+    hasStatConflict(talents) {
+      const allAffectedStats = new Map();
+      
+      for (const talent of talents) {
+        const stats = this.getTalentAffectedStats(talent);
+        stats.forEach((modifiers, statName) => {
+          if (!allAffectedStats.has(statName)) {
+            allAffectedStats.set(statName, new Set());
+          }
+          modifiers.forEach(mod => allAffectedStats.get(statName).add(mod));
+        });
+      }
+      
+      // 检查是否有属性同时有 + 和 -（冲突）
+      // 或者同一属性被减少多次（通过检测多个天赋都有 '-'）
+      for (const [statName, modifiers] of allAffectedStats) {
+        if (modifiers.has('+') && modifiers.has('-')) {
+          return true;
+        }
+      }
+      
+      // 检查是否有同一属性被多个天赋减少
+      let negativeCount = 0;
+      for (const talent of talents) {
+        const stats = this.getTalentAffectedStats(talent);
+        if (stats.has('tizhi') && stats.get('tizhi').has('-')) negativeCount++;
+        if (stats.has('qiyun') && stats.get('qiyun').has('-')) negativeCount++;
+        if (stats.has('tianfu') && stats.get('tianfu').has('-')) negativeCount++;
+        if (stats.has('wuxing') && stats.get('wuxing').has('-')) negativeCount++;
+      }
+      
+      // 检查单个属性被减少多次
+      for (const statName of ['tizhi', 'qiyun', 'tianfu', 'wuxing']) {
+        let count = 0;
+        for (const talent of talents) {
+          const stats = this.getTalentAffectedStats(talent);
+          if (stats.has(statName) && stats.get(statName).has('-')) {
+            count++;
+          }
+        }
+        if (count > 1) return true;
+      }
+      
       return false;
     },
 
     sampleTalents(count) {
       const pool = [...cfg.talents];
+      const selected = [];
+      const maxAttempts = pool.length * 3;
       let attempts = 0;
-      const maxAttempts = 100; // 防止无限循环
-
-      do {
-        // 打乱数组（Fisher-Yates 洗牌算法）
-        for (let i = pool.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [pool[i], pool[j]] = [pool[j], pool[i]];
-        }
-        
-        const selected = pool.slice(0, count);
-        
-        // 检查是否有属性冲突，没有冲突则返回
-        if (!this.hasStatConflict(selected)) {
-          return selected;
-        }
-        
+      
+      while (selected.length < count && pool.length > 0 && attempts < maxAttempts) {
         attempts++;
-      } while (attempts < maxAttempts);
-
-      // 如果多次尝试后仍有冲突，直接返回（避免无限循环）
-      return pool.slice(0, count);
+        const idx = Math.floor(Math.random() * pool.length);
+        const candidate = pool[idx];
+        
+        // 检查是否与已选天赋冲突
+        const testSelection = [...selected, candidate];
+        if (!this.hasStatConflict(testSelection)) {
+          selected.push(candidate);
+          pool.splice(idx, 1);
+        }
+      }
+      
+      // 如果无法避免冲突，随机选择
+      while (selected.length < count && pool.length > 0) {
+        const idx = Math.floor(Math.random() * pool.length);
+        selected.push(pool[idx]);
+        pool.splice(idx, 1);
+      }
+      
+      return selected;
     },
 
-    renderTalentCards(pool) {
+    // ========== 死亡结算 ==========
+
+    finalizeDeath(reason, options) {
+      const opts = options || {};
+      this.state.isDead = true;
+      this.state.deathReason = reason;
+      clearInterval(this.state.timer);
+
+      const btnSettle = document.getElementById("btn-settle");
+      btnSettle.classList.remove("hidden");
+      
+      if (opts.showSettlement !== false) {
+        btnSettle.style.position = 'absolute';
+        btnSettle.style.bottom = '10px';
+        btnSettle.style.left = '10px';
+        btnSettle.style.right = '10px';
+        btnSettle.style.zIndex = '100';
+      }
+
+      this.data.gen++;
+
+      const context = {
+        ...this.state,
+        deathReason: reason,
+        always: true
+      };
+
+      const matchedTitles = cfg.titles.filter(t => matchCondition(context, t.condition));
+      let myTitle = null;
+
+      const unlockedTitles = new Set(this.data.titles);
+      const unownedMatched = matchedTitles.filter(t => !unlockedTitles.has(t.name));
+
+      if (unownedMatched.length > 0) {
+        myTitle = unownedMatched[0];
+      } else if (matchedTitles.length > 0) {
+        myTitle = matchedTitles[0];
+      } else {
+        myTitle = cfg.titles[cfg.titles.length - 1];
+      }
+
+      if (!this.data.titles.includes(myTitle.name)) {
+        this.data.titles.push(myTitle.name);
+      }
+
+      localStorage.setItem("xiuxian_save", JSON.stringify(this.data));
+      this.state.lastTitle = myTitle.name;
+      trackFunnelStep("death", 4, {
+        age: this.state.age,
+        realm: cfg.realms[this.state.realmIdx],
+        title: myTitle.name
+      });
+      trackEvent("game_over", { reason });
+
+      const tEl = document.getElementById("end-title");
+      tEl.innerText = myTitle.name;
+      tEl.style.color = myTitle.color;
+
+      document.getElementById("end-title-desc").innerText = myTitle.desc;
+      document.getElementById("end-age").innerText = this.state.age;
+      document.getElementById("end-realm").innerText = cfg.realms[this.state.realmIdx];
+      document.getElementById("end-gen").innerText = this.data.gen;
+      document.getElementById("end-reason").innerText = `死因：${reason}`;
+    },
+
+    drawTalents() {
       const list = document.getElementById("talent-list");
       list.innerHTML = "";
 
-      // 记录开局天赋类型用于称号判定
-      this.state.startTalentTypes = pool.map(t => t.type);
-
+      const pool = this.sampleTalents(3);
       pool.forEach(t => {
         applyEffects(this.state, t.effects);
 
@@ -535,34 +426,23 @@
         div.innerHTML = `<span class="t-name">${t.name}</span><span class="t-desc">${t.desc}</span>`;
         list.appendChild(div);
       });
-    },
 
-    finalizeTalentDraw(canRedraw) {
       this.state.baseStats = { ...this.state.stats };
       document.getElementById("btn-draw").classList.add("hidden");
+      document.getElementById("btn-redraw")?.classList.remove("hidden");
       document.getElementById("btn-confirm-talent").classList.remove("hidden");
-      const redrawBtn = document.getElementById("btn-redraw");
-      if (canRedraw) {
-        redrawBtn.classList.remove("hidden");
-      } else {
-        redrawBtn.classList.add("hidden");
-      }
-    },
-
-    drawTalents() {
-      const pool = this.sampleTalents(3);
-      this.renderTalentCards(pool);
-      this.finalizeTalentDraw(true);
     },
 
     redrawTalents() {
-      // 重置状态到初始值（清除之前的天赋效果）
-      this.state.stats = { ...this.state.initialStats };
-      this.state.baseStats = {};
-
-      const pool = this.sampleTalents(3);
-      this.renderTalentCards(pool);
-      this.finalizeTalentDraw(false);
+      // 重置状态
+      this.state.stats = { ...cfg.rules.baseStats };
+      this.state.points = cfg.rules.startPoints;
+      
+      // 重新抽取天赋
+      this.drawTalents();
+      
+      // 隐藏重抽按钮
+      document.getElementById("btn-redraw").classList.add("hidden");
     },
 
     toSetup() {
@@ -577,9 +457,8 @@
       const con = document.getElementById("stat-rows");
       con.innerHTML = "";
       Object.keys(cfg.rules.statLabels).forEach(key => {
-        const desc = cfg.rules.statDescriptions?.[key] || "";
         con.innerHTML += `
-          <div class="stat-row" title="${desc}">
+          <div class="stat-row">
             <div class="stat-row-info">
               <span class="stat-name">${cfg.rules.statLabels[key]}</span>
             </div>
@@ -596,17 +475,13 @@
       if (delta > 0 && this.state.points > 0) {
         this.state.stats[key]++;
         this.state.points--;
-        this.hideStatWarning();
       } else if (delta < 0 && this.state.stats[key] > this.state.baseStats[key]) {
         this.state.stats[key]--;
         this.state.points++;
-        this.hideStatWarning();
       } else if (delta < 0 && this.state.stats[key] <= this.state.baseStats[key]) {
-        this.showStatWarning("不可减少天赋自带属性");
-      }
-      // 检查体质是否小于0
-      if (key === "tizhi" && this.state.stats[key] <= 0) {
-        this.showStatWarning("初始体质不可小于0");
+        const statName = cfg.rules.statLabels[key];
+        const baseValue = this.state.baseStats[key];
+        this.showStatWarning(`${statName}受天赋影响，最低为${baseValue}点`);
       }
       this.updatePoints();
     },
@@ -626,13 +501,6 @@
       setTimeout(() => {
         warningEl.style.display = "none";
       }, 2000);
-    },
-
-    hideStatWarning() {
-      const warningEl = document.getElementById("stat-warning");
-      if (warningEl) {
-        warningEl.style.display = "none";
-      }
     },
 
     randomStats() {
@@ -686,23 +554,14 @@
       document.getElementById("panel-setup").classList.add("hidden");
       document.getElementById("panel-game").classList.remove("hidden");
 
-      // 随机生成性别
-      this.state.gender = Math.random() < 0.5 ? "male" : "female";
-
-      // 初始化体质最大值
-      this.state.maxTizhi = this.state.stats.tizhi;
-      const genderText = this.state.gender === "male" ? "男婴" : "女婴";
-      const birthDesc = cfg.birthDesc?.[this.state.gender] || [];
-      const desc = birthDesc.length > 0 ? pickRandom(birthDesc) : "";
-
-      this.log(`轮回转世，再踏仙途。你出生时为${genderText}。${desc}`, "c-legend");
+      this.log("轮回转世，再踏仙途。", "c-legend");
       this.state.timer = setInterval(() => this.tick(), cfg.rules.tickMs);
       trackFunnelStep("game_start", 3);
     },
 
     togglePause() {
       this.state.paused = !this.state.paused;
-      document.getElementById("btn-pause").innerText = this.state.paused ? "▶" : "II";
+      document.getElementById("btn-pause").innerText = this.state.paused ? "继续" : "暂停";
     },
 
     tick() {
@@ -711,8 +570,6 @@
       const statsBeforeTick = { ...this.state.stats };
 
       this.state.age++;
-      // 递减事件冷却时间
-      this.decrementEventCooldowns();
       if (
         this.state.age > cfg.rules.oldAgeStart &&
         this.state.age % cfg.rules.oldAgeStep === 0
@@ -772,36 +629,22 @@
       if (s.cultivation < req || s.realmIdx >= cfg.realms.length - 1) return;
 
       const b = cfg.rules.breakthrough;
-      // 第一阶段：基础成功率判定
-      const baseChance = 60 - s.realmIdx * 5;
+      const checkType = pickRandom(b.checkStats);
+      const baseChance = b.baseChance - s.realmIdx * b.perRealmPenalty;
+      const bonus = s.stats[checkType] * b.statBonusMul;
+      const finalChance = baseChance + bonus;
 
-      if (Math.random() * 100 < baseChance) {
-        // 第二阶段：悟性+气运判定
-        const wuxingQiyunSum = s.stats.wuxing + s.stats.qiyun;
-        const threshold = (s.realmIdx * 2 + 1) * 10;
-
-        if (wuxingQiyunSum > threshold) {
-          // 突破成功
-          const gain = (s.realmIdx + 1) * b.successTizhiGainMul;
-          s.realmIdx++;
-          s.cultivation = 0;
-          s.stats.tizhi += gain;
-          s.stats.tianfu += b.successTianfuGain;
-          this.log(
-            `突破瓶颈！判定【悟性+气运=${wuxingQiyunSum}】超过阈值【${threshold}】，晋升【${cfg.realms[s.realmIdx]}】！体质+${gain}。`,
-            "c-legend"
-          );
-        } else {
-          // 第二阶段判定失败，计入失败但不扣体质（只扣修为）
-          s.cultivation *= b.failCultivationKeep;
-          s.failCount++;
-          this.log(
-            `冲击【${cfg.realms[s.realmIdx + 1]}】失败！悟性+气运【${wuxingQiyunSum}】未超过阈值【${threshold}】，修为损失30%。`,
-            "c-death"
-          );
-        }
+      if (Math.random() * 100 < finalChance) {
+        const gain = (s.realmIdx + 1) * b.successTizhiGainMul;
+        s.realmIdx++;
+        s.cultivation = 0;
+        s.stats.tizhi += gain;
+        s.stats.tianfu += b.successTianfuGain;
+        this.log(
+          `突破瓶颈！判定【${checkType === "wuxing" ? "悟性" : "气运"}】通过，晋升【${cfg.realms[s.realmIdx]}】！体质+${gain}。`,
+          "c-legend"
+        );
       } else {
-        // 第一阶段判定失败
         const loss = (s.realmIdx + 1) * b.failTizhiLossMul;
         s.cultivation *= b.failCultivationKeep;
         s.stats.tizhi -= loss;
@@ -817,52 +660,15 @@
       }
     },
 
-    // 判断事件类型：positive(正面), negative(负面), death(死亡), filler(填充)
-    getEventType(event) {
-      if (event.isDeath) return "death";
-      if (event.isNegative) return "negative";
-      if (!event.effects || event.effects.length === 0) return "filler";
-      
-      // 根据effects判断：增加属性为正面，减少属性为负面
-      let hasPositive = false;
-      let hasNegative = false;
-      for (const effect of event.effects) {
-        const add = effect.add || 0;
-        if (add > 0) hasPositive = true;
-        if (add < 0) hasNegative = true;
-      }
-      
-      if (hasPositive && !hasNegative) return "positive";
-      if (hasNegative && !hasPositive) return "negative";
-      return "neutral";
-    },
-
-    // 计算负面/死亡事件的豁免阈值：气运 > (境界×2+3)×10 可豁免
-    getQiyunExemptionThreshold(realmIdx) {
-      return (realmIdx * 2 + 3) * 10;
-    },
-
     triggerEvent() {
       const s = this.state;
       const context = {
         ...s,
         deathReason: s.deathReason,
-        gender: s.gender,
         always: true
       };
 
-      // 1-10岁严格只从童年事件中抽取
-      const isChildhood = s.age >= 1 && s.age <= 10;
-      let valid;
-      if (isChildhood && cfg.childhoodEvents && cfg.childhoodEvents.length > 0) {
-        valid = cfg.childhoodEvents.filter(e => matchCondition(context, e.trigger));
-      } else {
-        valid = cfg.events.filter(e => matchCondition(context, e.trigger));
-      }
-      // 排除冷却期内的非filler事件
-      valid = valid.filter(e => !this.isEventOnCooldown(e.text));
-
-
+      const valid = cfg.events.filter(e => matchCondition(context, e.trigger));
 
       let hit = valid.find(e => e.text.includes(`${s.age}岁`));
       if (!hit) {
@@ -870,16 +676,11 @@
         for (let i = 0; i < shuffled.length; i++) {
           const e = shuffled[i];
           if (e.chance) {
-            const eventType = this.getEventType(e);
             let adjustedChance = e.chance;
-            
-            // 正面事件受气运加成：基础概率 + 气运×0.05%
-            if (eventType === "positive") {
-              const qiyunBonus = (s.stats.qiyun || 0) * 0.0005; // 0.05% = 0.0005
+            if (!e.isDeath) {
+              const qiyunBonus = (s.stats.qiyun || 0) * 0.001;
               adjustedChance = e.chance + qiyunBonus;
             }
-            // 负面事件和死亡事件基础概率不变，但会单独进行豁免判定
-            
             if (Math.random() < adjustedChance) {
               hit = e;
               break;
@@ -889,37 +690,27 @@
       }
 
       if (!hit) {
-        // 1-10岁使用童年专用filler，否则使用普通filler
-        const isChildhood = s.age >= 1 && s.age <= 10;
-        const fillerPool = (isChildhood && cfg.childhoodFillers && cfg.childhoodFillers.length > 0)
-          ? cfg.childhoodFillers
-          : cfg.fillers;
-        let rawFiller = pickRandom(fillerPool);
-        // 处理对象格式的性别特定filler
-        let text;
-        if (typeof rawFiller === 'object' && rawFiller !== null) {
-          text = s.gender === 'female' ? rawFiller.female : rawFiller.male;
-        } else {
-          text = rawFiller;
-        }
-        // 性别适配：替换 filler 中的人名
-        if (s.gender === "female" && text.includes("二丫")) {
-          text = text.replace("二丫", "狗剩");
-        }
+        const filler = pickRandom(cfg.fillers);
         const realmIdx = s.realmIdx || 0;
         const baseValue = (cfg.rules.realmBaseCultivation && cfg.rules.realmBaseCultivation[realmIdx]) || 10;
         const tianfuMultiplier = (cfg.rules.cultivationFormula && cfg.rules.cultivationFormula.tianfuMultiplier) || 0.1;
         const tianfu = s.stats.tianfu || 0;
         const gain = baseValue * (1 + tianfu * tianfuMultiplier);
+        
+        // 处理性别特定的 filler 文本
+        let text;
+        if (typeof filler === 'object' && filler !== null) {
+          text = (s.gender === 'female' && filler.female) ? filler.female : filler.male || filler.female || '修炼中...';
+        } else {
+          text = filler;
+        }
+        
         hit = {
           text,
           color: "c-common",
           effects: [{ field: "cultivation", add: gain }],
           _isFiller: true
         };
-      } else {
-        // 非filler事件触发后进入10年冷却
-        this.setEventCooldown(hit.text, 10);
       }
 
       if (hit.requiresQiyunCheck && s.stats.qiyun < hit.minQiyun) {
@@ -927,32 +718,21 @@
         return;
       }
 
-      // 判断事件类型并进行相应处理
-      const eventType = this.getEventType(hit);
-
       if (hit.text.includes("南宫婉") || hit.text.includes("合欢宗")) {
         s.hasTriggeredRomance = true;
       }
-      // 追踪"不可描述的事"事件（南宫婉/韩立）
-      if (hit.text.includes("不可描述的事")) {
-        s.hasTriggeredIndescribable = true;
-      }
-      // 追踪合欢宗事件次数
-      if (hit.text.includes("被合欢宗")) {
-        s.hehuanzongCount = (s.hehuanzongCount || 0) + 1;
-      }
 
-      applyEffects(s, hit.effects, hit.chance);
+      applyEffects(s, hit.effects);
       if (s.cultivation < 0) s.cultivation = 0;
 
       let txt = hit.text;
       if (!txt.includes("岁")) txt = `${s.age}岁：${txt}`;
 
-      let colorClass = hit.color || this.getEventColor(hit.chance || 1, eventType);
-      if (eventType === "death") colorClass = "c-death";
+      let colorClass = hit.color || this.getEventColor(hit.chance || 1);
+      if (hit.isDeath) colorClass = "c-death";
       this.log(txt, colorClass);
 
-      if (eventType === "death") {
+      if (hit.isDeath) {
         this.handleDeathEvent(hit);
       }
     },
@@ -960,7 +740,7 @@
     handleDeathEvent(event) {
       const s = this.state;
 
-      const qiyunCheckChance = Math.min((s.stats.qiyun || 0) * 0.5, 50);
+      const qiyunCheckChance = Math.min((s.stats.qiyun || 0) * 0.5, 80);
       if (Math.random() * 100 < qiyunCheckChance) {
         this.log(`${s.age}岁：${event.text}，但你的气运让你化险为夷！`, "c-legend");
         return;
@@ -978,15 +758,7 @@
       }
     },
 
-    getEventColor(prob, eventType) {
-      // 正面事件按概率分级：金 > 紫 > 粉 > 绿
-      if (eventType === "positive") {
-        if (prob < 0.005) return "c-gold";      // 最稀有：金色
-        if (prob < 0.01) return "c-purple";     // 次之：紫色
-        if (prob < 0.02) return "c-pink";       // 再次：粉色
-        return "c-green";                        // 最普通：绿色
-      }
-      // 其他事件使用通用颜色分级
+    getEventColor(prob) {
       if (prob < 0.01) return "c-legend";
       if (prob < 0.02) return "c-epic";
       if (prob < 0.05) return "c-rare";
@@ -1032,33 +804,49 @@
       document.getElementById("bar-fill").style.width = `${pct}%`;
     },
 
-    resolveTitle(context) {
+    die(reason) {
+      this.state.isDead = true;
+      this.state.deathReason = reason;
+      clearInterval(this.state.timer);
+
+      document.getElementById("btn-settle").classList.remove("hidden");
+      this.data.gen++;
+
+      const context = {
+        ...this.state,
+        deathReason: reason,
+        always: true
+      };
+
       const matchedTitles = cfg.titles.filter(t => matchCondition(context, t.condition));
+      let myTitle = null;
+
       const unlockedTitles = new Set(this.data.titles);
       const unownedMatched = matchedTitles.filter(t => !unlockedTitles.has(t.name));
 
-      // 优先判定：如果真仙境界，优先给予"仙帝"称号
-      const xianDi = matchedTitles.find(t => t.name === "仙帝");
-      if (xianDi) {
-        // 如果仙帝未解锁，优先解锁；如果已解锁，优先展示
-        return xianDi;
-      }
-
       if (unownedMatched.length > 0) {
-        return unownedMatched[0];
-      }
-      if (matchedTitles.length > 0) return matchedTitles[0];
-      return cfg.titles[cfg.titles.length - 1];
-    },
-
-    renderSettlement(myTitle, reason, isNewTitle) {
-      const tEl = document.getElementById("end-title");
-      // 如果是新称号，添加"新！"标签
-      if (isNewTitle) {
-        tEl.innerHTML = `${myTitle.name}<span class="new-title-badge">新！</span>`;
+        myTitle = unownedMatched[0];
+      } else if (matchedTitles.length > 0) {
+        myTitle = matchedTitles[0];
       } else {
-        tEl.innerText = myTitle.name;
+        myTitle = cfg.titles[cfg.titles.length - 1];
       }
+
+      if (!this.data.titles.includes(myTitle.name)) {
+        this.data.titles.push(myTitle.name);
+      }
+
+      localStorage.setItem("xiuxian_save", JSON.stringify(this.data));
+      this.state.lastTitle = myTitle.name;
+      trackFunnelStep("death", 4, {
+        age: this.state.age,
+        realm: cfg.realms[this.state.realmIdx],
+        title: myTitle.name
+      });
+      trackEvent("game_over", { reason });
+
+      const tEl = document.getElementById("end-title");
+      tEl.innerText = myTitle.name;
       tEl.style.color = myTitle.color;
 
       document.getElementById("end-title-desc").innerText = myTitle.desc;
@@ -1066,100 +854,6 @@
       document.getElementById("end-realm").innerText = cfg.realms[this.state.realmIdx];
       document.getElementById("end-gen").innerText = this.data.gen;
       document.getElementById("end-reason").innerText = `死因：${reason}`;
-      
-      // 显示转世福泽
-      const bonusEl = document.getElementById("end-reincarnation-bonus");
-      if (bonusEl && this.data.highestStatFromLastLife) {
-        const statName = cfg.rules.statLabels[this.data.highestStatFromLastLife] || this.data.highestStatFromLastLife;
-        bonusEl.innerText = `转世福泽：下一世${statName}+1`;
-        bonusEl.style.display = "block";
-      }
-    },
-
-    finalizeDeath(reason, options) {
-      const finalReason = reason || "体质耗尽，魂飞魄散。";
-      const opts = options || {};
-
-      this.state.isDead = true;
-      this.state.deathReason = finalReason;
-      clearInterval(this.state.timer);
-
-      document.getElementById("btn-settle").classList.remove("hidden");
-      this.data.gen++;
-
-      // 计算是否有属性（除体质外）低于初始值，用于"出道即巅峰"称号
-      const s = this.state;
-      const declinedStats = (
-        (s.stats.tianfu < s.baseStats.tianfu ? 1 : 0) +
-        (s.stats.wuxing < s.baseStats.wuxing ? 1 : 0) +
-        (s.stats.qiyun < s.baseStats.qiyun ? 1 : 0)
-      );
-
-      // 记录本世最高属性，用于下一世继承
-      const finalStats = s.stats;
-      let maxStatValue = -Infinity;
-      let maxStatName = null;
-      for (const [key, value] of Object.entries(finalStats)) {
-        if (value > maxStatValue) {
-          maxStatValue = value;
-          maxStatName = key;
-        }
-      }
-      this.data.highestStatFromLastLife = maxStatName;
-
-      const context = {
-        ...this.state,
-        deathReason: finalReason,
-        declinedStats,
-        always: true
-      };
-      const myTitle = this.resolveTitle(context);
-
-      const isNewTitle = !this.data.titles.includes(myTitle.name);
-      if (isNewTitle) {
-        this.data.titles.push(myTitle.name);
-      }
-      localStorage.setItem("xiuxian_save", JSON.stringify(this.data));
-      this.state.lastTitle = myTitle.name;
-
-      trackFunnelStep("death", 4, {
-        age: this.state.age,
-        realm: cfg.realms[this.state.realmIdx],
-        title: myTitle.name
-      });
-      trackEvent("game_over", { reason: finalReason });
-
-      this.renderSettlement(myTitle, finalReason, isNewTitle);
-      if (opts.showSettlement) {
-        this.showSettlement();
-      }
-    },
-
-    die(reason) {
-      this.finalizeDeath(reason, { showSettlement: false });
-    },
-
-    // 递减所有事件的冷却时间
-    decrementEventCooldowns() {
-      const cd = this.state.eventCooldowns;
-      for (const key in cd) {
-        if (cd[key] > 0) {
-          cd[key]--;
-        }
-        if (cd[key] <= 0) {
-          delete cd[key];
-        }
-      }
-    },
-
-    // 设置事件冷却时间
-    setEventCooldown(eventText, years) {
-      this.state.eventCooldowns[eventText] = years;
-    },
-
-    // 检查事件是否在冷却中
-    isEventOnCooldown(eventText) {
-      return (this.state.eventCooldowns[eventText] || 0) > 0;
     },
 
     showSettlement() {
@@ -1169,54 +863,52 @@
       });
     },
 
-    async shareSettlement() {
-      const content = document.getElementById("settlement-content");
-      if (!content) return;
-      
-      try {
-        // 使用 html2canvas 截图
-        const canvas = await html2canvas(content, {
-          backgroundColor: "#2b1d14",
-          scale: 2,
-          useCORS: true,
-          allowTaint: true
-        });
-        
-        // 转换为图片数据
-        const imageData = canvas.toDataURL("image/png");
-        
-        // 尝试使用 Web Share API (移动端)
-        if (navigator.share && navigator.canShare) {
-          try {
-            const response = await fetch(imageData);
-            const blob = await response.blob();
-            const file = new File([blob], "修仙结算.png", { type: "image/png" });
-            
-            if (navigator.canShare({ files: [file] })) {
-              await navigator.share({
-                title: "修仙模拟器 - 生平结算",
-                text: `我在修仙模拟器中获得了【${this.state.lastTitle || "无名小卒"}】的称号！`,
-                files: [file]
-              });
-              return;
-            }
-          } catch (shareErr) {
-            // 分享失败，回退到下载
-          }
-        }
-        
-        // 回退：下载图片
-        const link = document.createElement("a");
-        link.download = `修仙结算_${this.state.age}岁_${this.state.lastTitle || "无名小卒"}.png`;
-        link.href = imageData;
-        link.click();
-      } catch (err) {
-        alert("截图失败，请重试");
-      }
-    },
-
     showSettlementDirectly(reason) {
-      this.finalizeDeath(reason || "体质耗尽，魂飞魄散。", { showSettlement: true });
+      this.state.isDead = true;
+      this.state.deathReason = reason || "体质耗尽，魂飞魄散。";
+      clearInterval(this.state.timer);
+      document.getElementById("btn-settle").classList.remove("hidden");
+
+      this.data.gen++;
+
+      const context = {
+        ...this.state,
+        deathReason: this.state.deathReason,
+        always: true
+      };
+
+      const matchedTitles = cfg.titles.filter(t => matchCondition(context, t.condition));
+      let myTitle = null;
+
+      const unlockedTitles = new Set(this.data.titles);
+      const unownedMatched = matchedTitles.filter(t => !unlockedTitles.has(t.name));
+
+      if (unownedMatched.length > 0) {
+        myTitle = unownedMatched[0];
+      } else if (matchedTitles.length > 0) {
+        myTitle = matchedTitles[0];
+      } else {
+        myTitle = cfg.titles[cfg.titles.length - 1];
+      }
+
+      if (!this.data.titles.includes(myTitle.name)) {
+        this.data.titles.push(myTitle.name);
+      }
+
+      localStorage.setItem("xiuxian_save", JSON.stringify(this.data));
+      this.state.lastTitle = myTitle.name;
+
+      const tEl = document.getElementById("end-title");
+      tEl.innerText = myTitle.name;
+      tEl.style.color = myTitle.color;
+
+      document.getElementById("end-title-desc").innerText = myTitle.desc;
+      document.getElementById("end-age").innerText = this.state.age;
+      document.getElementById("end-realm").innerText = cfg.realms[this.state.realmIdx];
+      document.getElementById("end-gen").innerText = this.data.gen;
+      document.getElementById("end-reason").innerText = `死因：${this.state.deathReason}`;
+
+      this.showSettlement();
     }
   };
 
