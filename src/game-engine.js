@@ -292,9 +292,12 @@
       if (typeof oldValue !== "number") return;
 
       // 百分比损失：用于减修为事件，几率越大损失百分比越小（10%-30%）
-      if (effect.percent && eventChance !== null) {
+      if (effect.percent) {
+        // chance 缺失/非法时按中位数 0.015 处理，防止 NaN 污染状态。
+        const chanceValue = Number(eventChance);
+        const chance = Number.isFinite(chanceValue) ? chanceValue : 0.015;
         // chance 范围 0.01-0.02 映射到 30%-10%，越大概率越小
-        const lossPercent = Math.max(0.10, Math.min(0.30, 0.30 - (eventChance - 0.01) / 0.01 * 0.20));
+        const lossPercent = Math.max(0.10, Math.min(0.30, 0.30 - (chance - 0.01) / 0.01 * 0.20));
         const loss = Math.floor(oldValue * lossPercent);
         setByPath(state, effect.field, oldValue - loss);
         return;
@@ -311,12 +314,24 @@
     });
   }
 
-  const game = {
-    data: {
+  function createDefaultData() {
+    return {
       gen: 1,
       titles: [],
-      highestStatFromLastLife: null  // 上一世最高属性名（转世继承+1）
-    },
+      highestStatFromLastLife: null
+    };
+  }
+
+  function isValidSavedData(data) {
+    if (!data || typeof data !== "object") return false;
+    if (!Number.isInteger(data.gen) || data.gen < 1) return false;
+    if (!Array.isArray(data.titles) || !data.titles.every(title => typeof title === "string")) return false;
+    if (data.highestStatFromLastLife !== null && typeof data.highestStatFromLastLife !== "string") return false;
+    return true;
+  }
+
+  const game = {
+    data: createDefaultData(),
 
     state: {
       stats: { ...cfg.rules.baseStats },
@@ -342,7 +357,24 @@
     init() {
       const saved = localStorage.getItem("xiuxian_save");
       if (saved) {
-        this.data = JSON.parse(saved);
+        try {
+          const parsed = JSON.parse(saved);
+          if (isValidSavedData(parsed)) {
+            this.data = {
+              gen: parsed.gen,
+              titles: [...parsed.titles],
+              highestStatFromLastLife: parsed.highestStatFromLastLife
+            };
+          } else {
+            this.data = createDefaultData();
+            localStorage.removeItem("xiuxian_save");
+          }
+        } catch {
+          this.data = createDefaultData();
+          localStorage.removeItem("xiuxian_save");
+        }
+      } else {
+        this.data = createDefaultData();
       }
       this.updateStartScreen();
       trackFunnelStep("start_view", 0);
@@ -771,39 +803,64 @@
       const req = this.getBreakthroughRequirement(s.realmIdx);
       if (s.cultivation < req || s.realmIdx >= cfg.realms.length - 1) return;
 
-      const b = cfg.rules.breakthrough;
+      const b = cfg.rules.breakthrough || {};
+      const baseChanceRaw = Number(b.baseChance);
+      const perRealmPenaltyRaw = Number(b.perRealmPenalty);
+      const failCultivationKeep = Number(b.failCultivationKeep);
+      const successTizhiGainMul = Number(b.successTizhiGainMul);
+      const successTianfuGain = Number(b.successTianfuGain);
+      const failTizhiLossMul = Number(b.failTizhiLossMul);
+
+      const baseChanceValue = Number.isFinite(baseChanceRaw) ? baseChanceRaw : 60;
+      const perRealmPenaltyValue = Number.isFinite(perRealmPenaltyRaw) ? perRealmPenaltyRaw : 5;
+      const failCultivationKeepValue = Number.isFinite(failCultivationKeep) ? failCultivationKeep : 0.7;
+      const successTizhiGainMulValue = Number.isFinite(successTizhiGainMul) ? successTizhiGainMul : 4;
+      const successTianfuGainValue = Number.isFinite(successTianfuGain) ? successTianfuGain : 2;
+      const failTizhiLossMulValue = Number.isFinite(failTizhiLossMul) ? failTizhiLossMul : 3;
+      const failPercentText = Math.max(0, Math.round((1 - failCultivationKeepValue) * 100));
+
       // 第一阶段：基础成功率判定
-      const baseChance = 60 - s.realmIdx * 5;
+      const baseChance = baseChanceValue - s.realmIdx * perRealmPenaltyValue;
+      const finalBaseChance = Math.max(0, Math.min(100, baseChance));
 
-      if (Math.random() * 100 < baseChance) {
-        // 第二阶段：悟性+气运判定
-        const wuxingQiyunSum = s.stats.wuxing + s.stats.qiyun;
+      if (Math.random() * 100 < finalBaseChance) {
+        // 第二阶段：按配置的属性列表判定
+        const checkStats = Array.isArray(b.checkStats) && b.checkStats.length > 0
+          ? b.checkStats
+          : ["wuxing", "qiyun"];
+        const statBonusMulRaw = Number(b.statBonusMul);
+        const statBonusMul = Number.isFinite(statBonusMulRaw) ? statBonusMulRaw : 1;
+        const statSum = checkStats.reduce((sum, statKey) => sum + Number(s.stats[statKey] || 0), 0);
+        const statScore = statSum * statBonusMul;
         const threshold = (s.realmIdx * 2 + 1) * 10;
+        const statText = checkStats
+          .map(statKey => `${cfg.rules.statLabels?.[statKey] || statKey}=${Number(s.stats[statKey] || 0)}`)
+          .join("，");
 
-        if (wuxingQiyunSum > threshold) {
+        if (statScore > threshold) {
           // 突破成功
-          const gain = (s.realmIdx + 1) * b.successTizhiGainMul;
+          const gain = (s.realmIdx + 1) * successTizhiGainMulValue;
           s.realmIdx++;
           s.cultivation = 0;
           s.stats.tizhi += gain;
-          s.stats.tianfu += b.successTianfuGain;
+          s.stats.tianfu += successTianfuGainValue;
           this.log(
-            `突破瓶颈！判定【悟性+气运=${wuxingQiyunSum}】超过阈值【${threshold}】，晋升【${cfg.realms[s.realmIdx]}】！体质+${gain}。`,
+            `突破瓶颈！判定【${statText}，倍率x${statBonusMul}=${statScore}】超过阈值【${threshold}】，晋升【${cfg.realms[s.realmIdx]}】！体质+${gain}。`,
             "c-legend"
           );
         } else {
           // 第二阶段判定失败，计入失败但不扣体质（只扣修为）
-          s.cultivation *= b.failCultivationKeep;
+          s.cultivation *= failCultivationKeepValue;
           s.failCount++;
           this.log(
-            `冲击【${cfg.realms[s.realmIdx + 1]}】失败！悟性+气运【${wuxingQiyunSum}】未超过阈值【${threshold}】，修为损失30%。`,
+            `冲击【${cfg.realms[s.realmIdx + 1]}】失败！判定【${statText}，倍率x${statBonusMul}=${statScore}】未超过阈值【${threshold}】，修为损失${failPercentText}%。`,
             "c-death"
           );
         }
       } else {
         // 第一阶段判定失败
-        const loss = (s.realmIdx + 1) * b.failTizhiLossMul;
-        s.cultivation *= b.failCultivationKeep;
+        const loss = (s.realmIdx + 1) * failTizhiLossMulValue;
+        s.cultivation *= failCultivationKeepValue;
         s.stats.tizhi -= loss;
         s.failCount++;
         this.log(
@@ -930,10 +987,10 @@
       // 判断事件类型并进行相应处理
       const eventType = this.getEventType(hit);
 
-      // 负面事件豁免判定：气运×0.5%，最高40%
+      // 负面事件豁免判定：气运超过阈值时直接化险为夷
       if (eventType === "negative") {
-        const qiyunExemptChance = Math.min((s.stats.qiyun || 0) * 0.005, 0.4);
-        if (Math.random() < qiyunExemptChance) {
+        const threshold = this.getQiyunExemptionThreshold(s.realmIdx);
+        if ((s.stats.qiyun || 0) > threshold) {
           this.log(`${s.age}岁：${hit.text}，但你的气运让你化险为夷！`, "c-legend");
           return;
         }
@@ -969,9 +1026,9 @@
     handleDeathEvent(event) {
       const s = this.state;
 
-      // 死亡事件豁免：气运×0.5%，最高30%
-      const qiyunCheckChance = Math.min((s.stats.qiyun || 0) * 0.5, 30);
-      if (Math.random() * 100 < qiyunCheckChance) {
+      // 死亡事件豁免：气运超过阈值时直接化险为夷
+      const threshold = this.getQiyunExemptionThreshold(s.realmIdx);
+      if ((s.stats.qiyun || 0) > threshold) {
         this.log(`${s.age}岁：${event.text}，但你的气运让你化险为夷！`, "c-legend");
         return;
       }

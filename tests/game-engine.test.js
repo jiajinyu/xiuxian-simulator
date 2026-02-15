@@ -555,5 +555,125 @@ test('showSettlement() displays the modal after die()', () => {
   assert.strictEqual(modal.style.display, 'flex');
 });
 
+test('init resets to default data when localStorage save is invalid json', () => {
+  const { game, context } = createEnvironment();
+
+  context.localStorage.setItem('xiuxian_save', '{ bad json');
+
+  assert.doesNotThrow(() => game.init());
+  assert.strictEqual(game.data.gen, 1);
+  assert.strictEqual(Array.isArray(game.data.titles), true);
+  assert.strictEqual(game.data.titles.length, 0);
+  assert.strictEqual(game.data.highestStatFromLastLife, null);
+  assert.strictEqual(context.localStorage.getItem('xiuxian_save'), null);
+});
+
+test('init resets to default data when save shape is invalid', () => {
+  const { game, context } = createEnvironment();
+
+  context.localStorage.setItem('xiuxian_save', JSON.stringify({ gen: 2 }));
+
+  assert.doesNotThrow(() => game.init());
+  assert.strictEqual(game.data.gen, 1);
+  assert.strictEqual(Array.isArray(game.data.titles), true);
+  assert.strictEqual(game.data.titles.length, 0);
+  assert.strictEqual(game.data.highestStatFromLastLife, null);
+  assert.strictEqual(context.localStorage.getItem('xiuxian_save'), null);
+});
+
+test('checkBreakthrough uses configured base chance and checkStats', () => {
+  const { game, config, context } = createEnvironment();
+
+  context.Math.random = () => 0;
+  config.rules.breakthrough.perRealmPenalty = 0;
+  config.rules.breakthrough.statBonusMul = 1;
+
+  // baseChance=0 时，即使属性足够也不会进入第二阶段
+  config.rules.breakthrough.baseChance = 0;
+  config.rules.breakthrough.checkStats = ['qiyun'];
+  game.state.realmIdx = 0;
+  game.state.cultivation = game.getBreakthroughRequirement(0);
+  game.state.stats.qiyun = 100;
+  game.checkBreakthrough();
+  assert.strictEqual(game.state.realmIdx, 0);
+
+  // baseChance=100 且按 qiyun 判定，可成功突破
+  config.rules.breakthrough.baseChance = 100;
+  game.state.realmIdx = 0;
+  game.state.cultivation = game.getBreakthroughRequirement(0);
+  game.state.stats.qiyun = 11;
+  game.state.stats.wuxing = 0;
+  game.checkBreakthrough();
+  assert.strictEqual(game.state.realmIdx, 1);
+
+  // 切换为仅按 wuxing 判定后，qiyun 再高也不应通过第二阶段
+  config.rules.breakthrough.checkStats = ['wuxing'];
+  game.state.realmIdx = 0;
+  game.state.cultivation = game.getBreakthroughRequirement(0);
+  game.state.stats.qiyun = 999;
+  game.state.stats.wuxing = 0;
+  game.checkBreakthrough();
+  assert.strictEqual(game.state.realmIdx, 0);
+});
+
+test('percent effect event without chance does not produce NaN cultivation', () => {
+  const { game, config } = createEnvironment();
+
+  config.events = [{
+    text: '11岁：百分比事件无概率字段',
+    effects: [{ field: 'cultivation', percent: true }]
+  }];
+
+  game.state.age = 11;
+  game.state.cultivation = 100;
+
+  assert.doesNotThrow(() => game.triggerEvent());
+  assert.strictEqual(Number.isFinite(game.state.cultivation), true);
+  assert.strictEqual(game.state.cultivation < 100, true);
+});
+
+test('negative event exemption uses qiyun threshold', () => {
+  const { game, config } = createEnvironment();
+
+  config.events = [{
+    text: '11岁：负面事件测试',
+    chance: 1,
+    isNegative: true,
+    effects: [{ field: 'cultivation', add: -50 }]
+  }];
+
+  game.state.age = 11;
+  game.state.realmIdx = 0;
+  game.state.cultivation = 100;
+  game.state.stats.qiyun = 31; // 阈值 30，应该豁免
+  game.triggerEvent();
+  assert.strictEqual(game.state.cultivation, 100);
+
+  game.state.cultivation = 100;
+  game.state.eventCooldowns = {};
+  game.state.stats.qiyun = 30; // 不超过阈值，不豁免
+  game.triggerEvent();
+  assert.strictEqual(game.state.cultivation, 50);
+});
+
+test('death event exemption uses qiyun threshold', () => {
+  const { game } = createEnvironment();
+
+  game.state.realmIdx = 0;
+  game.state.age = 20;
+  game.state.stats.tizhi = 100;
+  game.state.stats.qiyun = 31; // 阈值 30，应该豁免
+  game.state.deathEventCount = 0;
+
+  game.handleDeathEvent({ text: '测试死亡事件' });
+  assert.strictEqual(game.state.stats.tizhi, 100);
+  assert.strictEqual(game.state.deathEventCount, 0);
+
+  game.state.stats.qiyun = 30; // 不超过阈值，不豁免
+  game.handleDeathEvent({ text: '测试死亡事件' });
+  assert.strictEqual(game.state.stats.tizhi, 20);
+  assert.strictEqual(game.state.deathEventCount, 1);
+});
+
 
 
