@@ -59,8 +59,10 @@
 ## 测试约束
 
 - `scripts/game-test-harness.js` 应尽量贴近真实 DOM 行为：未知 id 返回 `null`，不要静默伪造节点。
-- 新增引擎逻辑时，优先补 `tests/game-engine.test.js` 中的行为级测试（流程可跑通、关键状态变化正确）。
+- 新增引擎逻辑时，优先补 `tests/engine-behavior.test.js` 中的行为级测试（流程可跑通、关键状态变化正确）。
 - 涉及 UI 节点读取的逻辑，至少覆盖一个“节点缺失时不崩溃”的测试用例（若该节点是可选）。
+- 配置相关校验优先放 `tests/config-contract.test.js`，仅校验契约（结构/类型/安全），不要把运营数值写死在断言里。
+- 只有“明确应长期稳定”的常量才放 `tests/pinned-values.test.js`，避免把可调参数误归入固定值测试。
 
 **注意**：每次大批量修改后必须运行 `scripts/check.sh`，确保代码质量和测试通过。
 

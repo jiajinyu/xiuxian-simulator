@@ -42,9 +42,10 @@ done < <(rg --files -g '*.json' || true)
 echo "Running smoke test..."
 node scripts/smoke-test.js
 
-if [ -f "tests/game-engine.test.js" ]; then
+test_files=(tests/*.test.js)
+if [ -e "${test_files[0]}" ]; then
   echo "Running node tests..."
-  node --test tests/game-engine.test.js
+  node --test "${test_files[@]}"
 fi
 
 echo "All local checks passed."

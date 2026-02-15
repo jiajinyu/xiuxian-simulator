@@ -10,6 +10,9 @@
 - `config/game-config.js`: 当前生效的运营配置
 - `config/game-config.ops-template.js`: 运营模板（可复制覆盖）
 - `docs/运营配置说明.md`: 运营使用说明
+- `tests/config-contract.test.js`: 配置契约测试（结构/类型/安全）
+- `tests/engine-behavior.test.js`: 引擎行为测试（流程与状态变化）
+- `tests/pinned-values.test.js`: 固定常量测试（应长期稳定的默认值）
 
 ## 运行方式
 
@@ -74,6 +77,8 @@ bash scripts/push.sh
 bash scripts/check.sh
 ```
 
+说明：`scripts/check.sh` 会自动运行 `tests/*.test.js` 下的全部测试文件。
+
 启用 ESLint（仅需一次安装开发依赖）：
 
 ```bash
@@ -91,6 +96,16 @@ npm install
 - 全局规则 `rules`（节奏、突破、衰老、调试开关等）
 
 引擎通过声明式条件和效果解释配置，不要求在配置里写函数。
+
+## 测试分层策略（避免运营调参误伤）
+
+当前测试按三层拆分：
+
+- `config-contract`: 只校验配置是否合法（字段、类型、概率范围、表达式安全），不校验具体运营数值。
+- `engine-behavior`: 校验流程行为和状态变化（例如可触发、可结算、不崩溃），尽量避免写死配置常量。
+- `pinned-values`: 仅保留少量必须固定的常量断言（例如默认存档形状、固定冷却窗口）。
+
+这样运营同学日常改 `config/game-config.js` 时，只要满足契约，通常不需要联动改大量测试。
 
 ## 常见修改
 
