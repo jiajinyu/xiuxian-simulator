@@ -35,8 +35,8 @@ window.GAME_CONFIG = {
     breakthrough: {
       reqBase: 150,
       baseChance: 60,
-      perRealmPenalty: 5,
-      statBonusMul: 2,
+      perRealmPenalty: 3,
+      statBonusMul: 3,
       successTizhiGainMul: 4,
       successTianfuGain: 2,
       failTizhiLossMul: 3,
@@ -53,20 +53,21 @@ window.GAME_CONFIG = {
       1: 15,   // 炼气
       2: 25,   // 筑基
       3: 40,   // 金丹
-      4: 60,   // 元婴
-      5: 85,   // 化神
-      6: 115,  // 炼虚
-      7: 150,  // 合体
-      8: 190,  // 大乘
-      9: 235,  // 渡劫
-      10: 300  // 真仙
+      4: 80,   // 元婴（原60，提升33%）
+      5: 120,  // 化神（原85，提升41%）
+      6: 170,  // 炼虚（原115，提升48%）
+      7: 230,  // 合体（原150，提升53%）
+      8: 300,  // 大乘（原190，提升58%）
+      9: 380,  // 渡劫（原235，提升62%）
+      10: 500  // 真仙（原300，提升67%）
     },
     // 修为公式：基础值 * (1 + 天赋 * tianfuMultiplier)
     cultivationFormula: {
-      tianfuMultiplier: 0.05  // 每点天赋增加5%修为获取
+      tianfuMultiplier: 0.08  // 每点天赋增加8%修为获取（原5%）
     },
     debug: {
-      logCultivationDeltaPerTick: false
+      logCultivationDeltaPerTick: false,
+      enableTalentTest: true  // 天赋测试模式开关，true=可无限重抽天赋，正式版改为 false
     },
     statLabels: {
       tianfu: "天赋",
@@ -76,7 +77,7 @@ window.GAME_CONFIG = {
     },
     // 属性说明（鼠标悬停显示）
     statDescriptions: {
-      tianfu: "影响修为获取速度，每点天赋增加5%修为",
+      tianfu: "影响修为获取速度，每点天赋增加8%修为",
       wuxing: "影响突破成功率，突破时与气运共同判定",
       tizhi: "决定寿命上限，体质归零时死亡；突破成功可回复",
       qiyun: "影响奇遇概率与突破判定，高气运可豁免死亡事件"
@@ -116,7 +117,12 @@ window.GAME_CONFIG = {
     { name: "恋爱脑", type: "negative", desc: "悟性-5，心中无大道，只有那个TA", effects: [{ field: "stats.wuxing", add: -5 }] },
     { name: "干饭人", type: "neutral", desc: "体质+3，天赋-1，灵石都被拿去买吃的了", effects: [{ field: "stats.tizhi", add: 3 }, { field: "stats.tianfu", add: -1 }] },
     { name: "普信", type: "negative", desc: "气运-2，天赋-2，明明那么普通，却那么自信", effects: [{ field: "stats.qiyun", add: -2 }, { field: "stats.tianfu", add: -2 }] },
-    { name: "无效努力", type: "negative", desc: "体质-2，天赋-2，每天假装修炼感动自己", effects: [{ field: "stats.tizhi", add: -2 }, { field: "stats.tianfu", add: -2 }] }
+    { name: "无效努力", type: "negative", desc: "体质-2，天赋-2，每天假装修炼感动自己", effects: [{ field: "stats.tizhi", add: -2 }, { field: "stats.tianfu", add: -2 }] },
+    { name: "平衡之道", type: "neutral", desc: "天赋+3，气运-2，中庸之道，不偏不倚", effects: [{ field: "stats.tianfu", add: 3 }, { field: "stats.qiyun", add: -2 }] },
+    { name: "佛系青年", type: "neutral", desc: "气运+3，天赋-2，一切随缘，该来的总会来", effects: [{ field: "stats.qiyun", add: 3 }, { field: "stats.tianfu", add: -2 }] },
+    { name: "玄学大师", type: "neutral", desc: "天赋+2，气运-1，转发这条锦鲤，明天必有好事", effects: [{ field: "stats.tianfu", add: 2 }, { field: "stats.qiyun", add: -1 }] },
+    { name: "平平无奇", type: "neutral", desc: "平凡也是一种特质", effects: [] }
+
   ],
 
   // 童年事件（1-10岁专属，数值增减较少）
@@ -169,7 +175,7 @@ window.GAME_CONFIG = {
     { name: "仙帝", color: "#ffd700", desc: "达成条件：修炼至真仙境界", condition: { all: [{ field: "realmIdx", op: ">=", value: 10 }] } },
     { name: "半步真仙", color: "#ffaa00", desc: "达成条件：修炼至渡劫境界", condition: { all: [{ field: "realmIdx", op: "==", value: 9 }] } },
     { name: "十里坡剑神", color: "#ffd700", desc: "达成条件：炼气期活过100岁", condition: { all: [{ field: "realmIdx", op: "==", value: 1 }, { field: "age", op: ">", value: 100 }] } },
-    { name: "龙套之王", color: "#fff", desc: "达成条件：化神以下，活过150岁", condition: { all: [{ field: "realmIdx", op: "<", value: 5 }, { field: "age", op: ">", value: 150 }] } },
+    { name: "龙套之王", color: "#fff", desc: "达成条件：元婴以下，活过150岁", condition: { all: [{ field: "realmIdx", op: "<", value: 4 }, { field: "age", op: ">", value: 150 }] } },
 
     { name: "绝世欧皇", color: "#ffd700", desc: "达成条件：气运>150，天命之子", condition: { all: [{ field: "stats.qiyun", op: ">", value: 150 }] } },
     { name: "非酋", color: "#333", desc: "达成条件：气运<-5，脸黑如炭", condition: { all: [{ field: "stats.qiyun", op: "<", value: -5 }] } },

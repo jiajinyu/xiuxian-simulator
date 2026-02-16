@@ -574,7 +574,9 @@
       document.getElementById("btn-draw").classList.add("hidden");
       document.getElementById("btn-confirm-talent").classList.remove("hidden");
       const redrawBtn = document.getElementById("btn-redraw");
-      if (canRedraw) {
+      // 测试模式下始终可以重抽
+      const isTestMode = cfg.rules?.debug?.enableTalentTest;
+      if (canRedraw || isTestMode) {
         redrawBtn.classList.remove("hidden");
       } else {
         redrawBtn.classList.add("hidden");
