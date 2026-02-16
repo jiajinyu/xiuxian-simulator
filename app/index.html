@@ -264,6 +264,7 @@
             flex-grow: 1;
             overflow-y: auto;
             padding: 10px;
+            padding-bottom: 60px;  /* 为结算按钮预留空间 */
             font-size: 15px;
             line-height: 1.6;
             color: var(--text-main);
@@ -271,6 +272,7 @@
             border: 1px solid var(--border-highlight);
             /* 内阴影模拟纸张凹陷 */
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            scroll-padding-bottom: 60px;  /* 滚动时也考虑按钮空间 */
         }
 
         .log-entry {
@@ -455,7 +457,7 @@
         }
         .stat-val { 
             display: inline-block; width: 40px; text-align: center; 
-            font-size: 18px; color: var(--evt-god);
+            font-size: 18px; color: var(--evt-gold);
         }
 
         /* --- 结算弹窗 --- */
