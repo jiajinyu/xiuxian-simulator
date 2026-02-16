@@ -265,12 +265,17 @@ window.GAME_CONFIG = {
     { text: "识破了绿茶师妹的'哥哥我不是故意的'装柔弱把戏，当众将其踹下擂台，念头通达，灵力暴涨。", chance: 0.012, color: "c-green", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "cultivation", add: 50 }] },
 
     // 元婴期专属事件 - 达到元婴之后才可触发
-    { text: "神识外放八百里，本想搜寻天材地宝，结果听了一整晚隔壁合欢宗长老的情感纠葛，道心微乱但很刺激。", chance: 0.015, color: "c-purple", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: -2 }, { field: "stats.qiyun", add: 3 }] },
-    { text: "偶遇绝色仙子想结善缘，神识一扫，发现对方神魂竟是个抠脚三万年的糟老头子", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.wuxing", add: -1 }, { field: "stats.qiyun", add: 2 }] },
-    { text: "闭关打了个盹，醒来发现自家宗门已经换了三茬掌门，现在的掌门还得管你的徒孙叫师祖，辈分乱成一锅粥。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: 3 }, { field: "stats.qiyun", add: -1 }] },
-    { text: "终于明白了'道生一，一生二'原来就是二进制，你对大道的理解达到了全新的维度。", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: 5 }] },
-    { text: "你的本命法宝产生了器灵，但这器灵是个话痨，每天在你识海里喋喋不休。", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.tianfu", add: 2 }, { field: "stats.wuxing", add: -1 }] },
-    { text: "看到一株长得像韭菜的千年灵草，随手拔了拿回去炒了鸡蛋，味道有点苦。", chance: 0.015, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.tizhi", add: 2 }, { field: "stats.qiyun", add: -1 }] },
-    { text: "将自己的供奉画像过度美化，导致宗门小辈认不出祖师奶", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.wuxing", add: 2 }, { field: "stats.qiyun", add: -1 }] }
+    { text: "神识外放八百里，本想搜寻天材地宝，结果听了一整晚隔壁合欢宗长老的情感纠葛，道心微乱但很刺激。", chance: 0.015, color: "c-purple", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: -4 }, { field: "stats.qiyun", add: 6 }] },
+    { text: "偶遇绝色仙子想结善缘，神识一扫，发现对方神魂竟是个抠脚三万年的糟老头子", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.wuxing", add: -2 }, { field: "stats.qiyun", add: 4 }] },
+    { text: "闭关打了个盹，醒来发现自家宗门已经换了三茬掌门，现在的掌门还得管你的徒孙叫师祖，辈分乱成一锅粥。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: 6 }, { field: "stats.qiyun", add: -2 }] },
+    { text: "终于明白了'道生一，一生二'原来就是二进制，你对大道的理解达到了全新的维度。", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: 10 }] },
+    { text: "你的本命法宝产生了器灵，但这器灵是个话痨，每天在你识海里喋喋不休。", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.wuxing", add: -2 }] },
+    { text: "看到一株长得像韭菜的千年灵草，随手拔了拿回去炒了鸡蛋，味道有点苦。", chance: 0.015, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.qiyun", add: -2 }] },
+    { text: "将自己的供奉画像过度美化，导致宗门小辈认不出祖师奶", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.wuxing", add: 4 }, { field: "stats.qiyun", add: -2 }] },
+
+    // 元婴期强力事件 - 新增
+    { text: "元婴大成，可分魂夺舍！你顿悟了分身之术，修炼速度倍增。", chance: 0.008, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 2500 }, { field: "stats.tianfu", add: 5 }] },
+    { text: "进入上古修士遗留的小世界，搜刮了三千年积累的资源。", chance: 0.01, color: "c-epic", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 1800 }, { field: "stats.qiyun", add: 5 }] },
+    { text: "闭关冲击化神瓶颈，虽然没成功，但修为精进不少。", chance: 0.02, color: "c-rare", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 1200 }, { field: "stats.wuxing", add: 3 }] }
   ]
 };
