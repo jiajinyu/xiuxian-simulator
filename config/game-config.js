@@ -67,7 +67,7 @@ window.GAME_CONFIG = {
     },
     debug: {
       logCultivationDeltaPerTick: false,
-      enableTalentTest: true  // 天赋测试模式开关，true=可无限重抽天赋，正式版改为 false
+      enableTalentTest: false  // 天赋测试模式开关，true=可无限重抽天赋，正式版改为 false
     },
     statLabels: {
       tianfu: "天赋",
