@@ -758,7 +758,10 @@
       }
 
       this.checkBreakthrough();
+      if (this.state.isDead) return;
+
       this.triggerEvent();
+      if (this.state.isDead) return;
 
       if (this.state.stats.tizhi <= 0 && !this.state.isDead) {
         this.die("寿元耗尽，坐化于洞府。");
