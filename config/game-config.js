@@ -27,7 +27,7 @@ window.GAME_CONFIG = {
   },
   rules: {
     startPoints: 20,
-    tickMs: 300,
+    tickMs: 400,
     oldAgeStart: 100,
     oldAgeStep: 10,
     oldAgeTizhiLoss: 1,
