@@ -34,13 +34,13 @@ window.GAME_CONFIG = {
     baseStats: { tianfu: 0, wuxing: 0, tizhi: 0, qiyun: 0 },
     breakthrough: {
       reqBase: 150,
-      baseChance: 60,
-      perRealmPenalty: 3,
-      statBonusMul: 3,
+      baseChance: 70,
+      perRealmPenalty: 2,
+      statBonusMul: 4,
       successTizhiGainMul: 4,
       successTianfuGain: 2,
-      failTizhiLossMul: 3,
-      failCultivationKeep: 0.7,
+      failTizhiLossMul: 2,
+      failCultivationKeep: 0.8,
       checkStats: ["wuxing", "qiyun"]
     },
     filler: {
@@ -120,7 +120,6 @@ window.GAME_CONFIG = {
     { name: "无效努力", type: "negative", desc: "体质-2，天赋-2，每天假装修炼感动自己", effects: [{ field: "stats.tizhi", add: -2 }, { field: "stats.tianfu", add: -2 }] },
     { name: "平衡之道", type: "neutral", desc: "天赋+3，气运-2，中庸之道，不偏不倚", effects: [{ field: "stats.tianfu", add: 3 }, { field: "stats.qiyun", add: -2 }] },
     { name: "佛系青年", type: "neutral", desc: "气运+3，天赋-2，一切随缘，该来的总会来", effects: [{ field: "stats.qiyun", add: 3 }, { field: "stats.tianfu", add: -2 }] },
-    { name: "玄学大师", type: "neutral", desc: "天赋+2，气运-1，转发这条锦鲤，明天必有好事", effects: [{ field: "stats.tianfu", add: 2 }, { field: "stats.qiyun", add: -1 }] },
     { name: "平平无奇", type: "neutral", desc: "平凡也是一种特质", effects: [] }
 
   ],
