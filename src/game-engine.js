@@ -343,6 +343,7 @@
       isDead: false,
       paused: false,
       timer: null,
+      speed: 1,
       failCount: 0,
       deathReason: "",
       deathEventCount: 0,
@@ -730,13 +731,27 @@
       const desc = birthDesc.length > 0 ? pickRandom(birthDesc) : "";
 
       this.log(`轮回转世，再踏仙途。你出生时为${genderText}。${desc}`, "c-legend");
-      this.state.timer = setInterval(() => this.tick(), cfg.rules.tickMs);
+      this.state.timer = setInterval(() => {
+        for (let i = 0; i < this.state.speed; i++) {
+          this.tick();
+          if (this.state.isDead) break;
+        }
+      }, cfg.rules.tickMs);
       trackFunnelStep("game_start", 3);
     },
 
     togglePause() {
       this.state.paused = !this.state.paused;
       document.getElementById("btn-pause").innerText = this.state.paused ? "▶" : "II";
+    },
+
+    toggleSpeed() {
+      // 切换速度：1x -> 10x -> 1x
+      this.state.speed = this.state.speed === 1 ? 10 : 1;
+      const btn = document.getElementById("btn-speed");
+      if (btn) {
+        btn.innerText = `${this.state.speed}x`;
+      }
     },
 
     tick() {
@@ -1159,6 +1174,9 @@
       this.state.deathReason = finalReason;
       clearInterval(this.state.timer);
 
+      // 隐藏速度按钮，显示结算按钮
+      const btnSpeed = document.getElementById("btn-speed");
+      if (btnSpeed) btnSpeed.classList.add("hidden");
       document.getElementById("btn-settle").classList.remove("hidden");
       this.data.gen++;
 

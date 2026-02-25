@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
-    <title>修仙模拟器：檀木典藏版</title>
+    <title>修仙模拟器</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/zpix-pixel-font@3.1.8/dist/zpix.css">
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
     <style>
@@ -672,13 +672,16 @@
                             <div id="realm-name">凡人</div>
                             <div class="bar-bg"><div id="bar-fill"></div></div>
                         </div>
+                        <button class="btn btn-small" id="btn-speed" style="width:40px; height:32px; padding:0;" onclick="game.toggleSpeed()">1x</button>
                         <button class="btn btn-small" id="btn-pause" onclick="game.togglePause()" style="width:36px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-family:monospace;">II</button>
                     </div>
                 </div>
                 <div id="log-area"></div>
             </div>
             
-            <button id="btn-settle" class="btn hidden" style="margin:0; z-index:100; box-shadow:0 -5px 20px #000;" onclick="game.showSettlement()">查看生平结算</button>
+            <div style="display:flex; z-index:100; box-shadow:0 -5px 20px #000;">
+                <button id="btn-settle" class="btn hidden" style="margin:0; flex:1;" onclick="game.showSettlement()">查看生平结算</button>
+            </div>
         </div>
 
         <div id="settlement-modal">
