@@ -171,36 +171,45 @@ window.GAME_CONFIG = {
   ],
 
   titles: [
-    { name: "仙帝", color: "#ffd700", desc: "达成条件：修炼至真仙境界", condition: { all: [{ field: "realmIdx", op: ">=", value: 10 }] } },
-    { name: "半步真仙", color: "#ffaa00", desc: "达成条件：修炼至渡劫境界", condition: { all: [{ field: "realmIdx", op: "==", value: 9 }] } },
-    { name: "十里坡剑神", color: "#ffd700", desc: "达成条件：炼气期活过100岁", condition: { all: [{ field: "realmIdx", op: "==", value: 1 }, { field: "age", op: ">", value: 100 }] } },
-    { name: "龙套之王", color: "#fff", desc: "达成条件：元婴以下，活过150岁", condition: { all: [{ field: "realmIdx", op: "<", value: 4 }, { field: "age", op: ">", value: 150 }] } },
+    // 传说称号 - 金色发光
+    { name: "仙帝", color: "#ffd700", rarity: "legendary", desc: "达成条件：修炼至真仙境界", condition: { all: [{ field: "realmIdx", op: ">=", value: 10 }] } },
+    { name: "半步真仙", color: "#ffd700", rarity: "legendary", desc: "达成条件：修炼至渡劫境界", condition: { all: [{ field: "realmIdx", op: "==", value: 9 }] } },
+    { name: "金刚芭比", color: "#ffd700", rarity: "legendary", desc: "达成条件：游戏过程中体质曾经超过100且性别为女", condition: { all: [{ field: "maxTizhi", op: ">", value: 100 }, { field: "gender", op: "==", value: "female" }] } },
+    { name: "绝世欧皇", color: "#ffd700", rarity: "legendary", desc: "达成条件：气运>150，天命之子", condition: { all: [{ field: "stats.qiyun", op: ">", value: 150 }] } },
+    { name: "天选之人", color: "#ffd700", rarity: "legendary", desc: "达成条件：四项属性全部超过50", condition: { all: [{ field: "stats.tianfu", op: ">", value: 50 }, { field: "stats.wuxing", op: ">", value: 50 }, { field: "stats.tizhi", op: ">", value: 50 }, { field: "stats.qiyun", op: ">", value: 50 }] }, hidden: true },
+    { name: "渡劫失败", color: "#ffd700", rarity: "legendary", desc: "达成条件：在渡劫境界陨落", condition: { all: [{ field: "realmIdx", op: "==", value: 9 }] }, hidden: true },
+    { name: "零修飞升", color: "#ffd700", rarity: "legendary", desc: "达成条件：修为从未超过500就达到元婴期", condition: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "maxCultivation", op: "<", value: 500 }] }, hidden: true },
+    { name: "万劫不复", color: "#ffd700", rarity: "legendary", desc: "达成条件：突破失败超过10次", condition: { all: [{ field: "failCount", op: ">=", value: 10 }] }, hidden: true },
 
-    { name: "绝世欧皇", color: "#ffd700", desc: "达成条件：气运>150，天命之子", condition: { all: [{ field: "stats.qiyun", op: ">", value: 150 }] } },
-    { name: "非酋", color: "#333", desc: "达成条件：气运<-5，脸黑如炭", condition: { all: [{ field: "stats.qiyun", op: "<", value: -5 }] } },
-    { name: "万年王八", color: "#4eff4e", desc: "达成条件：死亡时>300岁，太能苟了", condition: { all: [{ field: "age", op: ">", value: 300 }] } },
-    { name: "智商欠费", color: "#888", desc: "达成条件：死亡时悟性<10", condition: { all: [{ field: "stats.wuxing", op: "<", value: 10 }] } },
+    // 史诗称号 - 紫色微光
+    { name: "天妒英才", color: "#b088ff", rarity: "epic", desc: "达成条件：起手3个正面天赋，却没有活过筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "positive" }, { field: "realmIdx", op: "<", value: 2 }] } },
+    { name: "逆天改命", color: "#b088ff", rarity: "epic", desc: "达成条件：开局3个天赋均为负面天赋，却活过了筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "negative" }, { field: "realmIdx", op: ">=", value: 2 }] } },
+    { name: "绝处逢生", color: "#b088ff", rarity: "epic", desc: "达成条件：体质曾降至5以下后又恢复到50以上", condition: { all: [{ field: "minTizhi", op: "<", value: 5 }, { field: "stats.tizhi", op: ">=", value: 50 }] }, hidden: true },
+    { name: "耐杀王", color: "#b088ff", rarity: "epic", desc: "达成条件：经历2次死亡事件未死", condition: { all: [{ field: "deathEventCount", op: ">=", value: 2 }] } },
+    { name: "大魔法师", color: "#b088ff", rarity: "epic", desc: "达成条件：死时还是童子身(气运>15、年龄>30且未触发南宫婉或合欢宗事件)", condition: { all: [{ field: "stats.qiyun", op: ">", value: 15 }, { field: "age", op: ">", value: 30 }, { field: "hasTriggeredRomance", op: "==", value: false }] } },
+    { name: "百年童子", color: "#b088ff", rarity: "epic", desc: "达成条件：100岁以上仍未触发情缘事件", condition: { all: [{ field: "age", op: ">=", value: 100 }, { field: "hasTriggeredRomance", op: "==", value: false }] }, hidden: true },
 
-    { name: "键盘侠", color: "#ff77ff", desc: "达成条件：死于天降键盘", condition: { all: [{ field: "deathReason", op: "includes", value: "键盘" }] } },
-    { name: "代码修仙", color: "#00ccff", desc: "达成条件：触发程序员事件", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["程序", "Bug", "代码"] }] } },
-    { name: "绿化带之主", color: "#4eff4e", desc: "达成条件：气运<0 但活过30岁", condition: { all: [{ field: "stats.qiyun", op: "<", value: 0 }, { field: "age", op: ">", value: 30 }] } },
-    { name: "铁头娃", color: "#b088ff", desc: "达成条件：突破失败超过3次", condition: { all: [{ field: "failCount", op: ">", value: 3 }] } },
-    { name: "就这？", color: "#888", desc: "达成条件：10岁前夭折", condition: { all: [{ field: "age", op: "<", value: 10 }] } },
-    { name: "耐杀王", color: "#ff4444", desc: "达成条件：经历2次死亡事件未死", condition: { all: [{ field: "deathEventCount", op: ">=", value: 2 }] } },
-    { name: "大魔法师", color: "#b088ff", desc: "达成条件：死时还是童子身(气运>15、年龄>30且未触发南宫婉或合欢宗事件)", condition: { all: [{ field: "stats.qiyun", op: ">", value: 15 }, { field: "age", op: ">", value: 30 }, { field: "hasTriggeredRomance", op: "==", value: false }] } },
+    // 稀有称号 - 绿色高亮
+    { name: "龙套之王", color: "#50c878", rarity: "rare", desc: "达成条件：元婴以下，活过150岁", condition: { all: [{ field: "realmIdx", op: "<", value: 4 }, { field: "age", op: ">", value: 150 }] } },
+    { name: "万年王八", color: "#50c878", rarity: "rare", desc: "达成条件：死亡时>300岁，太能苟了", condition: { all: [{ field: "age", op: ">", value: 300 }] } },
+    { name: "铁头娃", color: "#50c878", rarity: "rare", desc: "达成条件：突破失败超过3次", condition: { all: [{ field: "failCount", op: ">", value: 3 }] } },
+    { name: "软饭硬吃", color: "#50c878", rarity: "rare", desc: "达成条件：触发'不可描述的事'且'合欢宗'事件>5次", condition: { all: [{ field: "hasTriggeredIndescribable", op: "==", value: true }, { field: "hehuanzongCount", op: ">", value: 5 }] } },
+    { name: "凡人修仙", color: "#50c878", rarity: "rare", desc: "达成条件：体质<5 且活过50岁", condition: { all: [{ field: "stats.tizhi", op: "<", value: 5 }, { field: "age", op: ">", value: 50 }] } },
+    { name: "摸鱼大师", color: "#50c878", rarity: "rare", desc: "达成条件：年龄超过100岁但还在金丹以下摸鱼", condition: { all: [{ field: "age", op: ">", value: 100 }, { field: "realmIdx", op: "<=", value: 3 }] } },
+    { name: "十里坡剑神", color: "#50c878", rarity: "rare", desc: "达成条件：炼气期活过100岁", condition: { all: [{ field: "realmIdx", op: "==", value: 1 }, { field: "age", op: ">", value: 100 }] } },
+    { name: "出道即巅峰", color: "#50c878", rarity: "rare", desc: "达成条件：死时除体质外任意一属性小于初始值", condition: { all: [{ field: "declinedStats", op: ">", value: 0 }] } },
+    { name: "键盘侠", color: "#50c878", rarity: "rare", desc: "达成条件：死于天降键盘", condition: { all: [{ field: "deathReason", op: "includes", value: "键盘" }] } },
+    { name: "代码修仙", color: "#50c878", rarity: "rare", desc: "达成条件：触发程序员事件", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["程序", "Bug", "代码"] }] } },
+    { name: "吃货", color: "#50c878", rarity: "rare", desc: "达成条件：死于喝奶茶或电饭煲", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["奶茶", "电饭煲"] }] } },
 
-    { name: "金刚芭比", color: "#ff69b4", desc: "达成条件：游戏过程中体质曾经超过100且性别为女", condition: { all: [{ field: "maxTizhi", op: ">", value: 100 }, { field: "gender", op: "==", value: "female" }] } },
-    { name: "软饭硬吃", color: "#ff77ff", desc: "达成条件：触发'不可描述的事'且'合欢宗'事件>5次", condition: { all: [{ field: "hasTriggeredIndescribable", op: "==", value: true }, { field: "hehuanzongCount", op: ">", value: 5 }] } },
-    { name: "凡人修仙", color: "#4eff4e", desc: "达成条件：体质<5 且活过50岁", condition: { all: [{ field: "stats.tizhi", op: "<", value: 5 }, { field: "age", op: ">", value: 50 }] } },
-    { name: "摸鱼大师", color: "#87CEEB", desc: "达成条件：年龄超过100岁但还在金丹以下摸鱼", condition: { all: [{ field: "age", op: ">", value: 100 }, { field: "realmIdx", op: "<=", value: 3 }] } },
-    { name: "天选打工人", color: "#aaa", desc: "达成条件：死于工地或猝死", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["老板", "猝死"] }] } },
-    { name: "吃货", color: "#ffaa00", desc: "达成条件：死于喝奶茶或电饭煲", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["奶茶", "电饭煲"] }] } },
-
-    { name: "无名小卒", color: "#fff", desc: "达成条件：平平淡淡过一生", condition: { all: [{ field: "always", op: "==", value: true }] } },
-    { name: "逆天改命", color: "#ff4444", desc: "达成条件：开局3个天赋均为负面天赋，却活过了筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "negative" }, { field: "realmIdx", op: ">=", value: 2 }] } },
-    { name: "平平无奇", color: "#aaa", desc: "达成条件：开局3个天赋均为中性天赋，却活过了筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "neutral" }, { field: "realmIdx", op: ">=", value: 2 }] } },
-    { name: "天妒英才", color: "#8b0000", desc: "达成条件：起手3个正面天赋，却没有活过筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "positive" }, { field: "realmIdx", op: "<", value: 2 }] } },
-    { name: "出道即巅峰", color: "#ffd700", desc: "达成条件：死时除体质外任意一属性小于初始值", condition: { all: [{ field: "declinedStats", op: ">", value: 0 }] } }
+    // 普通称号 - 无特效
+    { name: "非酋", color: "#dccbb5", rarity: "common", desc: "达成条件：气运<-5，脸黑如炭", condition: { all: [{ field: "stats.qiyun", op: "<", value: -5 }] } },
+    { name: "智商欠费", color: "#dccbb5", rarity: "common", desc: "达成条件：死亡时悟性<10", condition: { all: [{ field: "stats.wuxing", op: "<", value: 10 }] } },
+    { name: "绿化带之主", color: "#dccbb5", rarity: "common", desc: "达成条件：气运<0 但活过30岁", condition: { all: [{ field: "stats.qiyun", op: "<", value: 0 }, { field: "age", op: ">", value: 30 }] } },
+    { name: "就这？", color: "#dccbb5", rarity: "common", desc: "达成条件：10岁前夭折", condition: { all: [{ field: "age", op: "<", value: 10 }] } },
+    { name: "天选打工人", color: "#dccbb5", rarity: "common", desc: "达成条件：死于工地或猝死", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["老板", "猝死"] }] } },
+    { name: "无名小卒", color: "#dccbb5", rarity: "common", desc: "达成条件：平平淡淡过一生", condition: { all: [{ field: "always", op: "==", value: true }] } },
+    { name: "平平无奇", color: "#dccbb5", rarity: "common", desc: "达成条件：开局3个天赋均为中性天赋，却活过了筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "neutral" }, { field: "realmIdx", op: ">=", value: 2 }] } }
   ],
 
   events: [

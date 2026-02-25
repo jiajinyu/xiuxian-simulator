@@ -352,7 +352,9 @@
       hehuanzongCount: 0,  // 合欢宗事件触发次数
       gender: null,  // 'male' 或 'female'
       eventCooldowns: {},  // 事件冷却：{ eventText: 剩余冷却年数 }
-      maxTizhi: 0  // 游戏过程中体质达到的最大值
+      maxTizhi: 0,  // 游戏过程中体质达到的最大值
+      minTizhi: Infinity,  // 游戏过程中体质达到的最小值（用于"绝处逢生"称号）
+      maxCultivation: 0  // 游戏过程中修为达到的最大值（用于"零修飞升"称号）
     },
 
     init() {
@@ -443,15 +445,34 @@
       let unlockedCount = 0;
       cfg.titles.forEach(t => {
         const isUnlocked = this.data.titles.includes(t.name);
+        const isHidden = t.hidden === true;
+        const rarity = t.rarity || "common";
         if (isUnlocked) unlockedCount++;
 
+        // 隐藏称号未解锁时显示 ???，不显示名称和描述
+        let displayName = t.name;
+        let displayDesc = t.desc;
+        let divClass = `title-card ${rarity}`;
+
+        if (isHidden && !isUnlocked) {
+          // 隐藏称号未解锁：只显示 ???，不显示具体信息
+          displayName = "???";
+          displayDesc = "隐藏称号 - 待你发掘";
+          divClass += " hidden-title";
+        } else if (isUnlocked) {
+          divClass += " unlocked";
+        } else if (isHidden) {
+          // 隐藏称号已解锁：正常显示
+          divClass += " unlocked";
+        }
+
         const div = document.createElement("div");
-        div.className = `title-card ${isUnlocked ? "unlocked" : ""}`;
-        const nameColor = isUnlocked ? t.color : "#666";
+        div.className = divClass;
+        // 稀有度样式已通过 CSS 类控制颜色，这里不再需要内联样式
 
         div.innerHTML = `
-          <span class="tc-name" style="color:${nameColor}">${t.name}</span>
-          <span class="tc-desc">${t.desc}</span>
+          <span class="tc-name">${displayName}</span>
+          <span class="tc-desc">${displayDesc}</span>
         `;
         list.appendChild(div);
       });
@@ -783,6 +804,15 @@
       if (this.state.stats.tizhi <= 0 && !this.state.isDead) {
         this.die("寿元耗尽，坐化于洞府。");
         return;
+      }
+
+      // 追踪体质最小值（用于"绝处逢生"称号）
+      if (this.state.stats.tizhi < this.state.minTizhi) {
+        this.state.minTizhi = this.state.stats.tizhi;
+      }
+      // 追踪修为最大值（用于"零修飞升"称号）
+      if (this.state.cultivation > this.state.maxCultivation) {
+        this.state.maxCultivation = this.state.cultivation;
       }
 
       this.logCultivationDelta(cultivationBeforeTick, this.state.cultivation, statsBeforeTick, this.state.stats);

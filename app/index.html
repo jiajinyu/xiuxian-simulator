@@ -371,10 +371,95 @@
         }
         .title-card.unlocked { 
             opacity: 1; 
-            background: rgba(80, 200, 120, 0.1);
             border-color: var(--evt-pos);
         }
         .title-card.unlocked::before { display: none; }
+        
+        /* 隐藏称号样式 - 未解锁时显示神秘感 */
+        .title-card.hidden-title {
+            opacity: 0.8;
+            background: rgba(128, 0, 128, 0.1);
+            border-color: #800080;
+            border-style: dashed;
+        }
+        .title-card.hidden-title::before {
+            display: none;
+        }
+        .title-card.hidden-title .tc-name {
+            color: #9932CC !important;
+            text-shadow: 0 0 5px rgba(153, 50, 204, 0.5);
+        }
+        .title-card.hidden-title .tc-desc {
+            color: #9966CC !important;
+            font-style: italic;
+        }
+
+        /* 未解锁称号 - 统一灰度显示 */
+        .title-card:not(.unlocked):not(.hidden-title) {
+            background: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid #444 !important;
+            box-shadow: none !important;
+            animation: none !important;
+        }
+        .title-card:not(.unlocked):not(.hidden-title) .tc-name {
+            color: #666 !important;
+            text-shadow: none !important;
+        }
+        .title-card:not(.unlocked):not(.hidden-title) .tc-desc {
+            color: #555 !important;
+        }
+
+        /* 称号稀有度样式 - 仅对已解锁称号生效 */
+        /* 传说 - 金色发光 */
+        .title-card.legendary.unlocked {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 165, 0, 0.1) 100%);
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.05);
+            animation: legendaryGlow 2s ease-in-out infinite;
+        }
+        .title-card.legendary.unlocked .tc-name {
+            color: #ffd700 !important;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.6), 0 0 15px rgba(255, 165, 0, 0.4);
+        }
+        @keyframes legendaryGlow {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255, 215, 0, 0.05); }
+            50% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), inset 0 0 20px rgba(255, 215, 0, 0.1); }
+        }
+
+        /* 史诗 - 紫色微光 */
+        .title-card.epic.unlocked {
+            background: linear-gradient(135deg, rgba(176, 136, 255, 0.12) 0%, rgba(138, 43, 226, 0.08) 100%);
+            border: 2px solid #b088ff;
+            box-shadow: 0 0 8px rgba(176, 136, 255, 0.2);
+            animation: epicPulse 3s ease-in-out infinite;
+        }
+        .title-card.epic.unlocked .tc-name {
+            color: #b088ff !important;
+            text-shadow: 0 0 5px rgba(176, 136, 255, 0.5);
+        }
+        @keyframes epicPulse {
+            0%, 100% { box-shadow: 0 0 8px rgba(176, 136, 255, 0.2); }
+            50% { box-shadow: 0 0 12px rgba(176, 136, 255, 0.35); }
+        }
+
+        /* 稀有 - 绿色高亮 */
+        .title-card.rare.unlocked {
+            background: rgba(80, 200, 120, 0.1);
+            border: 1px solid #50c878;
+        }
+        .title-card.rare.unlocked .tc-name {
+            color: #50c878 !important;
+            text-shadow: 0 0 3px rgba(80, 200, 120, 0.3);
+        }
+
+        /* 普通 - 无特效 */
+        .title-card.common.unlocked {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-highlight);
+        }
+        .title-card.common.unlocked .tc-name {
+            color: #dccbb5 !important;
+        }
 
         .t-name, .tc-name { display: block; margin-bottom: 5px; font-size: 16px; color: #fff; }
         .t-desc, .tc-desc { font-size: 12px; color: var(--text-dim); }
