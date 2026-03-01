@@ -52,7 +52,7 @@ function runReincarnationSaveSmoke() {
   assert.strictEqual(game.state.isDead, true, 'game should settle to dead state');
   assert.notStrictEqual(getElementById('end-title').innerText, '', 'settlement title should be rendered');
 
-  const saveRaw = context.localStorage.getItem('xiuxian_save');
+  const saveRaw = context.localStorage.getItem('knight_save');
   assert.notStrictEqual(saveRaw, null, 'save should be written on death');
 
   const saveData = JSON.parse(saveRaw);

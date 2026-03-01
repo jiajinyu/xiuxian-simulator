@@ -41,7 +41,7 @@ test('death event reduces tizhi instead of instant death', () => {
   game.state.isDead = false;
 
   game.handleDeathEvent({
-    text: '测试死亡事件',
+    text: 'test death event',
     isDeath: true
   });
 
@@ -64,7 +64,7 @@ test('death event kills when tizhi drops to zero', () => {
   game.state.realmIdx = 0;
   game.state.isDead = false;
 
-  game.handleDeathEvent({ text: '测试致命事件' });
+  game.handleDeathEvent({ text: 'test fatal event' });
 
   assert.strictEqual(game.state.isDead, true);
   assert.strictEqual(game.state.deathEventCount, 1);
@@ -92,7 +92,7 @@ test('higher qiyun can turn a near-miss positive event into a hit', () => {
     const { game, config, context } = createEnvironment();
 
     config.events = [{
-      text: '测试正面概率事件',
+      text: 'test positive chance event',
       chance: 0.1,
       effects: [{ field: 'stats.qiyun', add: 1 }]
     }];
@@ -121,8 +121,8 @@ test('death event count tracks multiple survival events', () => {
   game.state.isDead = false;
   game.state.deathEventCount = 0;
 
-  game.handleDeathEvent({ text: '第一次' });
-  game.handleDeathEvent({ text: '第二次' });
+  game.handleDeathEvent({ text: 'first hit' });
+  game.handleDeathEvent({ text: 'second hit' });
 
   assert.strictEqual(game.state.deathEventCount, 2);
   assert.strictEqual(game.state.isDead, false);
@@ -140,7 +140,7 @@ test('modStat shows warning when reaching base stat limit', () => {
 
   const warningEl = getElementById('stat-warning');
   assert.notStrictEqual(warningEl, null);
-  assert.strictEqual(warningEl.innerText.includes('不可减少天赋自带属性'), true);
+  assert.strictEqual(warningEl.innerText.includes('Cannot reduce below talent bonus'), true);
 });
 
 test('tizhi warning is shown when start stats go negative', () => {
@@ -201,7 +201,7 @@ test('event trigger supports arithmetic expression values', () => {
   const { game, config } = createEnvironment();
 
   config.events = [{
-    text: '表达式触发事件',
+    text: 'expression trigger event',
     chance: 1,
     trigger: { all: [{ field: 'stats.qiyun', op: '<', value: '(realmIdx-1)*10' }] },
     effects: [{ field: 'cultivation', add: 123 }]
@@ -220,7 +220,7 @@ test('invalid expression in condition does not crash game loop', () => {
   const { game, config } = createEnvironment();
 
   config.events = [{
-    text: '非法表达式事件',
+    text: 'invalid expression event',
     chance: 1,
     trigger: { all: [{ field: 'stats.qiyun', op: '<', value: 'realmIdx+unknownVar' }] },
     effects: [{ field: 'cultivation', add: 999 }]
@@ -239,12 +239,12 @@ test('showSettlementDirectly uses the same death finalization path', () => {
 
   game.state.age = 88;
   game.state.realmIdx = 2;
-  game.showSettlementDirectly('测试直接结算');
+  game.showSettlementDirectly('test direct settlement');
 
   assert.strictEqual(game.state.isDead, true);
   assert.strictEqual(game.data.gen, beforeGen + 1);
   assert.strictEqual(getElementById('settlement-modal').style.display, 'flex');
-  assert.strictEqual(getElementById('end-reason').innerText.includes('测试直接结算'), true);
+  assert.strictEqual(getElementById('end-reason').innerText.includes('test direct settlement'), true);
   assert.strictEqual(Boolean(game.state.lastTitle), true);
 });
 
@@ -266,8 +266,8 @@ test('getEventType correctly classifies event types', () => {
   assert.strictEqual(game.getEventType({ isNegative: true }), 'negative');
 
   // 填充事件（无 effects）
-  assert.strictEqual(game.getEventType({ text: '填充文本' }), 'filler');
-  assert.strictEqual(game.getEventType({ text: '填充', effects: [] }), 'filler');
+  assert.strictEqual(game.getEventType({ text: 'filler text' }), 'filler');
+  assert.strictEqual(game.getEventType({ text: 'filler', effects: [] }), 'filler');
 
   // 正面事件（只有增加）
   assert.strictEqual(game.getEventType({
@@ -311,7 +311,7 @@ test('negative and death events do not get qiyun bonus on chance', () => {
   };
 
   const negativeCooldown = runOnce({
-    text: '测试负面概率事件',
+    text: 'test negative chance event',
     chance: 0.1,
     isNegative: true,
     effects: [{ field: 'stats.qiyun', add: -1 }]
@@ -319,7 +319,7 @@ test('negative and death events do not get qiyun bonus on chance', () => {
   assert.strictEqual(negativeCooldown, undefined);
 
   const deathCooldown = runOnce({
-    text: '测试死亡概率事件',
+    text: 'test death chance event',
     chance: 0.1,
     isDeath: true
   });
@@ -331,23 +331,23 @@ test('negative and death events do not get qiyun bonus on chance', () => {
 test('decrementEventCooldowns removes expired cooldowns', () => {
   const { game } = createEnvironment();
 
-  game.setEventCooldown('事件A', 1);
-  game.setEventCooldown('事件B', 3);
+  game.setEventCooldown('event A', 1);
+  game.setEventCooldown('event B', 3);
 
   // 1年后：事件A应被移除，事件B仍在冷却
   game.decrementEventCooldowns();
 
-  assert.strictEqual(game.isEventOnCooldown('事件A'), false);
-  assert.strictEqual(game.isEventOnCooldown('事件B'), true);
-  assert.strictEqual(game.state.eventCooldowns['事件A'], undefined);
-  assert.strictEqual(game.state.eventCooldowns['事件B'], 2);
+  assert.strictEqual(game.isEventOnCooldown('event A'), false);
+  assert.strictEqual(game.isEventOnCooldown('event B'), true);
+  assert.strictEqual(game.state.eventCooldowns['event A'], undefined);
+  assert.strictEqual(game.state.eventCooldowns['event B'], 2);
 });
 
 test('filler events bypass cooldown restrictions', () => {
   createEnvironment();
 
   // filler事件标记为 _isFiller: true，不进入冷却
-  const fillerEvent = { text: '填充文本', _isFiller: true };
+  const fillerEvent = { text: 'filler text', _isFiller: true };
 
   // filler事件本身不需要检查冷却
   // 实际逻辑：filler事件在 if (!hit) 分支生成，不触发 setEventCooldown
@@ -361,7 +361,7 @@ test('gender-specific filler shows correct text for male', () => {
 
   // 设置一个性别特定的filler
   config.fillers = [
-    { male: '男版文本', female: '女版文本' }
+    { male: 'male text', female: 'female text' }
   ];
 
   game.state.gender = 'male';
@@ -374,14 +374,14 @@ test('gender-specific filler shows correct text for male', () => {
   // 检查最后一条日志是否包含男版文本
   const logArea = getElementById('log-area');
   const lastLog = logArea.children[logArea.children.length - 1]?.innerHTML || '';
-  assert.strictEqual(lastLog.includes('男版文本'), true);
+  assert.strictEqual(lastLog.includes('male text'), true);
 });
 
 test('gender-specific filler shows correct text for female', () => {
   const { game, config, getElementById } = createEnvironment();
 
   config.fillers = [
-    { male: '男版文本', female: '女版文本' }
+    { male: 'male text', female: 'female text' }
   ];
 
   game.state.gender = 'female';
@@ -391,7 +391,7 @@ test('gender-specific filler shows correct text for female', () => {
 
   const logArea = getElementById('log-area');
   const lastLog = logArea.children[logArea.children.length - 1]?.innerHTML || '';
-  assert.strictEqual(lastLog.includes('女版文本'), true);
+  assert.strictEqual(lastLog.includes('female text'), true);
 });
 
 // ========== 天赋互斥系统测试 ==========
@@ -401,7 +401,7 @@ test('getTalentAffectedStats correctly extracts affected stats', () => {
 
   // 正面天赋：体质+4
   const positiveTalent = {
-    name: '测试正面',
+    name: 'test positive',
     effects: [{ field: 'stats.tizhi', add: 4 }]
   };
   const positiveStats = game.getTalentAffectedStats(positiveTalent);
@@ -410,7 +410,7 @@ test('getTalentAffectedStats correctly extracts affected stats', () => {
 
   // 负面天赋：天赋-3
   const negativeTalent = {
-    name: '测试负面',
+    name: 'test negative',
     effects: [{ field: 'stats.tianfu', add: -3 }]
   };
   const negativeStats = game.getTalentAffectedStats(negativeTalent);
@@ -419,7 +419,7 @@ test('getTalentAffectedStats correctly extracts affected stats', () => {
 
   // 混合天赋：体质+4，悟性-3
   const mixedTalent = {
-    name: '测试混合',
+    name: 'test mixed',
     effects: [
       { field: 'stats.tizhi', add: 4 },
       { field: 'stats.wuxing', add: -3 }
@@ -437,30 +437,30 @@ test('hasStatConflict detects same stat increase and decrease', () => {
 
   // 冲突情况：一个天赋增加体质，一个天赋减少体质
   const conflictTalents = [
-    { name: '荒古圣体', effects: [{ field: 'stats.tizhi', add: 4 }] },
-    { name: '废灵根', effects: [{ field: 'stats.tizhi', add: -3 }] }
+    { name: 'Noble Blood', effects: [{ field: 'stats.tizhi', add: 4 }] },
+    { name: 'Sickly Child', effects: [{ field: 'stats.tizhi', add: -3 }] }
   ];
   assert.strictEqual(game.hasStatConflict(conflictTalents), true);
 
   // 无冲突：都增加不同属性
   const noConflictTalents1 = [
-    { name: '大聪明', effects: [{ field: 'stats.tianfu', add: 4 }] },
-    { name: '韩跑跑', effects: [{ field: 'stats.qiyun', add: 4 }] }
+    { name: 'Prodigy', effects: [{ field: 'stats.tianfu', add: 4 }] },
+    { name: 'Runner', effects: [{ field: 'stats.qiyun', add: 4 }] }
   ];
   assert.strictEqual(game.hasStatConflict(noConflictTalents1), false);
 
   // 无冲突：一个增加，一个减少不同属性
   const noConflictTalents2 = [
-    { name: '大聪明', effects: [{ field: 'stats.tianfu', add: 4 }] },
-    { name: '招黑体质', effects: [{ field: 'stats.qiyun', add: -3 }] }
+    { name: 'Prodigy', effects: [{ field: 'stats.tianfu', add: 4 }] },
+    { name: 'Jinx', effects: [{ field: 'stats.qiyun', add: -3 }] }
   ];
   assert.strictEqual(game.hasStatConflict(noConflictTalents2), false);
 
   // 冲突情况：通过混合天赋间接产生冲突
   const indirectConflict = [
-    { name: '大聪明', effects: [{ field: 'stats.tianfu', add: 4 }] },
-    { name: '玻璃大炮', effects: [{ field: 'stats.tianfu', add: 4 }, { field: 'stats.tizhi', add: -2 }] },
-    { name: '无效努力', effects: [{ field: 'stats.tianfu', add: -2 }] }
+    { name: 'Prodigy', effects: [{ field: 'stats.tianfu', add: 4 }] },
+    { name: 'Glass Cannon', effects: [{ field: 'stats.tianfu', add: 4 }, { field: 'stats.tizhi', add: -2 }] },
+    { name: 'Wasted Effort', effects: [{ field: 'stats.tianfu', add: -2 }] }
   ];
   assert.strictEqual(game.hasStatConflict(indirectConflict), true);
 });
@@ -470,37 +470,37 @@ test('hasStatConflict detects same stat decreased multiple times', () => {
 
   // 冲突情况：同一属性被减少两次
   const doubleDecrease = [
-    { name: '天煞孤星', effects: [{ field: 'stats.qiyun', add: -4 }] },
-    { name: '招黑体质', effects: [{ field: 'stats.qiyun', add: -3 }] }
+    { name: 'Lone Star', effects: [{ field: 'stats.qiyun', add: -4 }] },
+    { name: 'Jinx', effects: [{ field: 'stats.qiyun', add: -3 }] }
   ];
   assert.strictEqual(game.hasStatConflict(doubleDecrease), true);
 
   // 冲突情况：同一属性被减少三次
   const tripleDecrease = [
-    { name: '废灵根', effects: [{ field: 'stats.tizhi', add: -2 }] },
-    { name: '经脉郁结', effects: [{ field: 'stats.tizhi', add: -2 }] },
-    { name: '键盘侠', effects: [{ field: 'stats.tizhi', add: -2 }] }
+    { name: 'Sickly Child', effects: [{ field: 'stats.tizhi', add: -2 }] },
+    { name: 'Frail Body', effects: [{ field: 'stats.tizhi', add: -2 }] },
+    { name: 'Keyboard Knight', effects: [{ field: 'stats.tizhi', add: -2 }] }
   ];
   assert.strictEqual(game.hasStatConflict(tripleDecrease), true);
 
   // 冲突情况：通过混合天赋间接导致同一属性被减少多次
   const mixedDoubleDecrease = [
-    { name: '熬夜冠军', effects: [{ field: 'stats.wuxing', add: 3 }, { field: 'stats.tizhi', add: -3 }] },
-    { name: '玻璃大炮', effects: [{ field: 'stats.tianfu', add: 4 }, { field: 'stats.tizhi', add: -2 }] }
+    { name: 'Night Owl', effects: [{ field: 'stats.wuxing', add: 3 }, { field: 'stats.tizhi', add: -3 }] },
+    { name: 'Glass Cannon', effects: [{ field: 'stats.tianfu', add: 4 }, { field: 'stats.tizhi', add: -2 }] }
   ];
   assert.strictEqual(game.hasStatConflict(mixedDoubleDecrease), true);
 
   // 无冲突：不同属性各减少一次
   const noConflictDecrease = [
-    { name: '天煞孤星', effects: [{ field: 'stats.qiyun', add: -4 }] },
-    { name: '经脉郁结', effects: [{ field: 'stats.tizhi', add: -2 }] }
+    { name: 'Lone Star', effects: [{ field: 'stats.qiyun', add: -4 }] },
+    { name: 'Frail Body', effects: [{ field: 'stats.tizhi', add: -2 }] }
   ];
   assert.strictEqual(game.hasStatConflict(noConflictDecrease), false);
 
   // 无冲突：同一属性只减少一次（不影响其他属性的增加）
   const singleDecrease = [
-    { name: '韩跑跑', effects: [{ field: 'stats.qiyun', add: 4 }] },
-    { name: '废灵根', effects: [{ field: 'stats.tianfu', add: -3 }, { field: 'stats.tizhi', add: -2 }] }
+    { name: 'Runner', effects: [{ field: 'stats.qiyun', add: 4 }] },
+    { name: 'Sickly Child', effects: [{ field: 'stats.tianfu', add: -3 }, { field: 'stats.tizhi', add: -2 }] }
   ];
   assert.strictEqual(game.hasStatConflict(singleDecrease), false);
 });
@@ -510,12 +510,12 @@ test('sampleTalents avoids stat conflicts', () => {
 
   // 创建一个人工配置，确保可能产生冲突
   config.talents = [
-    { name: '天赋A+', effects: [{ field: 'stats.tizhi', add: 4 }] },
-    { name: '天赋A-', effects: [{ field: 'stats.tizhi', add: -3 }] },
-    { name: '天赋B+', effects: [{ field: 'stats.qiyun', add: 4 }] },
-    { name: '天赋B-', effects: [{ field: 'stats.qiyun', add: -4 }] },
-    { name: '天赋C+', effects: [{ field: 'stats.wuxing', add: 4 }] },
-    { name: '天赋C-', effects: [{ field: 'stats.wuxing', add: -3 }] }
+    { name: 'Talent A+', effects: [{ field: 'stats.tizhi', add: 4 }] },
+    { name: 'Talent A-', effects: [{ field: 'stats.tizhi', add: -3 }] },
+    { name: 'Talent B+', effects: [{ field: 'stats.qiyun', add: 4 }] },
+    { name: 'Talent B-', effects: [{ field: 'stats.qiyun', add: -4 }] },
+    { name: 'Talent C+', effects: [{ field: 'stats.wuxing', add: 4 }] },
+    { name: 'Talent C-', effects: [{ field: 'stats.wuxing', add: -3 }] }
   ];
 
   // 多次抽样验证没有冲突
@@ -532,7 +532,7 @@ test('die() shows settlement button but not modal', () => {
 
   game.state.age = 50;
   game.state.realmIdx = 1;
-  game.die('测试死亡');
+  game.die('test death');
 
   // 验证：死亡状态正确
   assert.strictEqual(game.state.isDead, true);
@@ -551,7 +551,7 @@ test('showSettlement() displays the modal after die()', () => {
 
   game.state.age = 50;
   game.state.realmIdx = 1;
-  game.die('测试死亡');
+  game.die('test death');
 
   // 调用 showSettlement 后弹窗应该显示
   game.showSettlement();
@@ -599,7 +599,7 @@ test('percent effect event without chance does not produce NaN cultivation', () 
   const { game, config } = createEnvironment();
 
   config.events = [{
-    text: '11岁：百分比事件无概率字段',
+    text: 'Age 11: percent event no chance field',
     effects: [{ field: 'cultivation', percent: true }]
   }];
 
@@ -615,7 +615,7 @@ test('negative event exemption uses qiyun threshold', () => {
   const { game, config } = createEnvironment();
 
   config.events = [{
-    text: '11岁：负面事件测试',
+    text: 'Age 11: negative event test',
     chance: 1,
     isNegative: true,
     effects: [{ field: 'cultivation', add: -50 }]
@@ -648,12 +648,12 @@ test('death event exemption uses qiyun threshold', () => {
   game.state.stats.qiyun = threshold + 1; // 超过阈值，应该豁免
   game.state.deathEventCount = 0;
 
-  game.handleDeathEvent({ text: '测试死亡事件' });
+  game.handleDeathEvent({ text: 'test death event' });
   assert.strictEqual(game.state.stats.tizhi, 100);
   assert.strictEqual(game.state.deathEventCount, 0);
 
   game.state.stats.qiyun = threshold; // 不超过阈值，不豁免
-  game.handleDeathEvent({ text: '测试死亡事件' });
+  game.handleDeathEvent({ text: 'test death event' });
   assert.strictEqual(game.state.stats.tizhi < 100, true);
   assert.strictEqual(game.state.deathEventCount, 1);
 });

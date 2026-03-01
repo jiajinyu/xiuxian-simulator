@@ -1,29 +1,29 @@
-// 运营编辑说明：
-// 1) 只改这个文件，不要改 game-engine.js。
-// 2) 数值调整：改 rules 下面的数字。
-// 3) 新增事件：复制 events 里任意一条，改 text/chance/trigger/effects。
-// 4) 新增称号：复制 titles 里任意一条，改 name/desc/condition。
+// Operations editing guide:
+// 1) Only edit this file, do not modify game-engine.js.
+// 2) Adjust values: change numbers under rules.
+// 3) Add events: copy any event entry, change text/chance/trigger/effects.
+// 4) Add titles: copy any title entry, change name/desc/condition.
 //
-// condition/trigger 规则格式：
+// condition/trigger rule format:
 // { all: [ { field: "stats.qiyun", op: ">", value: 10 } ] }
 //
-// 常见 field:
+// Common fields:
 // age, realmIdx, failCount, deathReason
 // stats.tianfu, stats.wuxing, stats.tizhi, stats.qiyun
 //
-// 常见 op:
+// Common ops:
 // ==, !=, >, >=, <, <=, includes, includesAny
 //
-// effects 格式：
+// effects format:
 // [ { field: "stats.qiyun", add: 5 }, { field: "cultivation", add: 100 } ]
 
 window.GAME_CONFIG = {
   version: "1.0.0",
 
-  // 出生性别描述
+  // Birth gender descriptions
   birthDesc: {
-    male: ["家族寄予厚望，为你取名添福。", "哭声洪亮，接生婆说此子日后必成大器。"],
-    female: ["眉清目秀，母亲见了甚是欢喜。", "稳婆一看面相，便知日后修仙界又要多一段孽缘。"]
+    male: ["The family has high hopes — they name you after a great ancestor.", "A hearty cry fills the hall. The midwife declares this boy will do great things."],
+    female: ["Bright-eyed and fair, your mother is overjoyed.", "The midwife takes one look and says the kingdom shall hear of this one someday."]
   },
   rules: {
     startPoints: 20,
@@ -47,249 +47,251 @@ window.GAME_CONFIG = {
       cultivationFromTianfuMul: 3,
       minCultivationGain: 1
     },
-    // 境界基础修为值 - 每次tick获取修为的基础值，与境界相关
+    // Realm base renown — base renown gain per tick, scales with rank
     realmBaseCultivation: {
-      0: 10,   // 凡人
-      1: 15,   // 炼气
-      2: 25,   // 筑基
-      3: 40,   // 金丹
-      4: 80,   // 元婴（原60，提升33%）
-      5: 120,  // 化神（原85，提升41%）
-      6: 170,  // 炼虚（原115，提升48%）
-      7: 230,  // 合体（原150，提升53%）
-      8: 300,  // 大乘（原190，提升58%）
-      9: 380,  // 渡劫（原235，提升62%）
-      10: 500  // 真仙（原300，提升67%）
+      0: 10,   // Peasant
+      1: 15,   // Page
+      2: 25,   // Squire
+      3: 40,   // Knight
+      4: 80,   // Captain
+      5: 120,  // Baron
+      6: 170,  // Viscount
+      7: 230,  // Earl
+      8: 300,  // Duke
+      9: 380,  // Prince
+      10: 500  // King
     },
-    // 修为公式：基础值 * (1 + 天赋 * tianfuMultiplier)
+    // Renown formula: base * (1 + Valor * valorMultiplier)
     cultivationFormula: {
-      tianfuMultiplier: 0.08  // 每点天赋增加8%修为获取（原5%）
+      tianfuMultiplier: 0.08  // Each point of Valor adds 8% renown gain
     },
     debug: {
       logCultivationDeltaPerTick: false,
-      enableTalentTest: false  // 天赋测试模式开关，true=可无限重抽天赋，正式版改为 false
+      enableTalentTest: false  // Talent test mode toggle, true = unlimited redraws
     },
     statLabels: {
-      tianfu: "天赋",
-      wuxing: "悟性",
-      tizhi: "体质",
-      qiyun: "气运"
+      tianfu: "Valor",
+      wuxing: "Wisdom",
+      tizhi: "Vitality",
+      qiyun: "Fortune"
     },
-    // 属性说明（鼠标悬停显示）
+    // Stat descriptions (shown on hover)
     statDescriptions: {
-      tianfu: "影响修为获取速度，每点天赋增加8%修为",
-      wuxing: "影响突破成功率，突破时与气运共同判定",
-      tizhi: "决定寿命上限，体质归零时死亡；突破成功可回复",
-      qiyun: "影响奇遇概率与突破判定，高气运可豁免死亡事件"
+      tianfu: "Affects renown gain speed. Each point adds 8% renown.",
+      wuxing: "Affects promotion success rate. Checked with Fortune during promotion.",
+      tizhi: "Determines lifespan. Death occurs when Vitality reaches zero. Restored on promotion.",
+      qiyun: "Affects adventure chance and promotion checks. High Fortune can avert fatal events."
     }
   },
-  // 行为统计（默认关闭，填写 GA4 Measurement ID 后开启）
+  // Analytics (disabled by default, fill in GA4 Measurement ID to enable)
   analytics: {
     enabled: false,
     gaMeasurementId: "",
-    funnelName: "xiuxian-core"
+    funnelName: "knight-core"
   },
 
-  realms: ["凡人", "炼气", "筑基", "金丹", "元婴", "化神", "炼虚", "合体", "大乘", "渡劫", "真仙"],
+  realms: ["Peasant", "Page", "Squire", "Knight", "Captain", "Baron", "Viscount", "Earl", "Duke", "Prince", "King"],
 
   talents: [
-    { name: "荒古圣体", type: "positive", desc: "体质+4，同阶无敌", effects: [{ field: "stats.tizhi", add: 4 }] },
-    { name: "天胡开局", type: "positive", desc: "气运+4", effects: [{ field: "stats.qiyun", add: 4 }] },
-    { name: "掌天瓶", type: "positive", desc: "悟性+4，催熟灵药", effects: [{ field: "stats.wuxing", add: 4 }] },
-    { name: "大聪明", type: "positive", desc: "天赋+4", effects: [{ field: "stats.tianfu", add: 4 }] },
+    { name: "Noble Blood", type: "positive", desc: "Vitality+4, born of ancient lineage", effects: [{ field: "stats.tizhi", add: 4 }] },
+    { name: "Born Lucky", type: "positive", desc: "Fortune+4", effects: [{ field: "stats.qiyun", add: 4 }] },
+    { name: "Scholar's Mind", type: "positive", desc: "Wisdom+4, sharp as a quill", effects: [{ field: "stats.wuxing", add: 4 }] },
+    { name: "Prodigy", type: "positive", desc: "Valor+4", effects: [{ field: "stats.tianfu", add: 4 }] },
 
-    { name: "废灵根", type: "negative", desc: "天赋-3，体质-2", effects: [{ field: "stats.tianfu", add: -3 }, { field: "stats.tizhi", add: -2 }] },
-    { name: "天崩开局", type: "negative", desc: "气运-4", effects: [{ field: "stats.qiyun", add: -4 }] },
-    { name: "经脉郁结", type: "negative", desc: "体质-2，修炼极慢", effects: [{ field: "stats.tizhi", add: -2 }] },
-    { name: "招黑体质", type: "negative", desc: "气运-3，容易被追杀", effects: [{ field: "stats.qiyun", add: -3 }] },
+    { name: "Sickly Child", type: "negative", desc: "Valor-3, Vitality-2", effects: [{ field: "stats.tianfu", add: -3 }, { field: "stats.tizhi", add: -2 }] },
+    { name: "Cursed Birth", type: "negative", desc: "Fortune-4", effects: [{ field: "stats.qiyun", add: -4 }] },
+    { name: "Frail Body", type: "negative", desc: "Vitality-2, tires easily", effects: [{ field: "stats.tizhi", add: -2 }] },
+    { name: "Jinx", type: "negative", desc: "Fortune-3, trouble follows you", effects: [{ field: "stats.qiyun", add: -3 }] },
 
-    { name: "地主家的傻儿子", type: "neutral", desc: "体质+4，悟性-3", effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.wuxing", add: -3 }] },
-    { name: "邪修", type: "neutral", desc: "天赋+4，体质-2", effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.tizhi", add: -2 }] },
-    { name: "赌狗", type: "neutral", desc: "气运+4，悟性-4", effects: [{ field: "stats.qiyun", add: 4 }, { field: "stats.wuxing", add: -4 }] },
-    { name: "聪明绝顶", type: "neutral", desc: "悟性+4，体质-2(秃了)", effects: [{ field: "stats.wuxing", add: 4 }, { field: "stats.tizhi", add: -2 }] },
+    { name: "Lord's Fool", type: "neutral", desc: "Vitality+4, Wisdom-3", effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.wuxing", add: -3 }] },
+    { name: "Dark Knight", type: "neutral", desc: "Valor+4, Vitality-2", effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.tizhi", add: -2 }] },
+    { name: "Gambler", type: "neutral", desc: "Fortune+4, Wisdom-4", effects: [{ field: "stats.qiyun", add: 4 }, { field: "stats.wuxing", add: -4 }] },
+    { name: "Bald Genius", type: "neutral", desc: "Wisdom+4, Vitality-2 (hair fell out)", effects: [{ field: "stats.wuxing", add: 4 }, { field: "stats.tizhi", add: -2 }] },
 
-    { name: "氪金大佬", type: "positive", desc: "气运+5，我也想低调，但实力不允许", effects: [{ field: "stats.qiyun", add: 5 }] },
-    { name: "非酋", type: "negative", desc: "气运-5，喝凉水都塞牙，走路必踩坑", effects: [{ field: "stats.qiyun", add: -5 }] },
-    { name: "熬夜冠军", type: "neutral", desc: "悟性+3，体质-3，修仙（物理）", effects: [{ field: "stats.wuxing", add: 3 }, { field: "stats.tizhi", add: -3 }] },
-    { name: "键盘侠", type: "negative", desc: "悟性-3，体质-2，键道大成，只会嘴炮", effects: [{ field: "stats.wuxing", add: -3 }, { field: "stats.tizhi", add: -2 }] },
-    { name: "老六", type: "positive", desc: "气运+3，悟性+1，从不刚正面，专敲闷棍", effects: [{ field: "stats.qiyun", add: 3 }, { field: "stats.wuxing", add: 1 }] },
-    { name: "二哈血统", type: "neutral", desc: "体质+5，悟性-4，拆家能力一流", effects: [{ field: "stats.tizhi", add: 5 }, { field: "stats.wuxing", add: -4 }] },
-    { name: "恋爱脑", type: "negative", desc: "悟性-5，心中无大道，只有那个TA", effects: [{ field: "stats.wuxing", add: -5 }] },
-    { name: "干饭人", type: "neutral", desc: "体质+3，天赋-1，灵石都被拿去买吃的了", effects: [{ field: "stats.tizhi", add: 3 }, { field: "stats.tianfu", add: -1 }] },
-    { name: "普信", type: "negative", desc: "气运-2，天赋-2，明明那么普通，却那么自信", effects: [{ field: "stats.qiyun", add: -2 }, { field: "stats.tianfu", add: -2 }] },
-    { name: "无效努力", type: "negative", desc: "体质-2，天赋-2，每天假装修炼感动自己", effects: [{ field: "stats.tizhi", add: -2 }, { field: "stats.tianfu", add: -2 }] },
-    { name: "平衡之道", type: "neutral", desc: "天赋+3，气运-2，中庸之道，不偏不倚", effects: [{ field: "stats.tianfu", add: 3 }, { field: "stats.qiyun", add: -2 }] },
-    { name: "佛系青年", type: "neutral", desc: "气运+3，天赋-2，一切随缘，该来的总会来", effects: [{ field: "stats.qiyun", add: 3 }, { field: "stats.tianfu", add: -2 }] },
-    { name: "平平无奇", type: "neutral", desc: "平凡也是一种特质", effects: [] }
+    { name: "Silver Spoon", type: "positive", desc: "Fortune+5, money solves everything", effects: [{ field: "stats.qiyun", add: 5 }] },
+    { name: "Jinxed", type: "negative", desc: "Fortune-5, cursed since birth", effects: [{ field: "stats.qiyun", add: -5 }] },
+    { name: "Night Owl", type: "neutral", desc: "Wisdom+3, Vitality-3, trains till dawn", effects: [{ field: "stats.wuxing", add: 3 }, { field: "stats.tizhi", add: -3 }] },
+    { name: "Keyboard Knight", type: "negative", desc: "Wisdom-3, Vitality-2, all talk no sword", effects: [{ field: "stats.wuxing", add: -3 }, { field: "stats.tizhi", add: -2 }] },
+    { name: "Cunning Fox", type: "positive", desc: "Fortune+3, Wisdom+1, never fights fair", effects: [{ field: "stats.qiyun", add: 3 }, { field: "stats.wuxing", add: 1 }] },
+    { name: "Wild Blood", type: "neutral", desc: "Vitality+5, Wisdom-4, breaks everything", effects: [{ field: "stats.tizhi", add: 5 }, { field: "stats.wuxing", add: -4 }] },
+    { name: "Lovesick", type: "negative", desc: "Wisdom-5, only thinks of THAT person", effects: [{ field: "stats.wuxing", add: -5 }] },
+    { name: "Glutton", type: "neutral", desc: "Vitality+3, Valor-1, spends all coin on food", effects: [{ field: "stats.tizhi", add: 3 }, { field: "stats.tianfu", add: -1 }] },
+    { name: "Overconfident", type: "negative", desc: "Fortune-2, Valor-2, so ordinary yet so sure", effects: [{ field: "stats.qiyun", add: -2 }, { field: "stats.tianfu", add: -2 }] },
+    { name: "Wasted Effort", type: "negative", desc: "Vitality-2, Valor-2, trains wrong every day", effects: [{ field: "stats.tizhi", add: -2 }, { field: "stats.tianfu", add: -2 }] },
+    { name: "Balanced Path", type: "neutral", desc: "Valor+3, Fortune-2, steady and true", effects: [{ field: "stats.tianfu", add: 3 }, { field: "stats.qiyun", add: -2 }] },
+    { name: "Fatalist", type: "neutral", desc: "Fortune+3, Valor-2, whatever will be, will be", effects: [{ field: "stats.qiyun", add: 3 }, { field: "stats.tianfu", add: -2 }] },
+    { name: "Unremarkable", type: "neutral", desc: "Being ordinary is a talent in itself", effects: [] }
 
   ],
 
-  // 童年事件（1-10岁专属，数值增减较少）
+  // Childhood events (ages 1-10 only, small stat changes)
   childhoodEvents: [
-    { text: "学会走路，摇摇晃晃地扑向母亲。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 1 }, { field: "age", op: "<=", value: 3 }] }, effects: [{ field: "stats.tizhi", add: 1 }] },
-    { text: "第一次开口说话，口齿不清地喊着'修仙'。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 1 }, { field: "age", op: "<=", value: 3 }] }, effects: [{ field: "stats.tianfu", add: 1 }] },
-    { text: "在院子里追逐蝴蝶，摔了一跤但笑得很开心。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 2 }, { field: "age", op: "<=", value: 5 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: 1 }] },
-    { text: "偷吃家里的灵果，肚子胀了一整天。", chance: 0.05, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 3 }, { field: "age", op: "<=", value: 6 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.wuxing", add: -1 }] },
-    { text: "听爷爷讲修仙故事，眼睛里闪烁着光芒。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 3 }, { field: "age", op: "<=", value: 7 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
-    { text: "和邻居小孩打架，打赢了但也挂彩了。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: -1 }] },
-    { text: "在溪边捡到一颗漂亮的石头，当作宝贝收藏。", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.qiyun", add: 2 }] },
-    { text: "被父亲逼着背诵《三字经》，背得磕磕巴巴。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
-    { text: "帮家里喂鸡，被大公鸡追着跑了半个村子。", chance: 0.05, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.tizhi", add: 1 }] },
-    { text: "第一次尝试打坐，结果坐着睡着了。", chance: 0.05, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 6 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "cultivation", add: 10 }, { field: "stats.wuxing", add: 1 }] },
-    { text: "在山脚下发现一株野生草药，卖了个好价钱。", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 6 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "stats.qiyun", add: 1 }, { field: "cultivation", add: 15 }] },
-    { text: "跟村里的武师学了一套拳法，练得有模有样。", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 7 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "stats.tizhi", add: 2 }] },
-    { text: "发了一场高烧，梦里似乎看到了仙人。", chance: 0.03, color: "c-rare", trigger: { all: [{ field: "age", op: ">=", value: 2 }, { field: "age", op: "<=", value: 6 }] }, effects: [{ field: "stats.tianfu", add: 2 }, { field: "stats.tizhi", add: -1 }] },
-    { text: "偷偷下河游泳，差点被水冲走。", chance: 0.04, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: -1 }] },
-    { text: "过生日时长辈送了一块平安符。", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 3 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.qiyun", add: 2 }] },
-    { text: "躺在草地上数星星，不知不觉睡着了。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
-    { text: "被村里的恶犬追赶，爬上了树才脱险。", chance: 0.04, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: -1 }] },
-    { text: "第一次学写字，毛笔字歪歪扭扭像蚯蚓。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
-    { text: "帮母亲捶背，被夸奖是个懂事的孩子。", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 6 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: 1 }] },
-    { text: "雨后捉到一只大蚯蚓，吓得甩到了妹妹脸上。", chance: 0.04, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.wuxing", add: -1 }] }
+    { text: "Took your first steps, wobbling toward your mother.", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 1 }, { field: "age", op: "<=", value: 3 }] }, effects: [{ field: "stats.tizhi", add: 1 }] },
+    { text: "Spoke your first word — 'sword!'", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 1 }, { field: "age", op: "<=", value: 3 }] }, effects: [{ field: "stats.tianfu", add: 1 }] },
+    { text: "Chased butterflies in the courtyard, tripped and fell but laughed it off.", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 2 }, { field: "age", op: "<=", value: 5 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: 1 }] },
+    { text: "Snuck into the kitchen and ate an entire pie. Stomachache all day.", chance: 0.05, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 3 }, { field: "age", op: "<=", value: 6 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.wuxing", add: -1 }] },
+    { text: "Listened to grandfather's tales of great battles, eyes sparkling.", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 3 }, { field: "age", op: "<=", value: 7 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
+    { text: "Got into a scuffle with the neighbor's kid. Won, but got a black eye.", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: -1 }] },
+    { text: "Found a shiny stone by the stream and kept it as a treasure.", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.qiyun", add: 2 }] },
+    { text: "Father made you memorize the Knight's Code. You stumbled through it.", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
+    { text: "Helped feed the chickens. The rooster chased you across the whole village.", chance: 0.05, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.tizhi", add: 1 }] },
+    { text: "Tried to meditate like a monk. Fell asleep sitting up.", chance: 0.05, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 6 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "cultivation", add: 10 }, { field: "stats.wuxing", add: 1 }] },
+    { text: "Found a wild herb by the hillside and sold it for a good price.", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 6 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "stats.qiyun", add: 1 }, { field: "cultivation", add: 15 }] },
+    { text: "Learned a set of basic sword forms from the village guard.", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 7 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "stats.tizhi", add: 2 }] },
+    { text: "Caught a high fever. In your delirium, you dreamt of a great knight.", chance: 0.03, color: "c-rare", trigger: { all: [{ field: "age", op: ">=", value: 2 }, { field: "age", op: "<=", value: 6 }] }, effects: [{ field: "stats.tianfu", add: 2 }, { field: "stats.tizhi", add: -1 }] },
+    { text: "Sneaked off to swim in the river. Nearly got swept away.", chance: 0.04, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: -1 }] },
+    { text: "An elder gave you a lucky charm for your birthday.", chance: 0.04, color: "c-uncommon", trigger: { all: [{ field: "age", op: ">=", value: 3 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.qiyun", add: 2 }] },
+    { text: "Lay in the fields counting stars and drifted off to sleep.", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
+    { text: "Got chased by the blacksmith's dog. Climbed a tree to escape.", chance: 0.04, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 9 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: -1 }] },
+    { text: "Tried writing your first letters. They looked like worms on paper.", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 5 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.wuxing", add: 1 }] },
+    { text: "Helped your mother with the washing. She called you a good child.", chance: 0.05, color: "c-common", trigger: { all: [{ field: "age", op: ">=", value: 6 }, { field: "age", op: "<=", value: 10 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.qiyun", add: 1 }] },
+    { text: "Caught a frog after the rain and threw it at your sister's face.", chance: 0.04, color: "c-funny", trigger: { all: [{ field: "age", op: ">=", value: 4 }, { field: "age", op: "<=", value: 8 }] }, effects: [{ field: "stats.tizhi", add: 1 }, { field: "stats.wuxing", add: -1 }] }
   ],
 
-  // 童年专用填充文本（1-10岁未触发事件时使用）
+  // Childhood filler text (used when no childhood event triggers, ages 1-10)
   childhoodFillers: [
-    "在院子里追着蜻蜓跑了一整天。",
-    "和小伙伴玩捉迷藏，躲在草垛里睡着了。",
-    "趴在父亲膝头听他讲村里的趣事。",
-    "用树枝在地上画着想象中的飞剑。",
-    "抱着母亲的腿撒娇，讨要糖葫芦。"
+    "Chased dragonflies around the yard all day.",
+    "Played hide-and-seek with friends and fell asleep in a haystack.",
+    "Sat on father's knee listening to tales of brave knights.",
+    "Drew imaginary swords in the dirt with a stick.",
+    "Begged mother for a honey cake."
   ],
 
   fillers: [
-    "打坐修炼，感觉今天灵气有点稀薄。",
-    "盯着洞府顶部的蜘蛛网发呆，若有所悟。",
-    "试图用眼神杀死一只蚊子，失败了。",
-    "整理储物袋，发现里面只有几块下品灵石。",
-    { male: "回忆起村口的二丫，叹了口气，继续修炼。", female: "想起当年相亲的村头的二狗子，吓出一身冷汗，赶紧多运转了一个大周天压压惊。" },
-    "练习御剑术，不小心削掉了自己的一缕头发。",
-    "研读《修仙基础理论》，看睡着了。",
-    "感觉心魔在蠢蠢欲动，赶紧喝了口凉水压惊。",
-    { male: "对着镜子感叹自己仙风道骨，帅气逼人。", female: "对着镜子苦恼自己长得太红颜祸水，怕是出门又要引发宗门大战。" },
-    "闭关中，勿扰。"
+    "Practiced sword drills. The training dummy didn't put up much of a fight.",
+    "Stared at the cobwebs in the barracks ceiling, lost in thought.",
+    "Tried to kill a fly with your stare alone. Failed.",
+    "Sorted through your coin pouch. Found nothing but copper.",
+    { male: "Thought of Rosie from the village. Sighed, and went back to training.", female: "Remembered that lad Tom from the village market. Shuddered, and ran an extra lap around the castle walls." },
+    "Practiced archery. Accidentally shot your own hat off.",
+    "Read 'The Basics of Chivalry.' Fell asleep on page two.",
+    "Felt your inner demons stirring. Drank some cold water to calm down.",
+    { male: "Looked in the mirror and admired your rugged, knightly appearance.", female: "Looked in the mirror, worried your beauty would start another war between houses." },
+    "In seclusion. Do not disturb."
   ],
 
   titles: [
-    // 传说称号 - 金色发光
-    { name: "仙帝", color: "#ffd700", rarity: "legendary", desc: "达成条件：修炼至真仙境界", condition: { all: [{ field: "realmIdx", op: ">=", value: 10 }] } },
-    { name: "半步真仙", color: "#ffd700", rarity: "legendary", desc: "达成条件：修炼至渡劫境界", condition: { all: [{ field: "realmIdx", op: "==", value: 9 }] } },
-    { name: "金刚芭比", color: "#ffd700", rarity: "legendary", desc: "达成条件：游戏过程中体质曾经超过100且性别为女", condition: { all: [{ field: "maxTizhi", op: ">", value: 100 }, { field: "gender", op: "==", value: "female" }] } },
-    { name: "绝世欧皇", color: "#ffd700", rarity: "legendary", desc: "达成条件：气运>150，天命之子", condition: { all: [{ field: "stats.qiyun", op: ">", value: 150 }] } },
-    { name: "天选之人", color: "#ffd700", rarity: "legendary", desc: "达成条件：四项属性全部超过50", condition: { all: [{ field: "stats.tianfu", op: ">", value: 50 }, { field: "stats.wuxing", op: ">", value: 50 }, { field: "stats.tizhi", op: ">", value: 50 }, { field: "stats.qiyun", op: ">", value: 50 }] }, hidden: true },
-    { name: "渡劫失败", color: "#ffd700", rarity: "legendary", desc: "达成条件：在渡劫境界陨落", condition: { all: [{ field: "realmIdx", op: "==", value: 9 }] }, hidden: true },
-    { name: "零修飞升", color: "#ffd700", rarity: "legendary", desc: "达成条件：修为从未超过500就达到元婴期", condition: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "maxCultivation", op: "<", value: 500 }] }, hidden: true },
-    { name: "万劫不复", color: "#ffd700", rarity: "legendary", desc: "达成条件：突破失败超过10次", condition: { all: [{ field: "failCount", op: ">=", value: 10 }] }, hidden: true },
+    // Legendary titles — gold glow
+    { name: "High King", color: "#ffd700", rarity: "legendary", desc: "Achieved: Reached the rank of King", condition: { all: [{ field: "realmIdx", op: ">=", value: 10 }] } },
+    { name: "Crown Prince", color: "#ffd700", rarity: "legendary", desc: "Achieved: Reached the rank of Prince", condition: { all: [{ field: "realmIdx", op: "==", value: 9 }] } },
+    { name: "Iron Maiden", color: "#ffd700", rarity: "legendary", desc: "Achieved: Female with Vitality over 100", condition: { all: [{ field: "maxTizhi", op: ">", value: 100 }, { field: "gender", op: "==", value: "female" }] } },
+    { name: "Fortune's Darling", color: "#ffd700", rarity: "legendary", desc: "Achieved: Fortune exceeds 150", condition: { all: [{ field: "stats.qiyun", op: ">", value: 150 }] } },
+    { name: "The Chosen One", color: "#ffd700", rarity: "legendary", desc: "Achieved: All four stats above 50", condition: { all: [{ field: "stats.tianfu", op: ">", value: 50 }, { field: "stats.wuxing", op: ">", value: 50 }, { field: "stats.tizhi", op: ">", value: 50 }, { field: "stats.qiyun", op: ">", value: 50 }] }, hidden: true },
+    { name: "Fallen Prince", color: "#ffd700", rarity: "legendary", desc: "Achieved: Died at the rank of Prince", condition: { all: [{ field: "realmIdx", op: "==", value: 9 }] }, hidden: true },
+    { name: "Unearned Glory", color: "#ffd700", rarity: "legendary", desc: "Achieved: Reached Captain with max renown under 500", condition: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "maxCultivation", op: "<", value: 500 }] }, hidden: true },
+    { name: "Eternal Failure", color: "#ffd700", rarity: "legendary", desc: "Achieved: Failed promotion 10+ times", condition: { all: [{ field: "failCount", op: ">=", value: 10 }] }, hidden: true },
 
-    // 史诗称号 - 紫色微光
-    { name: "天妒英才", color: "#b088ff", rarity: "epic", desc: "达成条件：起手3个正面天赋，却没有活过筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "positive" }, { field: "realmIdx", op: "<", value: 2 }] } },
-    { name: "逆天改命", color: "#b088ff", rarity: "epic", desc: "达成条件：开局3个天赋均为负面天赋，却活过了筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "negative" }, { field: "realmIdx", op: ">=", value: 2 }] } },
-    { name: "绝处逢生", color: "#b088ff", rarity: "epic", desc: "达成条件：体质曾降至5以下后又恢复到50以上", condition: { all: [{ field: "minTizhi", op: "<", value: 5 }, { field: "stats.tizhi", op: ">=", value: 50 }] }, hidden: true },
-    { name: "耐杀王", color: "#b088ff", rarity: "epic", desc: "达成条件：经历2次死亡事件未死", condition: { all: [{ field: "deathEventCount", op: ">=", value: 2 }] } },
-    { name: "大魔法师", color: "#b088ff", rarity: "epic", desc: "达成条件：死时还是童子身(气运>15、年龄>30且未触发南宫婉或合欢宗事件)", condition: { all: [{ field: "stats.qiyun", op: ">", value: 15 }, { field: "age", op: ">", value: 30 }, { field: "hasTriggeredRomance", op: "==", value: false }] } },
-    { name: "百年童子", color: "#b088ff", rarity: "epic", desc: "达成条件：100岁以上仍未触发情缘事件", condition: { all: [{ field: "age", op: ">=", value: 100 }, { field: "hasTriggeredRomance", op: "==", value: false }] }, hidden: true },
+    // Epic titles — purple
+    { name: "Wasted Potential", color: "#b088ff", rarity: "epic", desc: "Achieved: 3 positive talents but died before Squire", condition: { all: [{ field: "startTalentTypes", op: "every", value: "positive" }, { field: "realmIdx", op: "<", value: 2 }] } },
+    { name: "Against All Odds", color: "#b088ff", rarity: "epic", desc: "Achieved: 3 negative talents but survived past Squire", condition: { all: [{ field: "startTalentTypes", op: "every", value: "negative" }, { field: "realmIdx", op: ">=", value: 2 }] } },
+    { name: "Back from the Brink", color: "#b088ff", rarity: "epic", desc: "Achieved: Vitality dropped below 5 then recovered to 50+", condition: { all: [{ field: "minTizhi", op: "<", value: 5 }, { field: "stats.tizhi", op: ">=", value: 50 }] }, hidden: true },
+    { name: "Unkillable", color: "#b088ff", rarity: "epic", desc: "Achieved: Survived 2+ death events", condition: { all: [{ field: "deathEventCount", op: ">=", value: 2 }] } },
+    { name: "The Wizard", color: "#b088ff", rarity: "epic", desc: "Achieved: Died a virgin (Fortune>15, age>30, no romance)", condition: { all: [{ field: "stats.qiyun", op: ">", value: 15 }, { field: "age", op: ">", value: 30 }, { field: "hasTriggeredRomance", op: "==", value: false }] } },
+    { name: "Century Celibate", color: "#b088ff", rarity: "epic", desc: "Achieved: 100+ years old with no romance", condition: { all: [{ field: "age", op: ">=", value: 100 }, { field: "hasTriggeredRomance", op: "==", value: false }] }, hidden: true },
 
-    // 稀有称号 - 绿色高亮
-    { name: "龙套之王", color: "#50c878", rarity: "rare", desc: "达成条件：元婴以下，活过150岁", condition: { all: [{ field: "realmIdx", op: "<", value: 4 }, { field: "age", op: ">", value: 150 }] } },
-    { name: "万年王八", color: "#50c878", rarity: "rare", desc: "达成条件：死亡时>300岁，太能苟了", condition: { all: [{ field: "age", op: ">", value: 300 }] } },
-    { name: "铁头娃", color: "#50c878", rarity: "rare", desc: "达成条件：突破失败超过3次", condition: { all: [{ field: "failCount", op: ">", value: 3 }] } },
-    { name: "软饭硬吃", color: "#50c878", rarity: "rare", desc: "达成条件：触发'不可描述的事'且'合欢宗'事件>5次", condition: { all: [{ field: "hasTriggeredIndescribable", op: "==", value: true }, { field: "hehuanzongCount", op: ">", value: 5 }] } },
-    { name: "凡人修仙", color: "#50c878", rarity: "rare", desc: "达成条件：体质<5 且活过50岁", condition: { all: [{ field: "stats.tizhi", op: "<", value: 5 }, { field: "age", op: ">", value: 50 }] } },
-    { name: "摸鱼大师", color: "#50c878", rarity: "rare", desc: "达成条件：年龄超过100岁但还在金丹以下摸鱼", condition: { all: [{ field: "age", op: ">", value: 100 }, { field: "realmIdx", op: "<=", value: 3 }] } },
-    { name: "十里坡剑神", color: "#50c878", rarity: "rare", desc: "达成条件：炼气期活过100岁", condition: { all: [{ field: "realmIdx", op: "==", value: 1 }, { field: "age", op: ">", value: 100 }] } },
-    { name: "出道即巅峰", color: "#50c878", rarity: "rare", desc: "达成条件：死时除体质外任意一属性小于初始值", condition: { all: [{ field: "declinedStats", op: ">", value: 0 }] } },
-    { name: "键盘侠", color: "#50c878", rarity: "rare", desc: "达成条件：死于天降键盘", condition: { all: [{ field: "deathReason", op: "includes", value: "键盘" }] } },
-    { name: "代码修仙", color: "#50c878", rarity: "rare", desc: "达成条件：触发程序员事件", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["程序", "Bug", "代码"] }] } },
-    { name: "吃货", color: "#50c878", rarity: "rare", desc: "达成条件：死于喝奶茶或电饭煲", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["奶茶", "电饭煲"] }] } },
+    // Rare titles — green
+    { name: "King of Extras", color: "#50c878", rarity: "rare", desc: "Achieved: Below Captain rank but lived 150+ years", condition: { all: [{ field: "realmIdx", op: "<", value: 4 }, { field: "age", op: ">", value: 150 }] } },
+    { name: "Old Tortoise", color: "#50c878", rarity: "rare", desc: "Achieved: Died at age 300+", condition: { all: [{ field: "age", op: ">", value: 300 }] } },
+    { name: "Hardheaded", color: "#50c878", rarity: "rare", desc: "Achieved: Failed promotion 3+ times", condition: { all: [{ field: "failCount", op: ">", value: 3 }] } },
+    { name: "Gold Digger", color: "#50c878", rarity: "rare", desc: "Achieved: Triggered unspeakable events and Siren's Court 5+ times", condition: { all: [{ field: "hasTriggeredIndescribable", op: "==", value: true }, { field: "hehuanzongCount", op: ">", value: 5 }] } },
+    { name: "Peasant Hero", color: "#50c878", rarity: "rare", desc: "Achieved: Vitality<5 and lived past 50", condition: { all: [{ field: "stats.tizhi", op: "<", value: 5 }, { field: "age", op: ">", value: 50 }] } },
+    { name: "Master Slacker", color: "#50c878", rarity: "rare", desc: "Achieved: Age 100+ but still at Knight rank or below", condition: { all: [{ field: "age", op: ">", value: 100 }, { field: "realmIdx", op: "<=", value: 3 }] } },
+    { name: "Forever a Page", color: "#50c878", rarity: "rare", desc: "Achieved: Page rank for 100+ years", condition: { all: [{ field: "realmIdx", op: "==", value: 1 }, { field: "age", op: ">", value: 100 }] } },
+    { name: "Peaked Early", color: "#50c878", rarity: "rare", desc: "Achieved: Any non-Vitality stat declined from starting value", condition: { all: [{ field: "declinedStats", op: ">", value: 0 }] } },
+    { name: "Keyboard Warrior", color: "#50c878", rarity: "rare", desc: "Achieved: Died from a falling keyboard", condition: { all: [{ field: "deathReason", op: "includes", value: "keyboard" }] } },
+    { name: "Code Knight", color: "#50c878", rarity: "rare", desc: "Achieved: Died from a programming error", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["program", "Bug", "code"] }] } },
+    { name: "Glutton's End", color: "#50c878", rarity: "rare", desc: "Achieved: Died from ale or cauldron", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["ale", "cauldron"] }] } },
 
-    // 普通称号 - 无特效
-    { name: "非酋", color: "#dccbb5", rarity: "common", desc: "达成条件：气运<-5，脸黑如炭", condition: { all: [{ field: "stats.qiyun", op: "<", value: -5 }] } },
-    { name: "智商欠费", color: "#dccbb5", rarity: "common", desc: "达成条件：死亡时悟性<10", condition: { all: [{ field: "stats.wuxing", op: "<", value: 10 }] } },
-    { name: "绿化带之主", color: "#dccbb5", rarity: "common", desc: "达成条件：气运<0 但活过30岁", condition: { all: [{ field: "stats.qiyun", op: "<", value: 0 }, { field: "age", op: ">", value: 30 }] } },
-    { name: "就这？", color: "#dccbb5", rarity: "common", desc: "达成条件：10岁前夭折", condition: { all: [{ field: "age", op: "<", value: 10 }] } },
-    { name: "天选打工人", color: "#dccbb5", rarity: "common", desc: "达成条件：死于工地或猝死", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["老板", "猝死"] }] } },
-    { name: "无名小卒", color: "#dccbb5", rarity: "common", desc: "达成条件：平平淡淡过一生", condition: { all: [{ field: "always", op: "==", value: true }] } },
-    { name: "平平无奇", color: "#dccbb5", rarity: "common", desc: "达成条件：开局3个天赋均为中性天赋，却活过了筑基期", condition: { all: [{ field: "startTalentTypes", op: "every", value: "neutral" }, { field: "realmIdx", op: ">=", value: 2 }] } }
+    // Common titles — no special effects
+    { name: "Cursed Soul", color: "#dccbb5", rarity: "common", desc: "Achieved: Fortune below -5", condition: { all: [{ field: "stats.qiyun", op: "<", value: -5 }] } },
+    { name: "Dim-Witted", color: "#dccbb5", rarity: "common", desc: "Achieved: Wisdom below 10 at death", condition: { all: [{ field: "stats.wuxing", op: "<", value: 10 }] } },
+    { name: "Hapless Survivor", color: "#dccbb5", rarity: "common", desc: "Achieved: Fortune<0 but lived past 30", condition: { all: [{ field: "stats.qiyun", op: "<", value: 0 }, { field: "age", op: ">", value: 30 }] } },
+    { name: "That's It?", color: "#dccbb5", rarity: "common", desc: "Achieved: Died before age 10", condition: { all: [{ field: "age", op: "<", value: 10 }] } },
+    { name: "Born to Serve", color: "#dccbb5", rarity: "common", desc: "Achieved: Died of overwork or by the lord's hand", condition: { all: [{ field: "deathReason", op: "includesAny", value: ["lord", "overwork"] }] } },
+    { name: "Nobody", color: "#dccbb5", rarity: "common", desc: "Achieved: An unremarkable life", condition: { all: [{ field: "always", op: "==", value: true }] } },
+    { name: "Perfectly Average", color: "#dccbb5", rarity: "common", desc: "Achieved: 3 neutral talents and reached Squire+", condition: { all: [{ field: "startTalentTypes", op: "every", value: "neutral" }, { field: "realmIdx", op: ">=", value: 2 }] } }
   ],
 
   events: [
-    { text: "0岁：你出生了。", trigger: { all: [{ field: "age", op: "==", value: 0 }] } },
-    { text: "3岁：在村口玩泥巴。", trigger: { all: [{ field: "age", op: "==", value: 3 }] } },
+    { text: "Age 0: You were born.", trigger: { all: [{ field: "age", op: "==", value: 0 }] } },
+    { text: "Age 3: Playing in the mud outside the village.", trigger: { all: [{ field: "age", op: "==", value: 3 }] } },
 
-    { text: "捡到一个绿色小瓶，滴出的液体能催熟灵药！", chance: 0.005, color: "c-green", effects: [{ field: "stats.wuxing", add: 10 }, { field: "stats.qiyun", add: 10 }] },
-    { text: "遇到一位名为‘厉飞雨’的友人，从此种下了心魔", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "<", value: 2 }] }, effects: [{ field: "stats.tizhi", add: 2 }] },
-    { text: "遭遇强敌，你眉头一皱，退至众人身后……", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: ">", value: 1 }] }, effects: [{ field: "stats.qiyun", add: 2 }] },
-    { text: "参加血色试炼，利用隐匿符苟到了最后，采摘了千年灵药。", chance: 0.01, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "==", value: 1 }] }, effects: [{ field: "cultivation", add: 500 }, { field: "stats.wuxing", add: 2 }] },
-    { text: "偶遇‘南宫婉’，发生了一些不可描述的事...", chance: 0.005, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.tizhi", add: -5 }, { field: "stats.qiyun", add: 5 }, { field: "cultivation", add: 1000 }] },
-    { text: "偶遇'韩立'，发生了一些不可描述的事...", chance: 0.005, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: -5 }, { field: "stats.qiyun", add: 5 }, { field: "cultivation", add: 1000 }] },
-    { text: "炼制筑基丹，炸炉了三十次终于成功。", chance: 0.03, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "==", value: 1 }] }, effects: [{ field: "cultivation", add: 200 }] },
-    { text: "获得一本秘籍，第一页写着“欲练此功……”", chance: 0.01, color: "c-green", trigger: { all: [{ field: "realmIdx", op: ">=", value: 3 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.tianfu", add: 5 }] },
-    { text: "借高利贷炒“飞剑股”失败，被钱庄打手堵在洞府门口活活打死。", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "==", value: 0 }] }, effects: [{ field: "stats.wuxing", add: 3 }, { field: "stats.qiyun", add: 2 }] },
-    { text: "在乱星海猎杀妖兽，获得了一枚六级妖丹。", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: ">=", value: 3 }] }, effects: [{ field: "cultivation", add: 600 }] },
-    { text: "大喊一声‘道友请留步’，对方吓得落荒而逃。", chance: 0.02, color: "c-green" },
+    // Positive / story events
+    { text: "Found a green vial in the woods. The liquid inside can polish any blade to perfection!", chance: 0.005, color: "c-green", effects: [{ field: "stats.wuxing", add: 10 }, { field: "stats.qiyun", add: 10 }] },
+    { text: "Met a wandering knight named 'Sir Storm.' He taught you a few tricks.", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "<", value: 2 }] }, effects: [{ field: "stats.tizhi", add: 2 }] },
+    { text: "Faced a fearsome enemy. You narrowed your eyes and retreated behind your allies...", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: ">", value: 1 }] }, effects: [{ field: "stats.qiyun", add: 2 }] },
+    { text: "Entered a bloody tournament. Hid behind a pillar until the end and claimed the prize.", chance: 0.01, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "==", value: 1 }] }, effects: [{ field: "cultivation", add: 500 }, { field: "stats.wuxing", add: 2 }] },
+    { text: "Encountered Lady Guinevere. Something unspeakable happened...", chance: 0.005, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.tizhi", add: -5 }, { field: "stats.qiyun", add: 5 }, { field: "cultivation", add: 1000 }] },
+    { text: "Encountered Sir Lancelot. Something unspeakable happened...", chance: 0.005, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: -5 }, { field: "stats.qiyun", add: 5 }, { field: "cultivation", add: 1000 }] },
+    { text: "Tried to forge a sword. Broke thirty blades before finally succeeding.", chance: 0.03, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "==", value: 1 }] }, effects: [{ field: "cultivation", add: 200 }] },
+    { text: "Found an ancient scroll. The first line read: 'To master this art...'", chance: 0.01, color: "c-green", trigger: { all: [{ field: "realmIdx", op: ">=", value: 3 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.tianfu", add: 5 }] },
+    { text: "Took a loan to invest in 'Flying Horse Stock.' Got beaten by the moneylender's thugs.", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: "==", value: 0 }] }, effects: [{ field: "stats.wuxing", add: 3 }, { field: "stats.qiyun", add: 2 }] },
+    { text: "Slew a fearsome beast in the Darkwood. Found a Grade-6 monster core.", chance: 0.02, color: "c-green", trigger: { all: [{ field: "realmIdx", op: ">=", value: 3 }] }, effects: [{ field: "cultivation", add: 600 }] },
+    { text: "Shouted 'Stand and deliver!' The enemy panicked and fled.", chance: 0.02, color: "c-green" },
 
-    { text: "捡到一张显卡【9090】，试图将其炼化为本命法宝，悟性+1。", chance: 0.01, color: "c-funny", effects: [{ field: "stats.wuxing", add: 1 }] },
-    { text: "路边的狗看了你一眼，你觉得它在鄙视你的修为。", chance: 0.02, color: "c-funny", effects: [{ field: "stats.wuxing", add: 1 }] },
-    { text: "顿悟了！原来修仙就是修个寂寞。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "stats.wuxing", op: ">", value: 10 }] }, effects: [{ field: "cultivation", add: 300 }] },
-    { text: "下山历练，在路边摊买到了假冒伪劣的‘九转还魂丹’，气运-2。", chance: 0.02, color: "c-funny", effects: [{ field: "stats.qiyun", add: -2 }] },
-    { text: "遭遇雷劫，你拿出一根避雷针，天道表示无语。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }] }, effects: [{ field: "stats.tizhi", add: 2 }] },
-    { text: "发现一本《三年修仙五年元婴》，研读后修为大增。", chance: 0.02, color: "c-funny", effects: [{ field: "stats.wuxing", add: 2 }] },
-    { text: "一位道友问你是否听说过'安利'，你差点被拉入传销宗门。", chance: 0.02, color: "c-funny" },
-    { text: "你发现掌门的WIFI密码是'12345678'，成功蹭网修炼。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 1 }] }, effects: [{ field: "cultivation", add: 50 }] },
-    { text: "有人送你一把'98K'，你发现这玩意儿比飞剑好用。", chance: 0.01, color: "c-funny" },
-    { text: "你试图跟妖兽讲道理，妖兽表示它只听得懂英语。", chance: 0.01, color: "c-funny" },
+    // Funny events
+    { text: "Found a strange contraption labeled 'GPU 9090.' Tried to use it as a shield. Wisdom+1.", chance: 0.01, color: "c-funny", effects: [{ field: "stats.wuxing", add: 1 }] },
+    { text: "A stray dog by the road gave you a look of pure disdain.", chance: 0.02, color: "c-funny", effects: [{ field: "stats.wuxing", add: 1 }] },
+    { text: "Had an epiphany! Turns out being a knight is just being lonely with a sword.", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "stats.wuxing", op: ">", value: 10 }] }, effects: [{ field: "cultivation", add: 300 }] },
+    { text: "Bought a 'Miracle Healing Potion' from a roadside stall. It was just colored water. Fortune-2.", chance: 0.02, color: "c-funny", effects: [{ field: "stats.qiyun", add: -2 }] },
+    { text: "Lightning struck during a storm. You pulled out an umbrella. The gods were not amused.", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }] }, effects: [{ field: "stats.tizhi", add: 2 }] },
+    { text: "Found a book: 'Three Years a Page, Five Years a Knight.' Your training improved.", chance: 0.02, color: "c-funny", effects: [{ field: "stats.wuxing", add: 2 }] },
+    { text: "A strange fellow asked if you'd heard of 'Amway.' You nearly joined his cult.", chance: 0.02, color: "c-funny" },
+    { text: "Discovered the castle master's WiFi password is '12345678.' Free training resources!", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 1 }] }, effects: [{ field: "cultivation", add: 50 }] },
+    { text: "Someone gave you a crossbow called the '98K.' Turns out it's better than a sword.", chance: 0.01, color: "c-funny" },
+    { text: "You tried reasoning with a dragon. It said it only speaks French.", chance: 0.01, color: "c-funny" },
 
-    { text: "喝奶茶呛到了气管，不仅没升仙，反而升天了。", chance: 0.001, isDeath: true },
-    { text: "修炼时程序报错：Segmentation Fault，你的灵魂崩溃了。", chance: 0.001, isDeath: true },
-    { text: "被天降键盘砸中头部，当场暴毙。", chance: 0.001, isDeath: true },
-    { text: "因为太帅，被疯狂的女修们围堵踩踏致死。", chance: 0.002, trigger: { all: [{ field: "stats.tianfu", op: ">", value: 15 }] }, isDeath: true },
-    { text: "忘记了呼吸，窒息而亡（这也行？）。", chance: 0.001, isDeath: true },
-    { text: "渡劫关键时刻，天道服务器连接超时，卡在半空被雷劈焦。", chance: 0.001, isDeath: true },
-    { text: "试图用电饭煲炼丹，发生高压爆炸。", chance: 0.002, isDeath: true },
-    { text: "御剑飞行超速，与前面的仙鹤发生惨烈追尾。", chance: 0.001, isDeath: true },
-    { text: "熬夜完成炼丹KPI，猝死。", chance: 0.002, isDeath: true },
-    { text: "卡BUG刷灵石被天道（老板）发现，直接被抹除数据。", chance: 0.001, trigger: { all: [{ field: "stats.wuxing", op: ">", value: 10 }] }, isDeath: true },
-    { text: "被合欢宗妖女抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.tizhi", add: -10 }, { field: "cultivation", add: -100 }] },
-    { text: "被合欢宗男修抓走，身体被掏空...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: -10 }, { field: "cultivation", add: -100 }] },
+    // Death events
+    { text: "Choked on ale and ascended — not to knighthood, but to heaven.", chance: 0.001, isDeath: true },
+    { text: "Training program error: Segmentation Fault. Your soul crashed.", chance: 0.001, isDeath: true },
+    { text: "A keyboard fell from the sky and struck you dead.", chance: 0.001, isDeath: true },
+    { text: "Too handsome. Trampled to death by a mob of admirers.", chance: 0.002, trigger: { all: [{ field: "stats.tianfu", op: ">", value: 15 }] }, isDeath: true },
+    { text: "Forgot to breathe. Suffocated. (How is that even possible?)", chance: 0.001, isDeath: true },
+    { text: "During the final trial, the server timed out. Struck by lightning while frozen mid-air.", chance: 0.001, isDeath: true },
+    { text: "Tried to brew potions in a cauldron. It exploded.", chance: 0.002, isDeath: true },
+    { text: "Rode your horse too fast. Rear-ended a hay cart. Fatal collision.", chance: 0.001, isDeath: true },
+    { text: "Stayed up all night to meet the alchemy KPI. Died of overwork.", chance: 0.002, isDeath: true },
+    { text: "Caught exploiting a code bug by the lord (your boss). Existence deleted.", chance: 0.001, trigger: { all: [{ field: "stats.wuxing", op: ">", value: 10 }] }, isDeath: true },
+    { text: "Captured by a Siren's Court enchantress. Drained of all energy...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.tizhi", add: -10 }, { field: "cultivation", add: -100 }] },
+    { text: "Captured by a Siren's Court warlock. Drained of all energy...", chance: 0.003, color: "c-death", trigger: { all: [{ field: "realmIdx", op: ">=", value: 2 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: -10 }, { field: "cultivation", add: -100 }] },
 
-    // 减修为搞笑事件 - 负面事件，需要气运判定豁免
-    // 豁免条件：气运 > (realmIdx*2+3)*10
-    { text: "修炼时走火入魔，修为倒退十年！", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
-    { text: "被心魔诱惑，沉迷网络游戏，荒废了修炼。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
-    { text: "误食了有毒的灵果，拉肚子拉了一整天，修为尽失。", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
-    { text: "被一只会说话的鹦鹉骗了，把修为传给了它。", chance: 0.01, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
-    { text: "试图用科学方法修仙，结果走火入魔，修为大跌。", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
-    { text: "被一只会卖萌的妖兽骗了，把修为都用来买它的零食。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
-    { text: "修炼时睡着了，醒来发现修为被老鼠偷走了。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
-    { text: "试图用意念控制飞剑，结果飞剑失控，修为受损。", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
-    { text: "被一只会唱歌的青蛙迷惑，修为都被它吸走了。", chance: 0.01, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
-    { text: "试图用炼丹炉煮火锅，结果炸炉，修为倒退。", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    // Negative funny events — renown loss with Fortune exemption
+    { text: "Lost control during training. Set back ten years!", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "Inner demons got the best of you. Spent weeks playing tavern games instead of training.", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "Ate a poisonous mushroom. Spent all day in the outhouse. Lost all progress.", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "Got tricked by a talking parrot. Somehow transferred all your renown to it.", chance: 0.01, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "Tried applying science to swordsmanship. Had a breakdown. Renown plummeted.", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "A cute baby dragon bamboozled you into spending all your renown on its snacks.", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "Fell asleep during training. Woke up to find a mouse had stolen your progress notes.", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "Tried to control your sword with your mind. The sword went rogue. You got hurt.", chance: 0.015, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "A singing frog mesmerized you. It absorbed all your renown.", chance: 0.01, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
+    { text: "Used the alchemy furnace to cook stew. It exploded. Renown gone.", chance: 0.02, isNegative: true, color: "c-funny", effects: [{ field: "cultivation", percent: true }] },
 
-    // 高天赋专属事件 - 需要天赋达到一定值才能触发
-    { text: "天生异象，紫气东来三万里！你顿悟了无上大道。", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 10 }] }, effects: [{ field: "cultivation", add: 2000 }, { field: "stats.wuxing", add: 5 }] },
-    { text: "梦中得仙人指点，领悟了一门失传的上古神通。", chance: 0.015, color: "c-epic", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 8 }] }, effects: [{ field: "cultivation", add: 800 }, { field: "stats.qiyun", add: 3 }] },
-    { text: "你的修炼速度远超常人，宗门长老惊叹你为千年难遇的奇才。", chance: 0.02, color: "c-rare", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 6 }] }, effects: [{ field: "cultivation", add: 400 }, { field: "stats.tianfu", add: 1 }] },
-    { text: "参悟天地法则时，你隐约触摸到了了一丝大道真意。", chance: 0.025, color: "c-uncommon", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 200 }, { field: "stats.wuxing", add: 1 }] },
+    // High-Valor events — require high Valor to trigger
+    { text: "A great omen! Purple clouds stretched across the sky. You grasped the way of the blade.", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 10 }] }, effects: [{ field: "cultivation", add: 2000 }, { field: "stats.wuxing", add: 5 }] },
+    { text: "A spirit visited you in a dream, teaching you a lost ancient technique.", chance: 0.015, color: "c-epic", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 8 }] }, effects: [{ field: "cultivation", add: 800 }, { field: "stats.qiyun", add: 3 }] },
+    { text: "Your training speed astounds the elders. They call you a once-in-a-century prodigy.", chance: 0.02, color: "c-rare", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 6 }] }, effects: [{ field: "cultivation", add: 400 }, { field: "stats.tianfu", add: 1 }] },
+    { text: "While studying the laws of combat, you glimpsed a faint trace of the ultimate truth.", chance: 0.025, color: "c-uncommon", trigger: { all: [{ field: "stats.tianfu", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 200 }, { field: "stats.wuxing", add: 1 }] },
 
-    // 女修专属事件 - 仅限女性角色触发
-    { text: "捡到【比基尼款九天玄女甲】，穿上后因皮肤直接接触天地灵气，修炼效率翻倍。", chance: 0.01, color: "c-purple", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tianfu", add: 3 }] },
-    { text: "被魔教少主壁咚霸道示爱，你反手一个大嘴巴子将其抽飞，顿悟了'心中无男人，拔刀自然神'的真谛。", chance: 0.01, color: "c-purple", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.wuxing", add: 5 }] },
-    { text: "闭关减肥饿昏了头，把师父养的'招财灵蟾'生吞了，虽然拉了三天肚子，但肉身强度暴涨。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: 10 }] },
-    { text: "沉迷修仙界'盲盒'抽奖，散尽家财只抽到一堆'谢谢惠顾'的空丹瓶。", chance: 0.015, color: "c-red", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.qiyun", add: -5 }] },
-    { text: "识破了绿茶师妹的'哥哥我不是故意的'装柔弱把戏，当众将其踹下擂台，念头通达，灵力暴涨。", chance: 0.012, color: "c-green", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "cultivation", add: 50 }] },
+    // Female-only events
+    { text: "Found the Chainmail Bikini of the War Goddess. The skin-to-air contact doubled your training efficiency.", chance: 0.01, color: "c-purple", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tianfu", add: 3 }] },
+    { text: "A dark lord cornered you for a dramatic confession. You slapped him into next week. Enlightenment: 'No men, no problems.'", chance: 0.01, color: "c-purple", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.wuxing", add: 5 }] },
+    { text: "Fasted to lose weight. Got so hungry you swallowed the castle's pet frog whole. Vitality surged.", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.tizhi", add: 10 }] },
+    { text: "Spent all your gold on mystery loot boxes. Got nothing but empty vials labeled 'Thanks for playing.'", chance: 0.015, color: "c-red", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.qiyun", add: -5 }] },
+    { text: "Exposed a scheming rival's 'Oh I'm so helpless' act and kicked her off the sparring ring. Clarity achieved.", chance: 0.012, color: "c-green", trigger: { all: [{ field: "gender", op: "==", value: "female" }] }, effects: [{ field: "cultivation", add: 50 }] },
 
-    // 元婴期专属事件 - 达到元婴之后才可触发
-    { text: "神识外放八百里，本想搜寻天材地宝，结果听了一整晚隔壁合欢宗长老的情感纠葛，道心微乱但很刺激。", chance: 0.015, color: "c-purple", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: -4 }, { field: "stats.qiyun", add: 6 }] },
-    { text: "偶遇绝色仙子想结善缘，神识一扫，发现对方神魂竟是个抠脚三万年的糟老头子", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.wuxing", add: -2 }, { field: "stats.qiyun", add: 4 }] },
-    { text: "闭关打了个盹，醒来发现自家宗门已经换了三茬掌门，现在的掌门还得管你的徒孙叫师祖，辈分乱成一锅粥。", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: 6 }, { field: "stats.qiyun", add: -2 }] },
-    { text: "终于明白了'道生一，一生二'原来就是二进制，你对大道的理解达到了全新的维度。", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: 10 }] },
-    { text: "你的本命法宝产生了器灵，但这器灵是个话痨，每天在你识海里喋喋不休。", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.wuxing", add: -2 }] },
-    { text: "看到一株长得像韭菜的千年灵草，随手拔了拿回去炒了鸡蛋，味道有点苦。", chance: 0.015, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.qiyun", add: -2 }] },
-    { text: "将自己的供奉画像过度美化，导致宗门小辈认不出祖师奶", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.wuxing", add: 4 }, { field: "stats.qiyun", add: -2 }] },
+    // Captain+ rank events (realmIdx >= 4)
+    { text: "Extended your scouts 800 miles. Instead of treasure, you overheard the Siren's Court elder's love drama. Disturbing but thrilling.", chance: 0.015, color: "c-purple", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: -4 }, { field: "stats.qiyun", add: 6 }] },
+    { text: "Met a beautiful maiden. Your scouts revealed she's actually a 30,000-year-old geezer in disguise.", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "gender", op: "==", value: "male" }] }, effects: [{ field: "stats.wuxing", add: -2 }, { field: "stats.qiyun", add: 4 }] },
+    { text: "Took a nap during a siege. Woke up to find three new castle masters had come and gone.", chance: 0.01, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: 6 }, { field: "stats.qiyun", add: -2 }] },
+    { text: "Finally understood that 'divide and conquer' is just binary search. Your grasp of strategy reached a new dimension.", chance: 0.01, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.wuxing", add: 10 }] },
+    { text: "Your legendary weapon developed a spirit. Unfortunately, it's a chatterbox that never shuts up.", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.tianfu", add: 4 }, { field: "stats.wuxing", add: -2 }] },
+    { text: "Found a plant that looked like leeks. Picked it and made an omelette. Tasted bitter.", chance: 0.015, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "stats.tizhi", add: 4 }, { field: "stats.qiyun", add: -2 }] },
+    { text: "Over-beautified your official portrait. New recruits can't recognize the Grand Dame.", chance: 0.012, color: "c-funny", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }, { field: "gender", op: "==", value: "female" }] }, effects: [{ field: "stats.wuxing", add: 4 }, { field: "stats.qiyun", add: -2 }] },
 
-    // 元婴期强力事件 - 新增
-    { text: "元婴大成，可分魂夺舍！你顿悟了分身之术，修炼速度倍增。", chance: 0.008, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 2500 }, { field: "stats.tianfu", add: 5 }] },
-    { text: "进入上古修士遗留的小世界，搜刮了三千年积累的资源。", chance: 0.01, color: "c-epic", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 1800 }, { field: "stats.qiyun", add: 5 }] },
-    { text: "闭关冲击化神瓶颈，虽然没成功，但修为精进不少。", chance: 0.02, color: "c-rare", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 1200 }, { field: "stats.wuxing", add: 3 }] }
+    // Captain+ powerful events
+    { text: "Mastered the art of the doppelganger! Your training speed doubled.", chance: 0.008, color: "c-legend", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 2500 }, { field: "stats.tianfu", add: 5 }] },
+    { text: "Discovered an ancient knight's hidden treasury. Looted three centuries' worth of resources.", chance: 0.01, color: "c-epic", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 1800 }, { field: "stats.qiyun", add: 5 }] },
+    { text: "Attempted to break through the Baron bottleneck. Failed, but gained valuable experience.", chance: 0.02, color: "c-rare", trigger: { all: [{ field: "realmIdx", op: ">=", value: 4 }] }, effects: [{ field: "cultivation", add: 1200 }, { field: "stats.wuxing", add: 3 }] }
   ]
 };

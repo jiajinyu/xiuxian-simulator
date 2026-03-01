@@ -2,7 +2,7 @@
 (function () {
   const cfg = window.GAME_CONFIG;
   if (!cfg) {
-    throw new Error("GAME_CONFIG 未加载");
+    throw new Error("GAME_CONFIG not loaded");
   }
   const analyticsCfg = cfg.analytics || {};
   let analyticsReady = false;
@@ -348,17 +348,17 @@
       deathReason: "",
       deathEventCount: 0,
       hasTriggeredRomance: false,
-      hasTriggeredIndescribable: false,  // 是否触发过"不可描述的事"
-      hehuanzongCount: 0,  // 合欢宗事件触发次数
-      gender: null,  // 'male' 或 'female'
-      eventCooldowns: {},  // 事件冷却：{ eventText: 剩余冷却年数 }
-      maxTizhi: 0,  // 游戏过程中体质达到的最大值
-      minTizhi: Infinity,  // 游戏过程中体质达到的最小值（用于"绝处逢生"称号）
-      maxCultivation: 0  // 游戏过程中修为达到的最大值（用于"零修飞升"称号）
+      hasTriggeredIndescribable: false,
+      hehuanzongCount: 0,
+      gender: null,
+      eventCooldowns: {},
+      maxTizhi: 0,
+      minTizhi: Infinity,
+      maxCultivation: 0
     },
 
     init() {
-      const saved = localStorage.getItem("xiuxian_save");
+      const saved = localStorage.getItem("knight_save");
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -370,11 +370,11 @@
             };
           } else {
             this.data = createDefaultData();
-            localStorage.removeItem("xiuxian_save");
+            localStorage.removeItem("knight_save");
           }
         } catch {
           this.data = createDefaultData();
-          localStorage.removeItem("xiuxian_save");
+          localStorage.removeItem("knight_save");
         }
       } else {
         this.data = createDefaultData();
@@ -400,10 +400,10 @@
           bonusEl = document.createElement("div");
           bonusEl.id = "reincarnation-bonus";
           bonusEl.style.cssText = "margin-top:15px; padding:10px; background:rgba(80,200,120,0.15); border:1px solid var(--evt-pos); color:var(--evt-pos); font-size:14px; cursor:help;";
-          bonusEl.title = "上一世结算时最高的属性，可在下一世起始时获得+1加成";
+          bonusEl.title = "Your highest stat from last life grants +1 to that stat in the next life";
           document.getElementById("start-stats").appendChild(bonusEl);
         }
-        bonusEl.innerText = `转世福泽：下一世${statName}+1`;
+        bonusEl.innerText = `Legacy Boon: Next life ${statName}+1`;
         bonusEl.style.display = "block";
       } else if (bonusEl) {
         bonusEl.style.display = "none";
@@ -411,8 +411,8 @@
     },
 
     resetData() {
-      if (confirm("确定要删除所有转世记录和称号吗？")) {
-        localStorage.removeItem("xiuxian_save");
+      if (confirm("Are you sure you want to delete all legacy records and titles?")) {
+        localStorage.removeItem("knight_save");
         location.reload();
       }
     },
@@ -449,20 +449,17 @@
         const rarity = t.rarity || "common";
         if (isUnlocked) unlockedCount++;
 
-        // 隐藏称号未解锁时显示 ???，不显示名称和描述
         let displayName = t.name;
         let displayDesc = t.desc;
         let divClass = `title-card ${rarity}`;
 
         if (isHidden && !isUnlocked) {
-          // 隐藏称号未解锁：只显示 ???，不显示具体信息
           displayName = "???";
-          displayDesc = "隐藏称号 - 待你发掘";
+          displayDesc = "Hidden — yet to be discovered";
           divClass += " hidden-title";
         } else if (isUnlocked) {
           divClass += " unlocked";
         } else if (isHidden) {
-          // 隐藏称号已解锁：正常显示
           divClass += " unlocked";
         }
 
@@ -658,11 +655,11 @@
         this.state.points++;
         this.hideStatWarning();
       } else if (delta < 0 && this.state.stats[key] <= this.state.baseStats[key]) {
-        this.showStatWarning("不可减少天赋自带属性");
+        this.showStatWarning("Cannot reduce below talent bonus");
       }
       // 检查体质是否小于0
       if (key === "tizhi" && this.state.stats[key] <= 0) {
-        this.showStatWarning("初始体质不可小于0");
+        this.showStatWarning("Starting Vitality cannot be negative");
       }
       this.updatePoints();
     },
@@ -727,7 +724,7 @@
         btnStart.disabled = true;
         if (tizhiWarning) {
           tizhiWarning.style.display = "block";
-          tizhiWarning.innerText = "体质不能为负，请调整属性！";
+          tizhiWarning.innerText = "Vitality cannot be negative! Adjust your stats.";
         }
       } else {
         btnStart.disabled = this.state.points !== 0;
@@ -747,11 +744,11 @@
 
       // 初始化体质最大值
       this.state.maxTizhi = this.state.stats.tizhi;
-      const genderText = this.state.gender === "male" ? "男婴" : "女婴";
+      const genderText = this.state.gender === "male" ? "a boy" : "a girl";
       const birthDesc = cfg.birthDesc?.[this.state.gender] || [];
       const desc = birthDesc.length > 0 ? pickRandom(birthDesc) : "";
 
-      this.log(`轮回转世，再踏仙途。你出生时为${genderText}。${desc}`, "c-legend");
+      this.log(`A new life begins. You were born ${genderText}. ${desc}`, "c-legend");
       this.state.timer = setInterval(() => {
         for (let i = 0; i < this.state.speed; i++) {
           this.tick();
@@ -791,7 +788,7 @@
       }
 
       if (this.state.stats.tizhi <= 0) {
-        this.die("寿元耗尽，坐化于洞府。");
+        this.die("Vitality spent. Passed away peacefully.");
         return;
       }
 
@@ -802,7 +799,7 @@
       if (this.state.isDead) return;
 
       if (this.state.stats.tizhi <= 0 && !this.state.isDead) {
-        this.die("寿元耗尽，坐化于洞府。");
+        this.die("Vitality spent. Passed away peacefully.");
         return;
       }
 
@@ -833,9 +830,9 @@
         }
       });
 
-      let message = `<span class="log-age">${this.state.age}岁</span>【调试】本回合修为 ${sign}${delta.toFixed(1)}，当前 ${after.toFixed(1)}`;
+      let message = `<span class="log-age">Age ${this.state.age}</span>[Debug] Renown this tick ${sign}${delta.toFixed(1)}, current ${after.toFixed(1)}`;
       if (statChanges.length > 0) {
-        message += ` | 属性变化: ${statChanges.join(", ")}`;
+        message += ` | Stat changes: ${statChanges.join(", ")}`;
       }
 
       this.log(message, "c-common");
@@ -885,7 +882,7 @@
         const threshold = (s.realmIdx * 2 + 1) * 10;
         const statText = checkStats
           .map(statKey => `${cfg.rules.statLabels?.[statKey] || statKey}=${Number(s.stats[statKey] || 0)}`)
-          .join("，");
+          .join(", ");
 
         if (statScore > threshold) {
           // 突破成功
@@ -895,7 +892,7 @@
           s.stats.tizhi += gain;
           s.stats.tianfu += successTianfuGainValue;
           this.log(
-            `突破瓶颈！判定【${statText}，倍率x${statBonusMul}=${statScore}】超过阈值【${threshold}】，晋升【${cfg.realms[s.realmIdx]}】！体质+${gain}。`,
+            `Promotion achieved! Check [${statText}, x${statBonusMul}=${statScore}] beat threshold [${threshold}]. Advanced to [${cfg.realms[s.realmIdx]}]! Vitality+${gain}.`,
             "c-legend"
           );
         } else {
@@ -903,7 +900,7 @@
           s.cultivation *= failCultivationKeepValue;
           s.failCount++;
           this.log(
-            `冲击【${cfg.realms[s.realmIdx + 1]}】失败！判定【${statText}，倍率x${statBonusMul}=${statScore}】未超过阈值【${threshold}】，修为损失${failPercentText}%。`,
+            `Promotion to [${cfg.realms[s.realmIdx + 1]}] failed! Check [${statText}, x${statBonusMul}=${statScore}] below threshold [${threshold}]. Renown lost ${failPercentText}%.`,
             "c-death"
           );
         }
@@ -914,12 +911,12 @@
         s.stats.tizhi -= loss;
         s.failCount++;
         this.log(
-          `冲击【${cfg.realms[s.realmIdx + 1]}】失败！气血逆流，<span style="color:red">体质-${loss}</span>。`,
+          `Promotion to [${cfg.realms[s.realmIdx + 1]}] failed! Body gave out. <span style="color:red">Vitality-${loss}</span>.`,
           "c-death"
         );
 
         if (s.stats.tizhi <= 0) {
-          this.die(`冲击【${cfg.realms[s.realmIdx + 1]}】失败，气血攻心而亡。`);
+          this.die(`Promotion to [${cfg.realms[s.realmIdx + 1]}] failed. Fatal collapse.`);
         }
       }
     },
@@ -971,7 +968,7 @@
 
 
 
-      let hit = valid.find(e => e.text.includes(`${s.age}岁`));
+      let hit = valid.find(e => e.text.includes(`Age ${s.age}:`));
       if (!hit) {
         const shuffled = [...valid].sort(() => Math.random() - 0.5);
         for (let i = 0; i < shuffled.length; i++) {
@@ -1010,8 +1007,8 @@
           text = rawFiller;
         }
         // 性别适配：替换 filler 中的人名
-        if (s.gender === "female" && text.includes("二丫")) {
-          text = text.replace("二丫", "狗剩");
+        if (s.gender === "female" && text.includes("Rosie")) {
+          text = text.replace("Rosie", "Tom");
         }
         const realmIdx = s.realmIdx || 0;
         const baseValue = (cfg.rules.realmBaseCultivation && cfg.rules.realmBaseCultivation[realmIdx]) || 10;
@@ -1030,7 +1027,7 @@
       }
 
       if (hit.requiresQiyunCheck && s.stats.qiyun < hit.minQiyun) {
-        this.log(`${s.age}岁：遇到机缘但气运不足，错失良机。`, "c-common");
+        this.log(`Age ${s.age}: An opportunity appeared but your Fortune was too low. Missed it.`, "c-common");
         return;
       }
 
@@ -1041,20 +1038,18 @@
       if (eventType === "negative") {
         const threshold = this.getQiyunExemptionThreshold(s.realmIdx);
         if ((s.stats.qiyun || 0) > threshold) {
-          this.log(`${s.age}岁：${hit.text}，但你的气运让你化险为夷！`, "c-legend");
+          this.log(`Age ${s.age}: ${hit.text} But your Fortune saved you!`, "c-legend");
           return;
         }
       }
 
-      if (hit.text.includes("南宫婉") || hit.text.includes("合欢宗")) {
+      if (hit.text.includes("Lady Guinevere") || hit.text.includes("Siren's Court")) {
         s.hasTriggeredRomance = true;
       }
-      // 追踪"不可描述的事"事件（南宫婉/韩立）
-      if (hit.text.includes("不可描述的事")) {
+      if (hit.text.includes("unspeakable")) {
         s.hasTriggeredIndescribable = true;
       }
-      // 追踪合欢宗事件次数
-      if (hit.text.includes("被合欢宗")) {
+      if (hit.text.includes("Siren's Court") && hit.text.includes("Captured")) {
         s.hehuanzongCount = (s.hehuanzongCount || 0) + 1;
       }
 
@@ -1062,7 +1057,7 @@
       if (s.cultivation < 0) s.cultivation = 0;
 
       let txt = hit.text;
-      if (!txt.includes("岁")) txt = `${s.age}岁：${txt}`;
+      if (!txt.includes("Age ")) txt = `Age ${s.age}: ${txt}`;
 
       let colorClass = hit.color || this.getEventColor(hit.chance || 1, eventType);
       if (eventType === "death") colorClass = "c-death";
@@ -1079,7 +1074,7 @@
       // 死亡事件豁免：气运超过阈值时直接化险为夷
       const threshold = this.getQiyunExemptionThreshold(s.realmIdx);
       if ((s.stats.qiyun || 0) > threshold) {
-        this.log(`${s.age}岁：${event.text}，但你的气运让你化险为夷！`, "c-legend");
+        this.log(`Age ${s.age}: ${event.text} But your Fortune saved you!`, "c-legend");
         return;
       }
 
@@ -1091,10 +1086,10 @@
       s.deathEventCount = (s.deathEventCount || 0) + 1;
 
       if (s.stats.tizhi <= 0) {
-        this.die(`${event.text}（体质-${damage}）`);
+        this.die(`${event.text} (Vitality-${damage})`);
       } else {
-        this.log(`${event.text}（体质-<span style="color:red">${damage}</span>）`, "c-death");
-        this.log("你顽强地活了下来！", "c-legend");
+        this.log(`${event.text} (Vitality-<span style="color:red">${damage}</span>)`, "c-death");
+        this.log("You survived against all odds!", "c-legend");
       }
     },
 
@@ -1157,11 +1152,9 @@
       const unlockedTitles = new Set(this.data.titles);
       const unownedMatched = matchedTitles.filter(t => !unlockedTitles.has(t.name));
 
-      // 优先判定：如果真仙境界，优先给予"仙帝"称号
-      const xianDi = matchedTitles.find(t => t.name === "仙帝");
-      if (xianDi) {
-        // 如果仙帝未解锁，优先解锁；如果已解锁，优先展示
-        return xianDi;
+      const highKing = matchedTitles.find(t => t.name === "High King");
+      if (highKing) {
+        return highKing;
       }
 
       if (unownedMatched.length > 0) {
@@ -1173,9 +1166,8 @@
 
     renderSettlement(myTitle, reason, isNewTitle) {
       const tEl = document.getElementById("end-title");
-      // 如果是新称号，添加"新！"标签
       if (isNewTitle) {
-        tEl.innerHTML = `${myTitle.name}<span class="new-title-badge">新！</span>`;
+        tEl.innerHTML = `${myTitle.name}<span class="new-title-badge">NEW!</span>`;
       } else {
         tEl.innerText = myTitle.name;
       }
@@ -1185,19 +1177,19 @@
       document.getElementById("end-age").innerText = this.state.age;
       document.getElementById("end-realm").innerText = cfg.realms[this.state.realmIdx];
       document.getElementById("end-gen").innerText = this.data.gen;
-      document.getElementById("end-reason").innerText = `死因：${reason}`;
+      document.getElementById("end-reason").innerText = `Cause of death: ${reason}`;
       
       // 显示转世福泽
       const bonusEl = document.getElementById("end-reincarnation-bonus");
       if (bonusEl && this.data.highestStatFromLastLife) {
         const statName = cfg.rules.statLabels[this.data.highestStatFromLastLife] || this.data.highestStatFromLastLife;
-        bonusEl.innerText = `转世福泽：下一世${statName}+1`;
+        bonusEl.innerText = `Legacy Boon: Next life ${statName}+1`;
         bonusEl.style.display = "block";
       }
     },
 
     finalizeDeath(reason, options) {
-      const finalReason = reason || "体质耗尽，魂飞魄散。";
+      const finalReason = reason || "Vitality spent. Passed away peacefully.";
       const opts = options || {};
 
       this.state.isDead = true;
@@ -1242,7 +1234,7 @@
       if (isNewTitle) {
         this.data.titles.push(myTitle.name);
       }
-      localStorage.setItem("xiuxian_save", JSON.stringify(this.data));
+      localStorage.setItem("knight_save", JSON.stringify(this.data));
       this.state.lastTitle = myTitle.name;
 
       trackFunnelStep("death", 4, {
@@ -1328,7 +1320,7 @@
 
       const gameName = document.createElement("div");
       gameName.className = "game-name";
-      gameName.innerText = "修仙模拟器";
+      gameName.innerText = "Knight Simulator";
 
       const qrContainer = document.createElement("div");
       qrContainer.className = "qr-container";
@@ -1376,12 +1368,12 @@
           try {
             const response = await fetch(imageData);
             const blob = await response.blob();
-            const file = new File([blob], "修仙结算.png", { type: "image/png" });
+            const file = new File([blob], "knight-legacy.png", { type: "image/png" });
 
             if (navigator.canShare({ files: [file] })) {
               await navigator.share({
-                title: "修仙模拟器 - 生平结算",
-                text: `我在修仙模拟器中获得了【${this.state.lastTitle || "无名小卒"}】的称号！`,
+                title: "Knight Simulator - Legacy",
+                text: `I earned the title [${this.state.lastTitle || "Nobody"}] in Knight Simulator!`,
                 files: [file]
               });
               return;
@@ -1393,11 +1385,11 @@
 
         // 回退：下载图片
         const link = document.createElement("a");
-        link.download = `修仙结算_${this.state.age}岁_${this.state.lastTitle || "无名小卒"}.png`;
+        link.download = `knight-legacy_age${this.state.age}_${this.state.lastTitle || "Nobody"}.png`;
         link.href = imageData;
         link.click();
       } catch {
-        alert("截图失败，请重试");
+        alert("Screenshot failed. Please try again.");
       } finally {
         // 无论成功失败，都移除分享区域
         const tempFooter = document.getElementById("share-footer-temp");
@@ -1408,7 +1400,7 @@
     },
 
     showSettlementDirectly(reason) {
-      this.finalizeDeath(reason || "体质耗尽，魂飞魄散。", { showSettlement: true });
+      this.finalizeDeath(reason || "Vitality spent. Passed away peacefully.", { showSettlement: true });
     }
   };
 

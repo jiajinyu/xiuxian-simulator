@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
-    <title>修仙模拟器</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/zpix-pixel-font@3.1.8/dist/zpix.css">
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <title>Knight Simulator</title>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         :root {
             /* --- 檀木/古风调色板 --- */
@@ -26,9 +25,9 @@
             --evt-rare: #ab82ff;  /* 紫罗兰 - 奇遇 */
             --evt-god: #ffd700;   /* 流光金 - 传说 */
             
-            /* 字体 */
-            --font-pixel: "Zpix", "SimSun", monospace;
-            --font-title: "Ma Shan Zheng", cursive;
+            /* Fonts */
+            --font-pixel: "Press Start 2P", monospace;
+            --font-title: "MedievalSharp", cursive;
         }
 
         * { box-sizing: border-box; touch-action: manipulation; }
@@ -678,56 +677,56 @@
     <div id="game-container">
         
         <div id="panel-start" class="panel center-content">
-            <h1>修仙模拟器</h1>
+            <h1>Knight Simulator</h1>
             
             
             <div id="start-stats">
-                <div>已轮回 <span id="gen-count" class="highlight-num">1</span> 世</div>
-                <div style="margin-top:10px;">封号收集 <span id="title-rate" class="highlight-num">0%</span></div>
+                <div>Lives lived: <span id="gen-count" class="highlight-num">1</span></div>
+                <div style="margin-top:10px;">Titles collected: <span id="title-rate" class="highlight-num">0%</span></div>
             </div>
 
-            <button class="btn" onclick="game.toTalentSelection()">转世重修</button>
-            <button class="btn" style="background:#3e2723" onclick="game.toGallery()">天道金榜</button>
-            <button class="btn btn-small" style="margin-top:30px; opacity:0.6; background:transparent; border:none; color:var(--text-dim);" onclick="game.resetData()">重置尘缘</button>
+            <button class="btn" onclick="game.toTalentSelection()">Begin Anew</button>
+            <button class="btn" style="background:#3e2723" onclick="game.toGallery()">Hall of Fame</button>
+            <button class="btn btn-small" style="margin-top:30px; opacity:0.6; background:transparent; border:none; color:var(--text-dim);" onclick="game.resetData()">Reset All</button>
         </div>
 
         <div id="panel-gallery" class="panel hidden">
-            <h2>天道金榜</h2>
+            <h2>Hall of Fame</h2>
             <div style="text-align:center; margin-bottom:10px; color:var(--text-dim);">
-                解锁进度：<span id="gallery-progress" style="color:var(--text-main);">0/21</span>
+                Unlocked: <span id="gallery-progress" style="color:var(--text-main);">0/21</span>
             </div>
             <div class="gallery-progress-panel">
-                <svg class="gallery-ring-svg" viewBox="0 0 84 84" aria-label="封号收集进度">
+                <svg class="gallery-ring-svg" viewBox="0 0 84 84" aria-label="Title collection progress">
                     <circle class="gallery-ring-bg" cx="42" cy="42" r="36"></circle>
                     <circle id="gallery-ring" class="gallery-ring-progress" cx="42" cy="42" r="36"></circle>
                 </svg>
             </div>
             <div id="gallery-list" class="gallery-grid"></div>
-            <button class="btn" onclick="game.backToStart()">返回</button>
+            <button class="btn" onclick="game.backToStart()">Back</button>
         </div>
 
         <div id="panel-talent" class="panel hidden">
-            <h2>天赋觉醒</h2>
+            <h2>Fate Unveiled</h2>
             <div id="talent-list" class="talent-grid"></div>
-            <button id="btn-draw" class="btn" onclick="game.drawTalents()">抽取天赋</button>
-            <button id="btn-redraw" class="btn hidden" onclick="game.redrawTalents()" style="background:#5d4037;">再抽一次</button>
-            <button id="btn-confirm-talent" class="btn hidden" onclick="game.toSetup()">确认天赋</button>
+            <button id="btn-draw" class="btn" onclick="game.drawTalents()">Draw Talents</button>
+            <button id="btn-redraw" class="btn hidden" onclick="game.redrawTalents()" style="background:#5d4037;">Redraw</button>
+            <button id="btn-confirm-talent" class="btn hidden" onclick="game.toSetup()">Confirm</button>
         </div>
 
         <div id="panel-setup" class="panel hidden">
-            <h2>先天属性</h2>
+            <h2>Born Attributes</h2>
             <div class="points-display">
-                <span class="points-label">可用点数</span>
+                <span class="points-label">Points Left</span>
                 <span id="points-left" class="points-value">20</span>
             </div>
             <div style="text-align:center; color:var(--text-dim); font-size:12px; margin-bottom:15px; padding:0 10px;">
-                提示：属性值不可低于天赋赋予的初始数值
+                Tip: Stats cannot go below the values granted by talents
             </div>
             <div id="stat-rows"></div>
-            <div id="tizhi-warning" style="display:none; text-align:center; color:var(--evt-neg); margin-bottom:10px; font-size:13px;">体质不能为负，请调整属性！</div>
+            <div id="tizhi-warning" style="display:none; text-align:center; color:var(--evt-neg); margin-bottom:10px; font-size:13px;">Vitality cannot be negative! Adjust your stats.</div>
             <div style="display:flex; gap:10px;">
-                <button class="btn" style="flex:1; background:#3e2723;" onclick="game.randomStats()">听天由命</button>
-                <button id="btn-start" class="btn" style="flex:1" disabled onclick="game.startGame()">开始</button>
+                <button class="btn" style="flex:1; background:#3e2723;" onclick="game.randomStats()">Randomize</button>
+                <button id="btn-start" class="btn" style="flex:1" disabled onclick="game.startGame()">Start</button>
             </div>
         </div>
 
@@ -736,25 +735,25 @@
                 <div id="status-bar">
                     <div class="stat-grid">
                         <div class="stat-item">
-                            <span class="stat-label">天赋</span>
+                            <span class="stat-label">Valor</span>
                             <span id="s-tianfu" class="stat-value">0</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">悟性</span>
+                            <span class="stat-label">Wisdom</span>
                             <span id="s-wuxing" class="stat-value">0</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">体质</span>
+                            <span class="stat-label">Vitality</span>
                             <span id="s-tizhi" class="stat-value">0</span>
                         </div>
                         <div class="stat-item">
-                            <span class="stat-label">气运</span>
+                            <span class="stat-label">Fortune</span>
                             <span id="s-qiyun" class="stat-value">0</span>
                         </div>
                     </div>
                     <div class="controls-wrapper">
                         <div class="progress-wrapper">
-                            <div id="realm-name">凡人</div>
+                            <div id="realm-name">Peasant</div>
                             <div class="bar-bg"><div id="bar-fill"></div></div>
                         </div>
                         <button class="btn btn-small" id="btn-speed" style="width:40px; height:32px; padding:0;" onclick="game.toggleSpeed()">1x</button>
@@ -765,39 +764,39 @@
             </div>
             
             <div style="display:flex; z-index:100; box-shadow:0 -5px 20px #000;">
-                <button id="btn-settle" class="btn hidden" style="margin:0; flex:1;" onclick="game.showSettlement()">查看生平结算</button>
+                <button id="btn-settle" class="btn hidden" style="margin:0; flex:1;" onclick="game.showSettlement()">View Legacy</button>
             </div>
         </div>
 
         <div id="settlement-modal">
-            <h2 class="c-red" style="background:transparent; border:none; font-size:32px;">道消身殒</h2>
-            <div id="end-reason" class="end-reason" style="margin-bottom:15px; margin-top:0;">死因...</div>
+            <h2 class="c-red" style="background:transparent; border:none; font-size:32px;">Fallen</h2>
+            <div id="end-reason" class="end-reason" style="margin-bottom:15px; margin-top:0;">Cause of death...</div>
             
             <div id="settlement-content" class="result-box">
-                <span class="end-title-label">获得封号</span>
-                <span id="end-title" class="end-title" style="color:white">无名小卒</span>
+                <span class="end-title-label">Title Earned</span>
+                <span id="end-title" class="end-title" style="color:white">Nobody</span>
                 <div id="end-title-desc" class="end-desc">...</div>
                 
                 <div class="end-stats">
                     <div class="end-stat-item">
-                        <span class="end-stat-label">享年</span>
+                        <span class="end-stat-label">Lived</span>
                         <span id="end-age" class="end-stat-value">0</span>
                     </div>
                     <div class="end-stat-item">
-                        <span class="end-stat-label">境界</span>
-                        <span id="end-realm" class="end-stat-value">凡人</span>
+                        <span class="end-stat-label">Rank</span>
+                        <span id="end-realm" class="end-stat-value">Peasant</span>
                     </div>
                     <div class="end-stat-item">
-                        <span class="end-stat-label">轮回</span>
+                        <span class="end-stat-label">Legacy</span>
                         <span id="end-gen" class="end-stat-value">1</span>
                     </div>
                 </div>
             </div>
             
-            <div id="end-reincarnation-bonus" class="end-reincarnation-bonus" style="display:none; width:100%; margin-bottom:15px; padding:10px; background:rgba(80,200,120,0.15); border:1px solid var(--evt-pos); color:var(--evt-pos); font-size:14px; text-align:center; cursor:help; position:relative;" title="上一世结算时最高的属性，可在下一世起始时获得+1加成"></div>
+            <div id="end-reincarnation-bonus" class="end-reincarnation-bonus" style="display:none; width:100%; margin-bottom:15px; padding:10px; background:rgba(80,200,120,0.15); border:1px solid var(--evt-pos); color:var(--evt-pos); font-size:14px; text-align:center; cursor:help; position:relative;" title="Your highest stat from last life grants +1 to that stat in the next life"></div>
             
-            <button class="btn" style="margin-bottom:10px; background:#4a3728;" onclick="game.shareSettlement()">📷 分享生平</button>
-            <button class="btn" onclick="game.restartGame()">再入轮回</button>
+            <button class="btn" style="margin-bottom:10px; background:#4a3728;" onclick="game.shareSettlement()">Share Legacy</button>
+            <button class="btn" onclick="game.restartGame()">Live Again</button>
         </div>
 
     </div>
